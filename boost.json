@@ -1,0 +1,25 @@
+{
+    "agents": [
+        "claude_code",
+        "opencode",
+        "copilot"
+    ],
+    "guidelines": true,
+    "herd_mcp": false,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "packages": [
+        "hotwired-laravel/turbo-laravel",
+        "laravel/fortify"
+    ],
+    "sail": false,
+    "skills": [
+        "pest-testing",
+        "developing-with-turbo-basics",
+        "developing-with-turbo-drive",
+        "developing-with-turbo-frames",
+        "developing-with-turbo-streams",
+        "developing-with-turbo-tests",
+        "developing-with-fortify"
+    ]
+}
