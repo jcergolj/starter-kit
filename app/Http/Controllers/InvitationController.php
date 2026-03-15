@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
+use Jcergolj\InAppNotifications\Facades\InAppNotification;
 
 class InvitationController extends Controller
 {
@@ -25,7 +26,9 @@ class InvitationController extends Controller
 
         Mail::to($invitation->email)->send(new InvitationMail($invitation));
 
-        return to_route('invitations.create')->with('status', 'invitation-sent');
+        InAppNotification::success(__('Invitation sent successfully.'));
+
+        return to_route('invitations.create');
     }
 
     public function destroy(Invitation $invitation): RedirectResponse
@@ -34,6 +37,8 @@ class InvitationController extends Controller
             $invitation->delete();
         }
 
-        return to_route('invitations.create')->with('status', 'invitation-revoked');
+        InAppNotification::success(__('Invitation revoked.'));
+
+        return to_route('invitations.create');
     }
 }

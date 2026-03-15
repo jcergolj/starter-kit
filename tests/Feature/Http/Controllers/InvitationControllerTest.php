@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use Jcergolj\InAppNotifications\Facades\InAppNotification;
 use Tests\TestCase;
 
 #[CoversClass(InvitationController::class)]
@@ -21,6 +22,13 @@ final class InvitationControllerTest extends TestCase
 {
     use RefreshDatabase;
     use TestableFormRequest;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        InAppNotification::fake();
+    }
 
     #[Test]
     public function create_has_auth_verified_and_admin_middleware(): void
@@ -83,7 +91,9 @@ final class InvitationControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('invitations.create'));
-        $response->assertSessionHas('status', 'invitation-sent');
+
+        InAppNotification::assertSuccess(__('Invitation sent successfully.'));
+        
         $this->assertDatabaseHas('invitations', ['email' => 'invite@example.com']);
         Mail::assertSent(InvitationMail::class, fn ($mail) => $mail->hasTo('invite@example.com'));
     }
@@ -110,7 +120,8 @@ final class InvitationControllerTest extends TestCase
         $response = $this->actingAs($admin)->delete(route('invitations.destroy', $invitation));
 
         $response->assertRedirect(route('invitations.create'));
-        $response->assertSessionHas('status', 'invitation-revoked');
+
+        InAppNotification::assertSuccess(__('Invitation revoked.'));
     }
 
     #[Test]

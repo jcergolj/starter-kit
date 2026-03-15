@@ -4,14 +4,6 @@
     </x-slot>
 
     <section class="w-full lg:max-w-xl mx-auto">
-        @if (session('status') === 'invitation-sent')
-            <div class="font-medium text-sm text-green-600">{{ __('Invitation sent successfully.') }}</div>
-        @endif
-
-        @if (session('status') === 'invitation-revoked')
-            <div class="font-medium text-sm text-green-600">{{ __('Invitation revoked.') }}</div>
-        @endif
-
         <form method="POST" action="{{ route('invitations.store') }}" class="flex flex-col gap-6">
             @csrf
             <div>
