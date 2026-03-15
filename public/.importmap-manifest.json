@@ -95,11 +95,6 @@
         "preload": true
     },
     {
-        "module": "controllers/session_recovery_controller",
-        "path": "dist/js/controllers/session_recovery_controller-d51be95e585b4af07b535e4b51771c9073e8fdc9.js",
-        "preload": true
-    },
-    {
         "module": "controllers/sidebar_controller",
         "path": "dist/js/controllers/sidebar_controller-b1990218760a98466584219ada61659ab131aa2a.js",
         "preload": true

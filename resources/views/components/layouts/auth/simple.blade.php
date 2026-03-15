@@ -8,7 +8,7 @@
             'title' => $title,
         ])
     </head>
-    <body @class(["min-h-screen antialiased", "hotwire-native" => Turbo::isHotwireNativeVisit()]) style="background: var(--color-bg);">
+    <body @class(["min-h-screen antialiased"]) style="background: var(--color-bg);">
         <div class="flex min-h-screen flex-col items-center justify-center px-2 py-12">
             <x-in-app-notifications::notification />
 

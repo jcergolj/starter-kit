@@ -8,7 +8,7 @@
             'title' => $title,
         ])
     </head>
-    <body @class(["min-h-screen", "hotwire-native" => Turbo::isHotwireNativeVisit()]) data-controller="session-recovery" style="background: var(--color-bg);">
+    <body @class(["min-h-screen"]) style="background: var(--color-bg);">
         <!-- Top Navigation - Dark Theme -->
         <nav class="app-nav sticky top-0 z-50">
             <div class="mx-auto px-2 sm:px-4 lg:px-8">
