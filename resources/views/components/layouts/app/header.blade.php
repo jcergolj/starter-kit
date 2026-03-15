@@ -30,6 +30,9 @@
                                     <x-navbar.nav-item icon="envelope" :href="route('invitations.create')" :current="request()->routeIs('invitations.*')">
                                         {{ __('Invitations') }}
                                     </x-navbar.nav-item>
+                                    <x-navbar.nav-item icon="users" :href="route('users.index')" :current="request()->routeIs('users.*')">
+                                        {{ __('Users') }}
+                                    </x-navbar.nav-item>
                                 @endif
                             @endauth
                         </div>
@@ -65,6 +68,9 @@
                                         @if(auth()->user()->isAdmin())
                                             <x-navbar.nav-item icon="envelope" :href="route('invitations.create')" :current="request()->routeIs('invitations.*')" class="block w-full text-left" data-action="click->mobile-menu#close">
                                                 {{ __('Invitations') }}
+                                            </x-navbar.nav-item>
+                                            <x-navbar.nav-item icon="users" :href="route('users.index')" :current="request()->routeIs('users.*')" class="block w-full text-left" data-action="click->mobile-menu#close">
+                                                {{ __('Users') }}
                                             </x-navbar.nav-item>
                                         @endif
                                     @endauth

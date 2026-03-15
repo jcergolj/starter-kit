@@ -21,6 +21,8 @@ class CreateUserCommand extends Command
 
     public function handle(TenantDatabaseService $tenantDatabaseService): int
     {
+        $newTenantSubdomain = null;
+
         $where = $this->choice(__('Where should the user be added?'), [
             __('Current database'),
             __('New tenant database'),
@@ -28,17 +30,17 @@ class CreateUserCommand extends Command
         ]);
 
         if ($where === __('New tenant database')) {
-            $subdomain = $this->ask(__('Subdomain'));
+            $newTenantSubdomain = $this->ask(__('Subdomain'));
 
             try {
-                $tenantDatabaseService->createTenantDatabase($subdomain);
+                $tenantDatabaseService->createTenantDatabase($newTenantSubdomain);
             } catch (InvalidSubdomainFormat) {
                 $this->error(__('Invalid subdomain format.'));
 
                 return self::FAILURE;
             }
 
-            $tenantDatabaseService->connectToTenant($subdomain);
+            $tenantDatabaseService->connectToTenant($newTenantSubdomain);
         }
 
         if ($where === __('Existing tenant database')) {
@@ -73,7 +75,7 @@ class CreateUserCommand extends Command
             return $this->sendInvitation($isAdmin);
         }
 
-        return $this->createDirectly($isAdmin);
+        return $this->createDirectly($isAdmin, $newTenantSubdomain);
     }
 
     private function sendInvitation(bool $isAdmin): int
@@ -89,12 +91,12 @@ class CreateUserCommand extends Command
         return self::SUCCESS;
     }
 
-    private function createDirectly(bool $isAdmin): int
+    private function createDirectly(bool $isAdmin, ?string $subdomain = null): int
     {
         $name = $this->ask(__('Name'));
-        $username = $this->ask(__('Username'));
+        $username = $subdomain ?? $this->ask(__('Username'));
         $email = $this->ask(__('Email'));
-        $password = $this->ask(__('Password'));
+        $password = $this->secret(__('Password'));
 
         User::create([
             'name' => $name,

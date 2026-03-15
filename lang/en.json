@@ -131,5 +131,16 @@
     "Create directly": "Create directly",
     "Invalid subdomain format.": "Invalid subdomain format.",
     "No existing tenant databases found.": "No existing tenant databases found.",
-    "User created successfully.": "User created successfully."
+    "User created successfully.": "User created successfully.",
+    "Users": "Users",
+    "Edit user": "Edit user",
+    "User updated.": "User updated.",
+    "User deleted.": "User deleted.",
+    "User blocked.": "User blocked.",
+    "User unblocked.": "User unblocked.",
+    "Blocked": "Blocked",
+    "Active": "Active",
+    "Block": "Block",
+    "Unblock": "Unblock",
+    "No users found.": "No users found."
 }

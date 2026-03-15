@@ -29,4 +29,14 @@ final class DashboardTest extends TestCase
         $response = $this->get('/dashboard');
         $response->assertOk();
     }
+
+    #[Test]
+    public function blocked_user_gets_403(): void
+    {
+        $user = User::factory()->blocked()->create();
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertForbidden();
+    }
 }

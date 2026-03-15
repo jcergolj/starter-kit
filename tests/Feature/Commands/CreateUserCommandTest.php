@@ -156,13 +156,13 @@ final class CreateUserCommandTest extends TestCase
                 __('Create directly'),
             ])
             ->expectsQuestion(__('Name'), 'Tenant User')
-            ->expectsQuestion(__('Username'), 'tenantuser')
             ->expectsQuestion(__('Email'), 'tenant@example.com')
             ->expectsQuestion(__('Password'), 'password')
             ->assertSuccessful();
 
         $user = User::where('email', 'tenant@example.com')->first();
         $this->assertSame('Tenant User', $user->name);
+        $this->assertSame('test-tenant', $user->username);
         $this->assertFalse($user->is_admin);
     }
 
@@ -185,13 +185,13 @@ final class CreateUserCommandTest extends TestCase
                 __('Create directly'),
             ])
             ->expectsQuestion(__('Name'), 'Tenant Admin')
-            ->expectsQuestion(__('Username'), 'tenantadmin')
             ->expectsQuestion(__('Email'), 'tenant-admin@example.com')
             ->expectsQuestion(__('Password'), 'password')
             ->assertSuccessful();
 
         $user = User::where('email', 'tenant-admin@example.com')->first();
         $this->assertSame('Tenant Admin', $user->name);
+        $this->assertSame('admin-tenant', $user->username);
         $this->assertTrue($user->is_admin);
     }
 

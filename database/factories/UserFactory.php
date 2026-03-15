@@ -26,6 +26,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'settings' => ['lang' => 'en'],
             'is_admin' => false,
+            'blocked_at' => null,
         ];
     }
 
@@ -33,6 +34,13 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_admin' => true,
+        ]);
+    }
+
+    public function blocked(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'blocked_at' => now(),
         ]);
     }
 

@@ -53,4 +53,20 @@ final class UserTest extends TestCase
 
         $this->assertFalse($user->isAdmin());
     }
+
+    #[Test]
+    public function is_blocked_returns_true_when_blocked_at_is_set(): void
+    {
+        $user = User::factory()->blocked()->create();
+
+        $this->assertTrue($user->isBlocked());
+    }
+
+    #[Test]
+    public function is_blocked_returns_false_when_blocked_at_is_null(): void
+    {
+        $user = User::factory()->create();
+
+        $this->assertFalse($user->isBlocked());
+    }
 }

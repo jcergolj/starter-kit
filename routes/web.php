@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcceptInvitationController;
+use App\Http\Controllers\BlockedUserController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\Settings\ConfirmedTwoFactorController;
 use App\Http\Controllers\Settings\LanguageController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\RecoveryCodesController;
 use App\Http\Controllers\Settings\TwoFactorController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -28,6 +30,13 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         ->name('invitations.store');
     Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])
         ->name('invitations.destroy');
+
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('users/{user}/block', [BlockedUserController::class, 'store'])->name('blocked-users.store');
+    Route::delete('users/{user}/block', [BlockedUserController::class, 'destroy'])->name('blocked-users.destroy');
 });
 
 Route::view('dashboard', 'dashboard')

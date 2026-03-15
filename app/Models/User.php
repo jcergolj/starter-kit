@@ -26,6 +26,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return (bool) $this->is_admin;
     }
 
+    public function isBlocked(): bool
+    {
+        return $this->blocked_at !== null;
+    }
+
     public function initials(): string
     {
         return Str::of($this->username)->substr(0, 2)->upper();
@@ -45,6 +50,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'blocked_at' => 'datetime',
         ];
     }
 }

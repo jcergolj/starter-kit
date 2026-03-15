@@ -131,5 +131,16 @@
     "Create directly": "Ustvari neposredno",
     "Invalid subdomain format.": "Neveljaven format poddomene.",
     "No existing tenant databases found.": "Ni najdenih obstoječih baz podatkov najemnikov.",
-    "User created successfully.": "Uporabnik uspešno ustvarjen."
+    "User created successfully.": "Uporabnik uspešno ustvarjen.",
+    "Users": "Uporabniki",
+    "Edit user": "Uredi uporabnika",
+    "User updated.": "Uporabnik posodobljen.",
+    "User deleted.": "Uporabnik izbrisan.",
+    "User blocked.": "Uporabnik blokiran.",
+    "User unblocked.": "Uporabnik odblokiran.",
+    "Blocked": "Blokiran",
+    "Active": "Aktiven",
+    "Block": "Blokiraj",
+    "Unblock": "Odblokiraj",
+    "No users found.": "Ni najdenih uporabnikov."
 }
