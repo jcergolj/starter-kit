@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Settings;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Requests\SaveLanguageRequest;
 use App\Models\User;
+use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -33,7 +34,7 @@ final class LanguageControllerTest extends TestCase
     #[Test]
     public function edit_displays_language_form(): void
     {
-        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+        $this->withoutMiddleware(HotreloadMiddleware::class);
 
         $user = User::factory()->create();
 

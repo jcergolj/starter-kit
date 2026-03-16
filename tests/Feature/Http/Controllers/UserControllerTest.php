@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers;
 use App\Http\Controllers\UserController;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
@@ -122,7 +123,7 @@ final class UserControllerTest extends TestCase
     #[Test]
     public function admin_can_view_edit_form(): void
     {
-        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+        $this->withoutMiddleware(HotreloadMiddleware::class);
 
         $admin = User::factory()->admin()->create();
         $user = User::factory()->create();

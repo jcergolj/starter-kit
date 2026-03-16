@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Settings;
 
 use App\Http\Controllers\Settings\ProfileController;
 use App\Models\User;
+use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -85,7 +86,7 @@ final class ProfileControllerTest extends TestCase
     #[Test]
     public function delete_page_is_displayed(): void
     {
-        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+        $this->withoutMiddleware(HotreloadMiddleware::class);
 
         $this->actingAs(User::factory()->create());
 
@@ -157,7 +158,7 @@ final class ProfileControllerTest extends TestCase
     #[Test]
     public function profile_page_is_displayed(): void
     {
-        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+        $this->withoutMiddleware(HotreloadMiddleware::class);
 
         $this->actingAs(User::factory()->create());
 

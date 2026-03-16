@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Auth;
 
 use App\Models\User;
+use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ final class AuthenticatedSessionControllerTest extends TestCase
     #[Test]
     public function login_screen_can_be_rendered(): void
     {
-        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+        $this->withoutMiddleware(HotreloadMiddleware::class);
 
         $this->get('/login')
             ->assertOk()

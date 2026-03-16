@@ -33,23 +33,12 @@
                                         <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-ghost">{{ __('Edit') }}</a>
 
                                         @if ($user->isBlocked())
-                                            <form method="POST" action="{{ route('blocked-users.destroy', $user) }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-form.button.secondary class="btn-sm">{{ __('Unblock') }}</x-form.button.secondary>
-                                            </form>
+                                            <a href="{{ route('blocked-users.destroy', $user) }}" class="btn btn-secondary btn-sm" data-turbo-method="delete" data-turbo-confirm="{{ __('Are you sure you want to unblock this user?') }}">{{ __('Unblock') }}</a>
                                         @else
-                                            <form method="POST" action="{{ route('blocked-users.store', $user) }}">
-                                                @csrf
-                                                <x-form.button.secondary class="btn-sm">{{ __('Block') }}</x-form.button.secondary>
-                                            </form>
+                                            <a href="{{ route('blocked-users.store', $user) }}" class="btn btn-secondary btn-sm" data-turbo-method="post" data-turbo-confirm="{{ __('Are you sure you want to block this user?') }}">{{ __('Block') }}</a>
                                         @endif
 
-                                        <form method="POST" action="{{ route('users.destroy', $user) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <x-form.button.danger class="btn-sm">{{ __('Delete') }}</x-form.button.danger>
-                                        </form>
+                                        <a href="{{ route('users.destroy', $user) }}" class="btn btn-error btn-sm" data-turbo-method="delete" data-turbo-confirm="{{ __('Are you sure you want to delete this user?') }}">{{ __('Delete') }}</a>
                                     </div>
                                 </td>
                             </tr>

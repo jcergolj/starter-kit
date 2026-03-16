@@ -26,11 +26,7 @@
                             <tr>
                                 <td class="text-sm">{{ $invitation->email }}</td>
                                 <td class="text-right">
-                                    <form method="POST" action="{{ route('invitations.destroy', $invitation) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <x-form.button.danger class="btn-sm">{{ __('Revoke') }}</x-form.button.danger>
-                                    </form>
+                                    <a href="{{ route('invitations.destroy', $invitation) }}" class="btn btn-error btn-sm" data-turbo-method="delete" data-turbo-confirm="{{ __('Are you sure you want to revoke this invitation?') }}">{{ __('Revoke') }}</a>
                                 </td>
                             </tr>
                         @endforeach
