@@ -2,7 +2,7 @@
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('Accept Invitation')" :description="__('Complete your registration below.')" />
 
-        <form method="POST" action="{{ route('accept.invitations.store', $invitation->token) }}" class="flex flex-col gap-6">
+        <form id="accept-invitation-form" method="POST" action="{{ route('accept.invitations.store', $invitation->token) }}" class="flex flex-col gap-6">
             @csrf
 
             <div>

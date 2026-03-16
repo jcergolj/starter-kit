@@ -32,11 +32,22 @@ final class AcceptInvitationControllerTest extends TestCase
     #[Test]
     public function show_renders_accept_form_for_valid_token(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         $invitation = Invitation::factory()->create();
 
         $response = $this->get(route('invitations.accept', $invitation->token));
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertViewIs('invitations.accept')
+            ->assertViewHasForm('id="accept-invitation-form"', 'POST', route('accept.invitations.store', $invitation->token))
+            ->assertFormHasCSRF()
+            ->assertFormHasEmailInput('email')
+            ->assertFormHasTextInput('name')
+            ->assertFormHasTextInput('username')
+            ->assertFormHasPasswordInput('password')
+            ->assertFormHasPasswordInput('password_confirmation')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

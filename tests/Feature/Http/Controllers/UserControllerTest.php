@@ -122,13 +122,21 @@ final class UserControllerTest extends TestCase
     #[Test]
     public function admin_can_view_edit_form(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         $admin = User::factory()->admin()->create();
         $user = User::factory()->create();
 
         $response = $this->actingAs($admin)->get(route('users.edit', $user));
 
-        $response->assertOk();
-        $response->assertSee($user->name);
+        $response->assertOk()
+            ->assertViewIs('users.edit')
+            ->assertViewHasForm('id="edit-user-form"', 'PUT', route('users.update', $user))
+            ->assertFormHasCSRF()
+            ->assertFormHasTextInput('name')
+            ->assertFormHasTextInput('username')
+            ->assertFormHasEmailInput('email')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

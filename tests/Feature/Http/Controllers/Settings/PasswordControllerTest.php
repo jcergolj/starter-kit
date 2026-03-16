@@ -18,6 +18,24 @@ final class PasswordControllerTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
+    public function edit_displays_password_form(): void
+    {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get(route('settings.password.edit'))
+            ->assertOk()
+            ->assertViewIs('settings.password.edit')
+            ->assertViewHasForm('id="update-password-form"', 'PUT', route('settings.password.update'))
+            ->assertFormHasCSRF()
+            ->assertFormHasPasswordInput('current_password')
+            ->assertFormHasPasswordInput('password')
+            ->assertFormHasPasswordInput('password_confirmation')
+            ->assertFormHasSubmitButton();
+    }
+
+    #[Test]
     public function edit_requires_authentication(): void
     {
         $response = $this->get(route('settings.password.edit'));

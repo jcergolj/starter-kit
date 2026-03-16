@@ -5,7 +5,7 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form action="{{ route('two-factor.login.store') }}" method="post" class="flex peer-checked:hidden flex-col gap-6" data-turbo-action="replace">
+        <form id="two-factor-code-form" action="{{ route('two-factor.login.store') }}" method="post" class="flex peer-checked:hidden flex-col gap-6" data-turbo-action="replace">
             @csrf
 
             <x-auth-header :title="__('Authentication Code')" :description="__('Enter the authentication code provided by your authenticator application.')" />
@@ -31,7 +31,7 @@
             </div>
         </form>
 
-        <form action="{{ route('two-factor.login.store') }}" method="post" class="hidden peer-checked:flex flex-col gap-6" data-turbo-action="replace">
+        <form id="two-factor-recovery-form" action="{{ route('two-factor.login.store') }}" method="post" class="hidden peer-checked:flex flex-col gap-6" data-turbo-action="replace">
             @csrf
 
             <x-auth-header :title="__('Recovery Code')" :description="__('Please confirm access to your account by entering one of your emergency recovery codes.')" />

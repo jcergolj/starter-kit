@@ -6,7 +6,7 @@
         <x-text.subheading>{{ __('Update your name and email address') }}</x-text.subheading>
 
         <x-page-card class="my-6">
-            <form action="{{ route('settings.profile.update') }}" method="post" class="w-full space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
+            <form id="edit-profile-form" action="{{ route('settings.profile.update') }}" method="post" class="w-full space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
                 @csrf
                 @method('put')
 

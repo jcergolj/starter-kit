@@ -5,7 +5,7 @@
         <x-text.subheading>{{ __('Ensure your account is using a long, random password to stay secure') }}</x-text.subheading>
 
         <x-page-card class="my-6">
-            <form action="{{ route('settings.password.update') }}" method="post" class="space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
+            <form id="update-password-form" action="{{ route('settings.password.update') }}" method="post" class="space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
                 @csrf
                 @method('put')
 

@@ -5,7 +5,7 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form action="{{ route('password.email') }}" method="post" class="flex flex-col gap-6">
+        <form id="forgot-password-form" action="{{ route('password.email') }}" method="post" class="flex flex-col gap-6">
             @csrf
 
             <!-- Email Address -->

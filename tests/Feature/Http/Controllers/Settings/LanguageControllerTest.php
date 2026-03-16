@@ -33,11 +33,18 @@ final class LanguageControllerTest extends TestCase
     #[Test]
     public function edit_displays_language_form(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('settings.language.edit'));
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertViewIs('settings.language.edit')
+            ->assertViewHasForm('id="update-language-form"', 'PUT', route('settings.language.update'))
+            ->assertFormHasCSRF()
+            ->assertFormHasDropdown('lang')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

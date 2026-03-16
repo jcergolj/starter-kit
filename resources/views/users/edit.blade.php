@@ -1,7 +1,7 @@
 <x-layouts.app :title="__('Edit user')">
     <section class="w-full lg:max-w-xl mx-auto">
         <x-text.heading size="xl">{{ __('Edit user') }}</x-text.heading>
-        <form method="POST" action="{{ route('users.update', $user) }}" class="flex flex-col gap-6">
+        <form id="edit-user-form" method="POST" action="{{ route('users.update', $user) }}" class="flex flex-col gap-6">
             @csrf
             @method('PUT')
 

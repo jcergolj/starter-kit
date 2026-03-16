@@ -7,7 +7,7 @@
         <x-page-card class="my-6">
             <p class="text-sm">{{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}</p>
 
-            <form action="{{ route('settings.profile.destroy') }}" method="post" class="mt-6 w-full space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
+            <form id="delete-profile-form" action="{{ route('settings.profile.destroy') }}" method="post" class="mt-6 w-full space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
                 @csrf
 
                 <!-- Current Password -->

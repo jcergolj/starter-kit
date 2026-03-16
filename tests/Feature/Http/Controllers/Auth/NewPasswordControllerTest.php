@@ -18,6 +18,8 @@ final class NewPasswordControllerTest extends TestCase
     #[Test]
     public function reset_password_screen_can_be_rendered(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         Notification::fake();
 
         $user = User::factory()->create();
@@ -27,7 +29,16 @@ final class NewPasswordControllerTest extends TestCase
         ])->assertValid();
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-            $this->get('/reset-password/'.$notification->token)->assertOk();
+            $this->get('/reset-password/'.$notification->token)
+                ->assertOk()
+                ->assertViewIs('auth.reset-password')
+                ->assertViewHasForm('id="reset-password-form"', 'POST', route('password.update'))
+                ->assertFormHasCSRF()
+                ->assertFormHasHiddenInput('token')
+                ->assertFormHasEmailInput('email')
+                ->assertFormHasPasswordInput('password')
+                ->assertFormHasPasswordInput('password_confirmation')
+                ->assertFormHasSubmitButton();
 
             return true;
         });

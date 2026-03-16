@@ -5,7 +5,7 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form action="{{ route('password.confirm.store') }}" method="post" class="flex flex-col gap-6">
+        <form id="confirm-password-form" action="{{ route('password.confirm.store') }}" method="post" class="flex flex-col gap-6">
             @csrf
 
             <!-- Password -->

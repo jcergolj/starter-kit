@@ -5,7 +5,7 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form action="{{ route('password.update') }}" method="post" class="flex flex-col gap-6">
+        <form id="reset-password-form" action="{{ route('password.update') }}" method="post" class="flex flex-col gap-6">
             @csrf
 
             <!-- Token -->

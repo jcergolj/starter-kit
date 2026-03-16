@@ -1,7 +1,7 @@
 <x-layouts.app :title="__('Send invitation')">
     <section class="w-full lg:max-w-xl mx-auto">
         <x-text.heading size="xl">{{ __('Send invitation') }}</x-text.heading>
-        <form method="POST" action="{{ route('invitations.store') }}" class="flex flex-col gap-6">
+        <form id="create-invitation" method="POST" action="{{ route('invitations.store') }}" class="flex flex-col gap-6">
             @csrf
             <div>
                 <x-form.label for="email">{{ __('Email address') }}</x-form.label>

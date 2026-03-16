@@ -18,7 +18,15 @@ final class PasswordResetLinkControllerTest extends TestCase
     #[Test]
     public function reset_password_link_screen_can_be_rendered(): void
     {
-        $this->get('/forgot-password')->assertOk();
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
+        $this->get('/forgot-password')
+            ->assertOk()
+            ->assertViewIs('auth.forgot-password')
+            ->assertViewHasForm('id="forgot-password-form"', 'POST', route('password.email'))
+            ->assertFormHasCSRF()
+            ->assertFormHasEmailInput('email')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

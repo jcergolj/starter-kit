@@ -19,11 +19,17 @@ final class VerifyEmailControllerTest extends TestCase
     #[Test]
     public function email_verification_screen_can_be_rendered(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         $user = User::factory()->unverified()->create();
 
         $response = $this->actingAs($user)->get('/email/verify');
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertViewIs('auth.verify-email')
+            ->assertViewHasForm('id="resend-verification-form"', 'POST', route('verification.send'))
+            ->assertFormHasCSRF()
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

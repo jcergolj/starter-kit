@@ -17,6 +17,28 @@ final class TwoFactorAuthenticatedSessionControllerTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
+    public function two_factor_challenge_screen_can_be_rendered(): void
+    {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
+        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+
+        Session::put([
+            'login.id' => $user->id,
+            'login.remember' => false,
+        ]);
+
+        $response = $this->get('/two-factor-challenge');
+
+        $response->assertOk()
+            ->assertViewIs('auth.two-factor-challenge')
+            ->assertViewHasForm('id="two-factor-code-form"', 'POST', route('two-factor.login.store'))
+            ->assertFormHasCSRF()
+            ->assertFormHasHiddenInput('code')
+            ->assertFormHasSubmitButton();
+    }
+
+    #[Test]
     public function user_with_two_factor_authentication_enabled_is_redirected_to_challenge_on_login(): void
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();

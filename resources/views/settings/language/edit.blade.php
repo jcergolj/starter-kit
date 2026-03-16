@@ -6,7 +6,7 @@
         <x-text.subheading>{{ __('Choose your preferred language') }}</x-text.subheading>
 
         <x-page-card class="my-6">
-            <form action="{{ route('settings.language.update') }}" method="post" class="space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
+            <form id="update-language-form" action="{{ route('settings.language.update') }}" method="post" class="space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
                 @csrf
                 @method('put')
 

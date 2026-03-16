@@ -55,11 +55,18 @@ final class InvitationControllerTest extends TestCase
     #[Test]
     public function admin_can_view_invite_form(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->get(route('invitations.create'));
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertViewIs('invitations.create')
+            ->assertViewHasForm('id="create-invitation"', 'POST', route('invitations.store'))
+            ->assertFormHasCSRF()
+            ->assertFormHasEmailInput('email')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

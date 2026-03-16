@@ -5,7 +5,7 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form action="{{ route('login.store') }}" method="post" class="flex flex-col gap-6" data-turbo-action="replace">
+        <form id="login-form" action="{{ route('login.store') }}" method="post" class="flex flex-col gap-6" data-turbo-action="replace">
             @csrf
 
             <!-- Email Address -->

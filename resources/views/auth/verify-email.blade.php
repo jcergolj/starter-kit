@@ -16,7 +16,7 @@
         @endif
 
         <div class="flex flex-col gap-4">
-            <form action="{{ route('verification.send') }}" method="post">
+            <form id="resend-verification-form" action="{{ route('verification.send') }}" method="post">
                 @csrf
 
                 <button type="submit" class="w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors btn-primary">

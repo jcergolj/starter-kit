@@ -83,6 +83,22 @@ final class ProfileControllerTest extends TestCase
     }
 
     #[Test]
+    public function delete_page_is_displayed(): void
+    {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
+        $this->actingAs(User::factory()->create());
+
+        $this->get(route('settings.profile.delete'))
+            ->assertOk()
+            ->assertViewIs('settings.profile.delete')
+            ->assertViewHasForm('id="delete-profile-form"', 'POST', route('settings.profile.destroy'))
+            ->assertFormHasCSRF()
+            ->assertFormHasPasswordInput('password')
+            ->assertFormHasSubmitButton();
+    }
+
+    #[Test]
     public function delete_requires_authentication(): void
     {
         $response = $this->get(route('settings.profile.delete'));
@@ -141,9 +157,18 @@ final class ProfileControllerTest extends TestCase
     #[Test]
     public function profile_page_is_displayed(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         $this->actingAs(User::factory()->create());
 
-        $this->get(route('settings.profile.edit'))->assertOk();
+        $this->get(route('settings.profile.edit'))
+            ->assertOk()
+            ->assertViewIs('settings.profile.edit')
+            ->assertViewHasForm('id="edit-profile-form"', 'PUT', route('settings.profile.update'))
+            ->assertFormHasCSRF()
+            ->assertFormHasTextInput('name')
+            ->assertFormHasEmailInput('email')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

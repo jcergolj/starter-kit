@@ -16,7 +16,17 @@ final class AuthenticatedSessionControllerTest extends TestCase
     #[Test]
     public function login_screen_can_be_rendered(): void
     {
-        $this->get('/login')->assertOk();
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertViewIs('auth.login')
+            ->assertViewHasForm('id="login-form"', 'POST', route('login.store'))
+            ->assertFormHasCSRF()
+            ->assertFormHasEmailInput('email')
+            ->assertFormHasPasswordInput('password')
+            ->assertFormHasCheckboxInput('remember')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]

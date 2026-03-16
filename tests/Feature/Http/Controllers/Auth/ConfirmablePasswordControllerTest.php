@@ -16,11 +16,18 @@ final class ConfirmablePasswordControllerTest extends TestCase
     #[Test]
     public function confirm_password_screen_can_be_rendered(): void
     {
+        $this->withoutMiddleware(\HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware::class);
+
         $user = User::factory()->create();
 
         $this->actingAs($user)
             ->get('/user/confirm-password')
-            ->assertOk();
+            ->assertOk()
+            ->assertViewIs('auth.confirm-password')
+            ->assertViewHasForm('id="confirm-password-form"', 'POST', route('password.confirm.store'))
+            ->assertFormHasCSRF()
+            ->assertFormHasPasswordInput('password')
+            ->assertFormHasSubmitButton();
     }
 
     #[Test]
