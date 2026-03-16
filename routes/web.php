@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcceptInvitationController;
+use App\Http\Controllers\CsrfTokenController;
 use App\Http\Controllers\BlockedUserController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\Settings\ConfirmedTwoFactorController;
@@ -38,6 +39,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::post('users/{user}/block', [BlockedUserController::class, 'store'])->name('blocked-users.store');
     Route::delete('users/{user}/block', [BlockedUserController::class, 'destroy'])->name('blocked-users.destroy');
 });
+
+Route::get('csrf-token', [CsrfTokenController::class, 'show'])
+    ->middleware(['auth'])
+    ->name('csrf-token');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
