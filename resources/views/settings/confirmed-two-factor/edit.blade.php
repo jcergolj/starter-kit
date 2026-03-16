@@ -1,9 +1,7 @@
 <x-layouts.app :title="__('Enable Two-Factor Authentication')">
     <section class="w-full lg:max-w-xl mx-auto">
-        @unlesshotwirenative
         <x-back-link :href="route('settings.two-factor.edit')">{{ __('Two-factor authentication') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Enable Two-Factor Authentication') }}</x-text.heading>
-        @endunlesshotwirenative
 
         <x-page-card class="my-6">
             <x-turbo::frame id="two-factor-enable" class="relative flex flex-col items-start rounded-xl justify-start space-y-4">

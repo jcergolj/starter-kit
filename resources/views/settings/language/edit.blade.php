@@ -1,9 +1,8 @@
 <x-layouts.app :title="__('Language')">
     <section class="w-full lg:max-w-xl mx-auto">
-        @unlesshotwirenative
         <x-back-link :href="route('settings')">{{ __('Profile & Settings') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Language') }}</x-text.heading>
-        @endunlesshotwirenative
+        
         <x-text.subheading>{{ __('Choose your preferred language') }}</x-text.subheading>
 
         <x-page-card class="my-6">

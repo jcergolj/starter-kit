@@ -2,10 +2,8 @@
     <x-turbo::exempts-page-from-cache />
 
     <section class="w-full lg:max-w-xl mx-auto">
-        @unlesshotwirenative
         <x-back-link :href="route('settings')">{{ __('Profile & Settings') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Two-factor authentication') }}</x-text.heading>
-        @endunlesshotwirenative
         <x-text.subheading>{{ __('Manage your two-factor authentication settings') }}</x-text.subheading>
 
         <x-page-card class="my-6">

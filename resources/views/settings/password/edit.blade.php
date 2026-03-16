@@ -1,9 +1,7 @@
 <x-layouts.app :title="__('Update password')">
     <section class="w-full lg:max-w-xl mx-auto">
-        @unlesshotwirenative
         <x-back-link :href="route('settings')">{{ __('Profile & Settings') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Update password') }}</x-text.heading>
-        @endunlesshotwirenative
         <x-text.subheading>{{ __('Ensure your account is using a long, random password to stay secure') }}</x-text.subheading>
 
         <x-page-card class="my-6">

@@ -1,9 +1,7 @@
 <x-layouts.app :title="__('Delete profile')">
     <section class="w-full lg:max-w-xl mx-auto">
-        @unlesshotwirenative
         <x-back-link :href="route('settings')">{{ __('Profile & Settings') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Delete profile') }}</x-text.heading>
-        @endunlesshotwirenative
         <x-text.subheading>{{ __('Delete your account and all of its resources') }}</x-text.subheading>
 
         <x-page-card class="my-6">
