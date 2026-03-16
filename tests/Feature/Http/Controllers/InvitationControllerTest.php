@@ -12,9 +12,9 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
+use Jcergolj\InAppNotifications\Facades\InAppNotification;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
-use Jcergolj\InAppNotifications\Facades\InAppNotification;
 use Tests\TestCase;
 
 #[CoversClass(InvitationController::class)]
@@ -93,7 +93,7 @@ final class InvitationControllerTest extends TestCase
         $response->assertRedirect(route('invitations.create'));
 
         InAppNotification::assertSuccess(__('Invitation sent successfully.'));
-        
+
         $this->assertDatabaseHas('invitations', ['email' => 'invite@example.com']);
         Mail::assertSent(InvitationMail::class, fn ($mail) => $mail->hasTo('invite@example.com'));
     }

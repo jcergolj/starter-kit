@@ -1,9 +1,6 @@
-<x-layouts.app>
-    <x-slot name="header">
-        <h2>{{ __('Send invitation') }}</h2>
-    </x-slot>
-
+<x-layouts.app :title="__('Send invitation')">
     <section class="w-full lg:max-w-xl mx-auto">
+        <x-text.heading size="xl">{{ __('Send invitation') }}</x-text.heading>
         <form method="POST" action="{{ route('invitations.store') }}" class="flex flex-col gap-6">
             @csrf
             <div>

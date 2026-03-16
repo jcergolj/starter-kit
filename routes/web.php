@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AcceptInvitationController;
-use App\Http\Controllers\CsrfTokenController;
 use App\Http\Controllers\BlockedUserController;
+use App\Http\Controllers\CsrfTokenController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\Settings\ConfirmedTwoFactorController;
 use App\Http\Controllers\Settings\LanguageController;

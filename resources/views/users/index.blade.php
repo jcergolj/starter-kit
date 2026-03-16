@@ -1,9 +1,6 @@
-<x-layouts.app>
-    <x-slot name="header">
-        <h2>{{ __('Users') }}</h2>
-    </x-slot>
-
+<x-layouts.app :title="__('Users')">
     <section class="w-full lg:max-w-4xl mx-auto">
+        <x-text.heading size="xl">{{ __('Users') }}</x-text.heading>
         @if ($users->isEmpty())
             <p class="mt-4 text-sm">{{ __('No users found.') }}</p>
         @else

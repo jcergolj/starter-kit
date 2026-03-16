@@ -9,6 +9,6 @@ class CsrfTokenController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        return response()->json(['csrf_token' => csrf_token()]);
+        return new JsonResponse(['csrf_token' => csrf_token()]);
     }
 }
