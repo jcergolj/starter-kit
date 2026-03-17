@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('blocked_at')->nullable()->after('is_admin');
+            $table->timestamp('blocked_at')->nullable()->after('settings');
         });
     }
 };

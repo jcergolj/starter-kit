@@ -34,7 +34,7 @@ class AcceptInvitationController extends Controller
             'username' => $request->validated('username'),
             'password' => $request->validated('password'),
             'email' => $invitation->email,
-            'is_admin' => $invitation->is_admin,
+            'role' => $invitation->role,
             'email_verified_at' => now(),
         ]);
 

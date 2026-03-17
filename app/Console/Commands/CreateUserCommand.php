@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\RoleEnum;
 use App\Exceptions\InvalidSubdomainFormat;
 use App\Mail\InvitationMail;
 use App\Models\Invitation;
@@ -59,12 +60,17 @@ class CreateUserCommand extends Command
             $tenantDatabaseService->connectToTenant($subdomain);
         }
 
-        $role = $this->choice(__('User role?'), [
-            __('User'),
-            __('Admin'),
+        $roleChoice = $this->choice(__('User role?'), [
+            RoleEnum::User->trans(),
+            RoleEnum::Admin->trans(),
+            RoleEnum::Superadmin->trans(),
         ]);
 
-        $isAdmin = $role === __('Admin');
+        $role = match ($roleChoice) {
+            RoleEnum::Superadmin->trans() => RoleEnum::Superadmin,
+            RoleEnum::Admin->trans() => RoleEnum::Admin,
+            default => RoleEnum::User,
+        };
 
         $how = $this->choice(__('How should the user be created?'), [
             __('Send invitation'),
@@ -72,17 +78,17 @@ class CreateUserCommand extends Command
         ]);
 
         if ($how === __('Send invitation')) {
-            return $this->sendInvitation($isAdmin);
+            return $this->sendInvitation($role);
         }
 
-        return $this->createDirectly($isAdmin, $newTenantSubdomain);
+        return $this->createDirectly($role, $newTenantSubdomain);
     }
 
-    private function sendInvitation(bool $isAdmin): int
+    private function sendInvitation(RoleEnum $role): int
     {
         $email = $this->ask(__('Email'));
 
-        $invitation = Invitation::createFor($email, $isAdmin);
+        $invitation = Invitation::createFor($email, $role);
 
         Mail::to($invitation->email)->send(new InvitationMail($invitation));
 
@@ -91,7 +97,7 @@ class CreateUserCommand extends Command
         return self::SUCCESS;
     }
 
-    private function createDirectly(bool $isAdmin, ?string $subdomain = null): int
+    private function createDirectly(RoleEnum $role, ?string $subdomain = null): int
     {
         $name = $this->ask(__('Name'));
         $username = $subdomain ?? $this->ask(__('Username'));
@@ -103,7 +109,7 @@ class CreateUserCommand extends Command
             'username' => $username,
             'email' => $email,
             'password' => Hash::make($password),
-            'is_admin' => $isAdmin,
+            'role' => $role,
             'email_verified_at' => now(),
         ]);
 

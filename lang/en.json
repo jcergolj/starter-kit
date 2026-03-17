@@ -126,6 +126,7 @@
     "User role?": "User role?",
     "User": "User",
     "Admin": "Admin",
+    "Superadmin": "Superadmin",
     "How should the user be created?": "How should the user be created?",
     "Send invitation": "Send invitation",
     "Create directly": "Create directly",

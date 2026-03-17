@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +14,11 @@ class Invitation extends Model
 
     protected $guarded = [];
 
-    public static function createFor(string $email, bool $isAdmin = false): self
+    public static function createFor(string $email, RoleEnum $role = RoleEnum::User): self
     {
         return self::create([
             'email' => $email,
-            'is_admin' => $isAdmin,
+            'role' => $role,
             'token' => bin2hex(random_bytes(32)),
             'expires_at' => now()->addDays(7),
         ]);
@@ -43,7 +44,7 @@ class Invitation extends Model
     protected function casts(): array
     {
         return [
-            'is_admin' => 'boolean',
+            'role' => RoleEnum::class,
             'accepted_at' => 'datetime',
             'expires_at' => 'datetime',
         ];

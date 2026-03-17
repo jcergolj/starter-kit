@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -13,7 +14,7 @@ class UserController extends Controller
 {
     public function index(): View
     {
-        $users = User::where('is_admin', false)->get();
+        $users = User::where('role', RoleEnum::User)->get();
 
         return view('users.index', ['users' => $users]);
     }

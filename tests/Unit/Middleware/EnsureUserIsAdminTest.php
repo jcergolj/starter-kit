@@ -39,6 +39,25 @@ final class EnsureUserIsAdminTest extends TestCase
     }
 
     #[Test]
+    public function superadmin_passes_through(): void
+    {
+        $superadmin = User::factory()->superadmin()->create();
+        $request = Request::create('/invitations/create');
+        $request->setUserResolver(fn () => $superadmin);
+
+        $nextCalled = false;
+        $middleware = new EnsureUserIsAdmin;
+        $response = $middleware->handle($request, function () use (&$nextCalled) {
+            $nextCalled = true;
+
+            return new Response('OK');
+        });
+
+        $this->assertTrue($nextCalled);
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
     public function non_admin_gets_403(): void
     {
         $nonAdmin = User::factory()->create();

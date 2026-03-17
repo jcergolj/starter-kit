@@ -8,8 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('user')->after('email');
+        });
+
         Schema::table('invitations', function (Blueprint $table) {
-            $table->boolean('is_admin')->default(false)->after('email');
+            $table->string('role')->default('user')->after('email');
         });
     }
 };

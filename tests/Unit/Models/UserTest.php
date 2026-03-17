@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Models;
 
 use App\DataTransferObjects\UserSettings;
+use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -39,7 +40,7 @@ final class UserTest extends TestCase
     }
 
     #[Test]
-    public function is_admin_returns_true_when_is_admin_flag_is_set(): void
+    public function is_admin_returns_true_when_role_is_admin(): void
     {
         $user = User::factory()->admin()->create();
 
@@ -47,11 +48,52 @@ final class UserTest extends TestCase
     }
 
     #[Test]
-    public function is_admin_returns_false_when_is_admin_flag_is_not_set(): void
+    public function is_admin_returns_true_when_role_is_superadmin(): void
+    {
+        $user = User::factory()->superadmin()->create();
+
+        $this->assertTrue($user->isAdmin());
+    }
+
+    #[Test]
+    public function is_admin_returns_false_when_role_is_user(): void
     {
         $user = User::factory()->create();
 
         $this->assertFalse($user->isAdmin());
+    }
+
+    #[Test]
+    public function is_superadmin_returns_true_when_role_is_superadmin(): void
+    {
+        $user = User::factory()->superadmin()->create();
+
+        $this->assertTrue($user->isSuperadmin());
+    }
+
+    #[Test]
+    public function is_superadmin_returns_false_when_role_is_admin(): void
+    {
+        $user = User::factory()->admin()->create();
+
+        $this->assertFalse($user->isSuperadmin());
+    }
+
+    #[Test]
+    public function is_superadmin_returns_false_when_role_is_user(): void
+    {
+        $user = User::factory()->create();
+
+        $this->assertFalse($user->isSuperadmin());
+    }
+
+    #[Test]
+    public function role_is_cast_to_role_enum(): void
+    {
+        $user = User::factory()->create();
+
+        $this->assertInstanceOf(RoleEnum::class, $user->role);
+        $this->assertSame(RoleEnum::User, $user->role);
     }
 
     #[Test]

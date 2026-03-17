@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\UserController;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
@@ -117,7 +118,7 @@ final class UserControllerTest extends TestCase
         $response->assertOk();
         $response->assertSeeText($otherUser->username);
         $this->assertDatabaseCount('users', 2);
-        $this->assertCount(1, User::where('is_admin', false)->get());
+        $this->assertCount(1, User::where('role', RoleEnum::User)->get());
     }
 
     #[Test]

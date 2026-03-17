@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Commands;
 
+use App\Enums\RoleEnum;
 use App\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\User;
@@ -29,6 +30,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('User'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Create directly'), [
                 __('Send invitation'),
@@ -44,7 +46,7 @@ final class CreateUserCommandTest extends TestCase
         $this->assertSame('John Doe', $user->name);
         $this->assertSame('johndoe', $user->username);
         $this->assertTrue(Hash::check('password', $user->password));
-        $this->assertFalse($user->is_admin);
+        $this->assertSame(RoleEnum::User, $user->role);
         $this->assertNotNull($user->email_verified_at);
     }
 
@@ -60,6 +62,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('Admin'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Create directly'), [
                 __('Send invitation'),
@@ -75,7 +78,39 @@ final class CreateUserCommandTest extends TestCase
         $this->assertSame('Admin User', $user->name);
         $this->assertSame('admin', $user->username);
         $this->assertTrue(Hash::check('password', $user->password));
-        $this->assertTrue($user->is_admin);
+        $this->assertSame(RoleEnum::Admin, $user->role);
+        $this->assertNotNull($user->email_verified_at);
+    }
+
+    #[Test]
+    public function it_creates_superadmin_directly_on_current_database(): void
+    {
+        $this->artisan('app:create-user')
+            ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
+                __('Current database'),
+                __('New tenant database'),
+                __('Existing tenant database'),
+            ])
+            ->expectsChoice(__('User role?'), __('Superadmin'), [
+                __('User'),
+                __('Admin'),
+                __('Superadmin'),
+            ])
+            ->expectsChoice(__('How should the user be created?'), __('Create directly'), [
+                __('Send invitation'),
+                __('Create directly'),
+            ])
+            ->expectsQuestion(__('Name'), 'Super Admin')
+            ->expectsQuestion(__('Username'), 'superadmin')
+            ->expectsQuestion(__('Email'), 'superadmin@example.com')
+            ->expectsQuestion(__('Password'), 'password')
+            ->assertSuccessful();
+
+        $user = User::where('email', 'superadmin@example.com')->first();
+        $this->assertSame('Super Admin', $user->name);
+        $this->assertSame('superadmin', $user->username);
+        $this->assertTrue(Hash::check('password', $user->password));
+        $this->assertSame(RoleEnum::Superadmin, $user->role);
         $this->assertNotNull($user->email_verified_at);
     }
 
@@ -93,6 +128,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('User'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Send invitation'), [
                 __('Send invitation'),
@@ -103,7 +139,7 @@ final class CreateUserCommandTest extends TestCase
 
         $invitation = Invitation::where('email', 'invite@example.com')->first();
         $this->assertNotNull($invitation);
-        $this->assertFalse($invitation->is_admin);
+        $this->assertSame(RoleEnum::User, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'invite@example.com');
     }
@@ -122,6 +158,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('Admin'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Send invitation'), [
                 __('Send invitation'),
@@ -132,9 +169,39 @@ final class CreateUserCommandTest extends TestCase
 
         $invitation = Invitation::where('email', 'admin-invite@example.com')->first();
         $this->assertNotNull($invitation);
-        $this->assertTrue($invitation->is_admin);
+        $this->assertSame(RoleEnum::Admin, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'admin-invite@example.com');
+    }
+
+    #[Test]
+    public function it_sends_invitation_for_superadmin_on_current_database(): void
+    {
+        Mail::fake();
+
+        $this->artisan('app:create-user')
+            ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
+                __('Current database'),
+                __('New tenant database'),
+                __('Existing tenant database'),
+            ])
+            ->expectsChoice(__('User role?'), __('Superadmin'), [
+                __('User'),
+                __('Admin'),
+                __('Superadmin'),
+            ])
+            ->expectsChoice(__('How should the user be created?'), __('Send invitation'), [
+                __('Send invitation'),
+                __('Create directly'),
+            ])
+            ->expectsQuestion(__('Email'), 'superadmin-invite@example.com')
+            ->assertSuccessful();
+
+        $invitation = Invitation::where('email', 'superadmin-invite@example.com')->first();
+        $this->assertNotNull($invitation);
+        $this->assertSame(RoleEnum::Superadmin, $invitation->role);
+
+        Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'superadmin-invite@example.com');
     }
 
     #[Test]
@@ -150,6 +217,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('User'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Create directly'), [
                 __('Send invitation'),
@@ -163,7 +231,7 @@ final class CreateUserCommandTest extends TestCase
         $user = User::where('email', 'tenant@example.com')->first();
         $this->assertSame('Tenant User', $user->name);
         $this->assertSame('test-tenant', $user->username);
-        $this->assertFalse($user->is_admin);
+        $this->assertSame(RoleEnum::User, $user->role);
     }
 
     #[Test]
@@ -179,6 +247,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('Admin'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Create directly'), [
                 __('Send invitation'),
@@ -192,7 +261,7 @@ final class CreateUserCommandTest extends TestCase
         $user = User::where('email', 'tenant-admin@example.com')->first();
         $this->assertSame('Tenant Admin', $user->name);
         $this->assertSame('admin-tenant', $user->username);
-        $this->assertTrue($user->is_admin);
+        $this->assertSame(RoleEnum::Admin, $user->role);
     }
 
     #[Test]
@@ -210,6 +279,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('User'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Send invitation'), [
                 __('Send invitation'),
@@ -220,7 +290,7 @@ final class CreateUserCommandTest extends TestCase
 
         $invitation = Invitation::where('email', 'tenant-invite@example.com')->first();
         $this->assertNotNull($invitation);
-        $this->assertFalse($invitation->is_admin);
+        $this->assertSame(RoleEnum::User, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'tenant-invite@example.com');
     }
@@ -254,6 +324,7 @@ final class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('User role?'), __('User'), [
                 __('User'),
                 __('Admin'),
+                __('Superadmin'),
             ])
             ->expectsChoice(__('How should the user be created?'), __('Create directly'), [
                 __('Send invitation'),

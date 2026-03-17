@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -13,6 +14,7 @@ class InvitationFactory extends Factory
     {
         return [
             'email' => fake()->unique()->safeEmail(),
+            'role' => RoleEnum::User,
             'token' => bin2hex(random_bytes(32)),
             'accepted_at' => null,
             'expires_at' => now()->addDays(7),

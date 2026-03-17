@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\DataTransferObjects\UserSettings;
+use App\Enums\RoleEnum;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,7 +24,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isAdmin(): bool
     {
-        return (bool) $this->is_admin;
+        return $this->role === RoleEnum::Admin || $this->role === RoleEnum::Superadmin;
+    }
+
+    public function isSuperadmin(): bool
+    {
+        return $this->role === RoleEnum::Superadmin;
     }
 
     public function isBlocked(): bool
@@ -49,7 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_admin' => 'boolean',
+            'role' => RoleEnum::class,
             'blocked_at' => 'datetime',
         ];
     }

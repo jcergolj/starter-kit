@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Requests\AcceptInvitationRequest;
 use App\Models\Invitation;
@@ -103,7 +104,7 @@ final class AcceptInvitationControllerTest extends TestCase
     #[Test]
     public function store_creates_admin_user_when_invitation_is_admin(): void
     {
-        $invitation = Invitation::factory()->create(['is_admin' => true]);
+        $invitation = Invitation::factory()->create(['role' => RoleEnum::Admin]);
 
         $this->post(route('accept.invitations.store', $invitation->token), [
             'name' => 'Admin User',
@@ -113,13 +114,13 @@ final class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::where('email', $invitation->email)->first();
-        $this->assertTrue($user->is_admin);
+        $this->assertSame(RoleEnum::Admin, $user->role);
     }
 
     #[Test]
     public function store_creates_regular_user_when_invitation_is_not_admin(): void
     {
-        $invitation = Invitation::factory()->create(['is_admin' => false]);
+        $invitation = Invitation::factory()->create(['role' => RoleEnum::User]);
 
         $this->post(route('accept.invitations.store', $invitation->token), [
             'name' => 'Regular User',
@@ -129,7 +130,7 @@ final class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::where('email', $invitation->email)->first();
-        $this->assertFalse($user->is_admin);
+        $this->assertSame(RoleEnum::User, $user->role);
     }
 
     #[Test]
