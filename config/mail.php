@@ -75,6 +75,10 @@ return [
             'channel' => env('MAIL_LOG_CHANNEL'),
         ],
 
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
+
         'array' => [
             'transport' => 'array',
         ],

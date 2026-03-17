@@ -23,6 +23,8 @@
         "laravel/horizon": "^5.45",
         "laravel/tinker": "^2.10.1",
         "opcodesio/log-viewer": "^3.24",
+        "symfony/brevo-mailer": "^8.0",
+        "symfony/http-client": "^8.0",
         "tonysm/importmap-laravel": "^2.4",
         "tonysm/tailwindcss-laravel": "^2.2"
     },
