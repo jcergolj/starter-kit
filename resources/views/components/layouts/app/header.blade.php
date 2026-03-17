@@ -34,6 +34,18 @@
                                         {{ __('Users') }}
                                     </x-navbar.nav-item>
                                 @endif
+
+                                @if(auth()->user()->isSuperadmin())
+                                    <x-navbar.nav-item icon="cog-6-tooth" :href="route('horizon.index')">
+                                         {{ __('Horizon') }}
+                                    </x-navbar.nav-item>
+
+                                    <x-navbar.nav-item icon="document-text" :href="route('log-viewer.index')" :current="request()->routeIs('log-viewer.*')">
+                                        {{ __('Logs') }}
+                                    </x-navbar.nav-item>
+                                @endif
+
+
                             @endauth
                         </div>
                     </div>
@@ -71,6 +83,15 @@
                                             </x-navbar.nav-item>
                                             <x-navbar.nav-item icon="users" :href="route('users.index')" :current="request()->routeIs('users.*')" class="block w-full text-left" data-action="click->mobile-menu#close">
                                                 {{ __('Users') }}
+                                            </x-navbar.nav-item>
+                                        @endif
+
+                                        @if(auth()->user()->isSuperadmin())
+                                            <x-navbar.nav-item icon="cog-6-tooth" :href="route('horizon.index')" class="block w-full text-left" data-action="click->mobile-menu#close">
+                                                {{ __('Horizon') }}
+                                            </x-navbar.nav-item>
+                                            <x-navbar.nav-item icon="document-text" :href="route('log-viewer.index')" :current="request()->routeIs('log-viewer.*')" class="block w-full text-left" data-action="click->mobile-menu#close">
+                                                {{ __('Logs') }}
                                             </x-navbar.nav-item>
                                         @endif
                                     @endauth
