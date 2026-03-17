@@ -13,6 +13,7 @@
     "require": {
         "php": "^8.2",
         "blade-ui-kit/blade-heroicons": "^2.6",
+        "bugsnag/bugsnag-laravel": "^2.0",
         "hotwired-laravel/stimulus-laravel": "^1.2",
         "hotwired-laravel/turbo-laravel": "^2.3",
         "jcergolj/after-action-redirect-pagination-url-for-laravel": "^2.6",
