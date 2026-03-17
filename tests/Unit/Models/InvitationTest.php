@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(Invitation::class)]
-final class InvitationTest extends TestCase
+class InvitationTest extends TestCase
 {
     use RefreshDatabase;
 

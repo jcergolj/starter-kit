@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(TenantDatabaseService::class)]
-final class TenantDatabaseServiceTest extends TestCase
+class TenantDatabaseServiceTest extends TestCase
 {
     public TenantDatabaseService $service;
 

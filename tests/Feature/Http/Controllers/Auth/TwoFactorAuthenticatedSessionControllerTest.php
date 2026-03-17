@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
-final class TwoFactorAuthenticatedSessionControllerTest extends TestCase
+class TwoFactorAuthenticatedSessionControllerTest extends TestCase
 {
     use RefreshDatabase;
 

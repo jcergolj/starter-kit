@@ -15,7 +15,7 @@ use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 #[CoversClass(ConfirmedTwoFactorController::class)]
-final class ConfirmedTwoFactorControllerTest extends TestCase
+class ConfirmedTwoFactorControllerTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(RecoveryCodesController::class)]
-final class RecoveryCodesControllerTest extends TestCase
+class RecoveryCodesControllerTest extends TestCase
 {
     use RefreshDatabase;
 

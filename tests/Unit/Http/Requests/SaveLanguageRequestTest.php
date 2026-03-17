@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(SaveLanguageRequest::class)]
-final class SaveLanguageRequestTest extends TestCase
+class SaveLanguageRequestTest extends TestCase
 {
     use TestableFormRequest;
 

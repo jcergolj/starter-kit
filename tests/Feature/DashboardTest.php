@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-final class DashboardTest extends TestCase
+class DashboardTest extends TestCase
 {
     use RefreshDatabase;
 

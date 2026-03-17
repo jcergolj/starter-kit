@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
+use Rector\Privatization\Rector\Class_\FinalizeTestCaseClassRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
 use RectorLaravel\Rector\Class_\AnonymousMigrationsRector;
 use RectorLaravel\Rector\Class_\RemoveModelPropertyFromFactoriesRector;
@@ -49,6 +50,7 @@ return RectorConfig::configure()
     })())
     ->withPhpSets(php83: true)
     ->withSkip([
+        FinalizeTestCaseClassRector::class,
         RequestStaticValidateToInjectRector::class => [
             __DIR__.'/tests',
         ],

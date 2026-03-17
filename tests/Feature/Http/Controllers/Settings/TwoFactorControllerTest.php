@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(TwoFactorController::class)]
-final class TwoFactorControllerTest extends TestCase
+class TwoFactorControllerTest extends TestCase
 {
     use RefreshDatabase;
 

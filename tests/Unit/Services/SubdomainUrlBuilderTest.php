@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(SubdomainUrlBuilder::class)]
-final class SubdomainUrlBuilderTest extends TestCase
+class SubdomainUrlBuilderTest extends TestCase
 {
     public SubdomainUrlBuilder $service;
 

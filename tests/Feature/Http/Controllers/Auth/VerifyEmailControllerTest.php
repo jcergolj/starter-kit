@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-final class VerifyEmailControllerTest extends TestCase
+class VerifyEmailControllerTest extends TestCase
 {
     use RefreshDatabase;
 

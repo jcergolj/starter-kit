@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 #[CoversClass(EnsureUserIsAdmin::class)]
-final class EnsureUserIsAdminTest extends TestCase
+class EnsureUserIsAdminTest extends TestCase
 {
     use RefreshDatabase;
 

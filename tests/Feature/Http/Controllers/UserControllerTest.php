@@ -17,7 +17,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(UserController::class)]
-final class UserControllerTest extends TestCase
+class UserControllerTest extends TestCase
 {
     use RefreshDatabase;
     use TestableFormRequest;

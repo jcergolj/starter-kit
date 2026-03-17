@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(BlockedUserController::class)]
-final class BlockedUserControllerTest extends TestCase
+class BlockedUserControllerTest extends TestCase
 {
     use RefreshDatabase;
 

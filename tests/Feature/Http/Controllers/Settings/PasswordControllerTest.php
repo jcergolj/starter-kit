@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(PasswordController::class)]
-final class PasswordControllerTest extends TestCase
+class PasswordControllerTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(UpdateUserProfileInformation::class)]
-final class UpdateUserProfileInformationTest extends TestCase
+class UpdateUserProfileInformationTest extends TestCase
 {
     use RefreshDatabase;
 

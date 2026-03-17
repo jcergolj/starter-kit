@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(AcceptInvitationRequest::class)]
-final class AcceptInvitationRequestTest extends TestCase
+class AcceptInvitationRequestTest extends TestCase
 {
     use RefreshDatabase;
     use TestableFormRequest;

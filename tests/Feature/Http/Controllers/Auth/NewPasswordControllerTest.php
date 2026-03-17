@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-final class NewPasswordControllerTest extends TestCase
+class NewPasswordControllerTest extends TestCase
 {
     use RefreshDatabase;
 

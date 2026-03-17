@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 #[CoversClass(SetLocaleMiddleware::class)]
-final class SetLocaleMiddlewareTest extends TestCase
+class SetLocaleMiddlewareTest extends TestCase
 {
     use RefreshDatabase;
 

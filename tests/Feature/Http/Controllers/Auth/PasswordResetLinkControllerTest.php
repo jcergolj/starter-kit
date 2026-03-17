@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-final class PasswordResetLinkControllerTest extends TestCase
+class PasswordResetLinkControllerTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(UserSettings::class)]
-final class UserSettingsTest extends TestCase
+class UserSettingsTest extends TestCase
 {
     #[Test]
     public function from_array_sets_lang(): void

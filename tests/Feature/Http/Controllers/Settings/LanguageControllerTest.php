@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(LanguageController::class)]
-final class LanguageControllerTest extends TestCase
+class LanguageControllerTest extends TestCase
 {
     use RefreshDatabase;
     use TestableFormRequest;

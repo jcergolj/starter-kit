@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-final class CreateUserCommandTest extends TestCase
+class CreateUserCommandTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(UpdateUserRequest::class)]
-final class UpdateUserRequestTest extends TestCase
+class UpdateUserRequestTest extends TestCase
 {
     use RefreshDatabase;
     use TestableFormRequest;

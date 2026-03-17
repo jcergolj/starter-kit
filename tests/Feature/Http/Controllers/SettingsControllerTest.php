@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(SettingsController::class)]
-final class SettingsControllerTest extends TestCase
+class SettingsControllerTest extends TestCase
 {
     use RefreshDatabase;
 

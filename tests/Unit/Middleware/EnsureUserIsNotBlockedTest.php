@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 #[CoversClass(EnsureUserIsNotBlocked::class)]
-final class EnsureUserIsNotBlockedTest extends TestCase
+class EnsureUserIsNotBlockedTest extends TestCase
 {
     use RefreshDatabase;
 

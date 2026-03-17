@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(ProfileController::class)]
-final class ProfileControllerTest extends TestCase
+class ProfileControllerTest extends TestCase
 {
     use RefreshDatabase;
 

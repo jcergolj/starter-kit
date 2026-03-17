@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 #[CoversClass(ConnectToUserDatabase::class)]
-final class ConnectToUserDatabaseTest extends TestCase
+class ConnectToUserDatabaseTest extends TestCase
 {
     public ConnectToUserDatabase $middleware;
 

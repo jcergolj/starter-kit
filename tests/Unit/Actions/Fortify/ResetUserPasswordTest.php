@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(ResetUserPassword::class)]
-final class ResetUserPasswordTest extends TestCase
+class ResetUserPasswordTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -19,7 +19,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[CoversClass(InvitationController::class)]
-final class InvitationControllerTest extends TestCase
+class InvitationControllerTest extends TestCase
 {
     use RefreshDatabase;
     use TestableFormRequest;
