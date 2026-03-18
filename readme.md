@@ -29,17 +29,24 @@ Add the key to the GitHub repository: **Settings -> Deploy keys -> Add deploy ke
 Then clone with the SSH URL:
 
 ```bash
-sudo git clone git@github.com:jcergolj/your-repo.git /var/www/your-app
+sudo mkdir -p /var/www/starter-kit
+sudo chown $(whoami):$(whoami) /var/www/starter-kit
+git clone git@github.com:jcergolj/starter-kit.git /var/www/starter-kit
 ```
 
 Use the same SSH URL format in `setup.sh` when prompted for `GITHUB_REPO`.
+
+### Instasll sshpass
+```bash
+  sudo apt install sshpass
+```
 
 ### First-time setup (`setup.sh`)
 
 Interactive script that provisions a fresh server for the application. Run it once per new site.
 
 ```bash
-bash setup.sh
+bash scripts/setup.sh
 ```
 
 You will be prompted for:

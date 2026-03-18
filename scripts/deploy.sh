@@ -17,13 +17,21 @@ cd "$APP_DIR"
 
 step "Deploying from $APP_DIR"
 
+# Ensure git trusts this directory
+git config --global --add safe.directory "$APP_DIR"
+
+# Take ownership for deploy operations
+step "Setting ownership for deploy..."
+sudo chown -R "$(whoami):$(whoami)" "$APP_DIR"
+
 # Maintenance mode
 step "Entering maintenance mode..."
 php artisan down
 
 # Pull latest
 step "Pulling latest changes..."
-git pull origin main
+git reset --hard origin/master
+git pull origin master
 
 # Dependencies
 step "Installing dependencies..."
