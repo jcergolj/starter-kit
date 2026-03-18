@@ -14,7 +14,7 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
 # Prerequisites check
 step "Checking prerequisites..."
-for cmd in php composer caddy git curl; do
+for cmd in php composer caddy git curl sshpass; do
     command -v "$cmd" >/dev/null 2>&1 || error "$cmd is not installed"
 done
 success "All prerequisites found"
@@ -47,6 +47,10 @@ DOMAIN="${SUBDOMAIN}.${BASE_DOMAIN}"
 read -rp "GITHUB_REPO (e.g. https://github.com/jcergolj/odems.git): " GITHUB_REPO
 [ -z "$GITHUB_REPO" ] && error "GITHUB_REPO is required"
 
+read -rsp "SFTP_PASSWORD: " SFTP_PASSWORD
+echo ""
+[ -z "$SFTP_PASSWORD" ] && error "SFTP_PASSWORD is required"
+
 read -rp "CLOUDFLARE_API_TOKEN: " CF_TOKEN
 [ -z "$CF_TOKEN" ] && error "CLOUDFLARE_API_TOKEN is required"
 
@@ -64,6 +68,7 @@ echo "  DOMAIN:     $DOMAIN"
 echo "  REPO:       $GITHUB_REPO"
 echo "  SERVER_IP:  $SERVER_IP"
 echo "  APP_DIR:    $APP_DIR"
+echo "  SFTP:       configured"
 echo ""
 read -rp "Proceed? (y/N): " CONFIRM
 [ "$CONFIRM" != "y" ] && { echo "Aborted."; exit 0; }
@@ -137,7 +142,21 @@ sudo chmod -R 775 "$APP_DIR/database"
 sudo chmod 664 "$APP_DIR/database/database.sqlite"
 success "Permissions set"
 
-# Step 7: Cache optimization
+# Step 7: Scheduler cron job
+step "Setting up Laravel scheduler cron..."
+CRON_JOB="* * * * * cd ${APP_DIR} && php artisan schedule:run >> /dev/null 2>&1"
+(sudo crontab -u www-data -l 2>/dev/null | grep -v "schedule:run.*${APP_DIR}"; echo "$CRON_JOB") | sudo crontab -u www-data -
+success "Scheduler cron job added for www-data"
+
+# Step 8: Create SFTP backup folder
+step "Creating backup folder on SFTP..."
+sshpass -p "$SFTP_PASSWORD" sftp -P 22 -oBatchMode=no -oStrictHostKeyChecking=no u352408@u352408.your-storagebox.de <<SFTPEOF
+mkdir ${APP_NAME}
+bye
+SFTPEOF
+success "SFTP backup folder '${APP_NAME}' created"
+
+# Step 9: Cache optimization
 step "Caching configuration..."
 php artisan config:cache
 php artisan route:cache
@@ -145,7 +164,7 @@ php artisan view:cache
 php artisan event:cache
 success "Caches built"
 
-# Step 8: Prompt to edit .env
+# Step 10: Prompt to edit .env
 echo ""
 success "Setup complete!"
 read -rp "Edit .env now? (y/N): " EDIT_ENV

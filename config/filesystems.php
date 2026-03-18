@@ -60,6 +60,19 @@ return [
             'report' => false,
         ],
 
+        'sftp-backup' => [
+            'driver' => 'sftp',
+            'host' => env('SFTP_HOST'),
+            'username' => env('SFTP_USERNAME'),
+            'password' => env('SFTP_PASSWORD'),
+            'privateKey' => env('SFTP_PRIVATE_KEY'),
+            'passphrase' => env('SFTP_PASSPHRASE'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'port' => (int) env('SFTP_PORT', 22),
+            'root' => env('SFTP_ROOT'.config('app.name'), '/home/backup'),
+        ],
+
     ],
 
     /*
