@@ -1,4 +1,4 @@
-# ODEMS
+# Starter Kit
 
 ## Deployment
 
@@ -66,11 +66,11 @@ Non-interactive script for deploying updates. Run from the project directory or 
 
 ```bash
 # From the project directory
-cd /var/www/odems
+cd /var/www/starter-kit
 bash deploy.sh
 
 # Or pass the path
-bash deploy.sh /var/www/odems
+bash deploy.sh /var/www/starter-kit
 ```
 
 The script:

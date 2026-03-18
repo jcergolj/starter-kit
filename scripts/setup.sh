@@ -21,7 +21,7 @@ success "All prerequisites found"
 
 # Prompt for inputs
 echo ""
-read -rp "APP_NAME (e.g. odems): " APP_NAME
+read -rp "APP_NAME (e.g. Starter Kit): " APP_NAME
 [ -z "$APP_NAME" ] && error "APP_NAME is required"
 
 echo ""
@@ -40,11 +40,11 @@ case "$DOMAIN_CHOICE" in
     *) error "Invalid domain selection" ;;
 esac
 
-read -rp "SUBDOMAIN (e.g. odems): " SUBDOMAIN
+read -rp "SUBDOMAIN (e.g. starter-kit): " SUBDOMAIN
 [ -z "$SUBDOMAIN" ] && error "SUBDOMAIN is required"
 DOMAIN="${SUBDOMAIN}.${BASE_DOMAIN}"
 
-read -rp "GITHUB_REPO (e.g. https://github.com/jcergolj/odems.git): " GITHUB_REPO
+read -rp "GITHUB_REPO (e.g. https://github.com/jcergolj/starter-kit.git): " GITHUB_REPO
 [ -z "$GITHUB_REPO" ] && error "GITHUB_REPO is required"
 
 read -rsp "SFTP_PASSWORD: " SFTP_PASSWORD
