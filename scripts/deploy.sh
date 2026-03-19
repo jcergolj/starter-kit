@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -eo pipefail
 
 # Colors
 GREEN='\033[0;32m'
@@ -17,21 +17,33 @@ cd "$APP_DIR"
 
 step "Deploying from $APP_DIR"
 
-# Ensure git trusts this directory
-git config --global --add safe.directory "$APP_DIR"
+# Ensure git trusts this directory (avoid accumulating duplicates)
+if ! git config --global --get-all safe.directory 2>/dev/null | grep -qx "$APP_DIR"; then
+    git config --global --add safe.directory "$APP_DIR"
+fi
 
-# Take ownership for deploy operations
-step "Setting ownership for deploy..."
-sudo chown -R "$(whoami):$(whoami)" "$APP_DIR"
+# Auto-detect PHP-FPM service
+PHP_FPM_SERVICE=$(systemctl list-units --type=service --state=running | grep -oP 'php[\d.]+-fpm' | head -1)
+[ -z "$PHP_FPM_SERVICE" ] && error "No running PHP-FPM service found"
 
 # Maintenance mode
 step "Entering maintenance mode..."
 php artisan down
 
+# Bring app back up if anything fails from here
+trap 'php artisan up 2>/dev/null; error "Deploy failed — app brought back online"' ERR
+
+# Log local changes before resetting
+LOCAL_CHANGES=$(git diff --stat 2>/dev/null)
+if [ -n "$LOCAL_CHANGES" ]; then
+    echo -e "${RED}[WARN]${NC} Local changes will be discarded:"
+    echo "$LOCAL_CHANGES"
+fi
+
 # Pull latest
 step "Pulling latest changes..."
+git fetch origin master
 git reset --hard origin/master
-git pull origin master
 
 # Dependencies
 step "Installing dependencies..."
@@ -52,18 +64,6 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan event:cache
-
-# Permissions
-step "Fixing permissions..."
-sudo chown -R www-data:www-data "$APP_DIR"
-sudo chmod -R 775 "$APP_DIR/storage"
-sudo chmod -R 775 "$APP_DIR/bootstrap/cache"
-sudo chmod -R 775 "$APP_DIR/database"
-sudo chmod 664 "$APP_DIR/database/database.sqlite"
-
-# Restart PHP-FPM
-step "Restarting PHP-FPM..."
-sudo systemctl reload php8.5-fpm
 
 # Back online
 php artisan up
