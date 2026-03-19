@@ -14,6 +14,10 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
+use function Laravel\Prompts\password;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
+
 class CreateUserCommand extends Command
 {
     protected $signature = 'app:create-user';
@@ -24,14 +28,24 @@ class CreateUserCommand extends Command
     {
         $newTenantSubdomain = null;
 
-        $where = $this->choice(__('Where should the user be added?'), [
-            __('Current database'),
-            __('New tenant database'),
-            __('Existing tenant database'),
-        ]);
+        $databases = glob(database_path('db/*.sqlite'));
+        $subdomains = $databases ? array_map(fn (string $path) => basename($path, '.sqlite'), $databases) : [];
+
+        $options = array_merge(
+            [__('Current database'), __('New tenant database')],
+            $subdomains,
+        );
+
+        $where = select(
+            label: __('Where should the user be added?'),
+            options: $options,
+        );
 
         if ($where === __('New tenant database')) {
-            $newTenantSubdomain = $this->ask(__('Subdomain'));
+            $newTenantSubdomain = text(
+                label: __('Subdomain'),
+                required: true,
+            );
 
             try {
                 $tenantDatabaseService->createTenantDatabase($newTenantSubdomain);
@@ -44,27 +58,18 @@ class CreateUserCommand extends Command
             $tenantDatabaseService->connectToTenant($newTenantSubdomain);
         }
 
-        if ($where === __('Existing tenant database')) {
-            $databases = glob(database_path('db/*.sqlite'));
-
-            if ($databases === [] || $databases === false) {
-                $this->error(__('No existing tenant databases found.'));
-
-                return self::FAILURE;
-            }
-
-            $subdomains = array_map(fn (string $path) => basename($path, '.sqlite'), $databases);
-
-            $subdomain = $this->choice(__('Where should the user be added?'), $subdomains);
-
-            $tenantDatabaseService->connectToTenant($subdomain);
+        if ($where !== __('Current database') && $where !== __('New tenant database')) {
+            $tenantDatabaseService->connectToTenant($where);
         }
 
-        $roleChoice = $this->choice(__('User role?'), [
-            RoleEnum::User->trans(),
-            RoleEnum::Admin->trans(),
-            RoleEnum::Superadmin->trans(),
-        ]);
+        $roleChoice = select(
+            label: __('User role?'),
+            options: [
+                RoleEnum::User->trans(),
+                RoleEnum::Admin->trans(),
+                RoleEnum::Superadmin->trans(),
+            ],
+        );
 
         $role = match ($roleChoice) {
             RoleEnum::Superadmin->trans() => RoleEnum::Superadmin,
@@ -72,10 +77,13 @@ class CreateUserCommand extends Command
             default => RoleEnum::User,
         };
 
-        $how = $this->choice(__('How should the user be created?'), [
-            __('Send invitation'),
-            __('Create directly'),
-        ]);
+        $how = select(
+            label: __('How should the user be created?'),
+            options: [
+                __('Send invitation'),
+                __('Create directly'),
+            ],
+        );
 
         if ($how === __('Send invitation')) {
             return $this->sendInvitation($role);
@@ -86,7 +94,11 @@ class CreateUserCommand extends Command
 
     private function sendInvitation(RoleEnum $role): int
     {
-        $email = $this->ask(__('Email'));
+        $email = text(
+            label: __('Email'),
+            required: true,
+            validate: ['email' => 'required|email|unique:users,email'],
+        );
 
         $invitation = Invitation::createFor($email, $role);
 
@@ -99,10 +111,29 @@ class CreateUserCommand extends Command
 
     private function createDirectly(RoleEnum $role, ?string $subdomain = null): int
     {
-        $name = $this->ask(__('Name'));
-        $username = $subdomain ?? $this->ask(__('Username'));
-        $email = $this->ask(__('Email'));
-        $password = $this->secret(__('Password'));
+        $name = text(
+            label: __('Name'),
+            required: true,
+            validate: ['name' => 'required|max:255'],
+        );
+
+        $username = $subdomain ?? text(
+            label: __('Username'),
+            required: true,
+            validate: ['username' => 'required|max:20|unique:users,username'],
+        );
+
+        $email = text(
+            label: __('Email'),
+            required: true,
+            validate: ['email' => 'required|email|unique:users,email'],
+        );
+
+        $password = password(
+            label: __('Password'),
+            required: true,
+            validate: ['password' => 'required|min:8'],
+        );
 
         User::create([
             'name' => $name,

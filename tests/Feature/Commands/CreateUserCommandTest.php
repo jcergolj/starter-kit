@@ -25,7 +25,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsChoice(__('User role?'), __('User'), [
                 __('User'),
@@ -57,7 +56,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsChoice(__('User role?'), __('Admin'), [
                 __('User'),
@@ -89,7 +87,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsChoice(__('User role?'), __('Superadmin'), [
                 __('User'),
@@ -123,7 +120,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsChoice(__('User role?'), __('User'), [
                 __('User'),
@@ -153,7 +149,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsChoice(__('User role?'), __('Admin'), [
                 __('User'),
@@ -183,7 +178,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsChoice(__('User role?'), __('Superadmin'), [
                 __('User'),
@@ -211,7 +205,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('New tenant database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsQuestion(__('Subdomain'), 'test-tenant')
             ->expectsChoice(__('User role?'), __('User'), [
@@ -241,7 +234,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('New tenant database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsQuestion(__('Subdomain'), 'admin-tenant')
             ->expectsChoice(__('User role?'), __('Admin'), [
@@ -273,7 +265,6 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('New tenant database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsQuestion(__('Subdomain'), 'invite-tenant')
             ->expectsChoice(__('User role?'), __('User'), [
@@ -313,12 +304,9 @@ class CreateUserCommandTest extends TestCase
         touch(database_path('db/existing-tenant.sqlite'));
 
         $this->artisan('app:create-user')
-            ->expectsChoice(__('Where should the user be added?'), __('Existing tenant database'), [
+            ->expectsChoice(__('Where should the user be added?'), 'existing-tenant', [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
-            ])
-            ->expectsChoice(__('Where should the user be added?'), 'existing-tenant', [
                 'existing-tenant',
             ])
             ->expectsChoice(__('User role?'), __('User'), [
@@ -349,27 +337,8 @@ class CreateUserCommandTest extends TestCase
             ->expectsChoice(__('Where should the user be added?'), __('New tenant database'), [
                 __('Current database'),
                 __('New tenant database'),
-                __('Existing tenant database'),
             ])
             ->expectsQuestion(__('Subdomain'), 'INVALID SUBDOMAIN!')
-            ->assertFailed();
-    }
-
-    #[Test]
-    public function it_shows_error_when_no_existing_tenant_databases_found(): void
-    {
-        $files = glob(database_path('db/*.sqlite'));
-
-        foreach ($files as $file) {
-            @unlink($file);
-        }
-
-        $this->artisan('app:create-user')
-            ->expectsChoice(__('Where should the user be added?'), __('Existing tenant database'), [
-                __('Current database'),
-                __('New tenant database'),
-                __('Existing tenant database'),
-            ])
             ->assertFailed();
     }
 }
