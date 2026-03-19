@@ -27,6 +27,12 @@
                     {{ $slot }}
                 </div>
             </div>
+
+            <footer class="mt-8 text-center text-sm" style="color: var(--color-text);">
+                <a href="https://businessautomationby.jcergolj.me.uk/" target="_blank" rel="noopener noreferrer" class="underline hover:no-underline">
+                    {{ __('Business Automation by jcergolj') }}
+                </a>
+            </footer>
         </div>
     </body>
 </html>

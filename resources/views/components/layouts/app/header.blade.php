@@ -109,5 +109,11 @@
         <main style="background: var(--color-bg); min-height: calc(100vh - 64px);">
             {{ $slot }}
         </main>
+
+        <footer class="py-4 text-center text-sm" style="color: var(--color-text);">
+            <a href="https://businessautomationby.jcergolj.me.uk/" target="_blank" rel="noopener noreferrer" class="underline hover:no-underline">
+                {{ __('Business Automation by jcergolj') }}
+            </a>
+        </footer>
     </body>
 </html>
