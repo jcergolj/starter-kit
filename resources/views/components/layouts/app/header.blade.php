@@ -8,7 +8,7 @@
             'title' => $title,
         ])
     </head>
-    <body @class(["min-h-screen"]) style="background: var(--color-bg);">
+    <body @class(["min-h-screen flex flex-col"]) style="background: var(--color-bg);">
         <!-- Top Navigation - Dark Theme -->
         <nav class="app-nav sticky top-0 z-50">
             <div class="mx-auto px-2 sm:px-4 lg:px-8">
@@ -106,7 +106,7 @@
         <x-in-app-notifications::notification />
 
         <!-- Main Content -->
-        <main style="background: var(--color-bg); min-height: calc(100vh - 64px);">
+        <main class="flex-1" style="background: var(--color-bg);">
             {{ $slot }}
         </main>
 
