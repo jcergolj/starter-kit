@@ -341,4 +341,33 @@ class CreateUserCommandTest extends TestCase
             ->expectsQuestion(__('Subdomain'), 'INVALID SUBDOMAIN!')
             ->assertFailed();
     }
+
+    #[Test]
+    public function it_does_not_show_new_tenant_database_option_when_single_db_per_app_is_true(): void
+    {
+        config(['app.single_db_per_app' => true]);
+
+        $this->artisan('app:create-user')
+            ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
+                __('Current database'),
+            ])
+            ->expectsChoice(__('User role?'), __('User'), [
+                __('User'),
+                __('Admin'),
+                __('Superadmin'),
+            ])
+            ->expectsChoice(__('How should the user be created?'), __('Create directly'), [
+                __('Send invitation'),
+                __('Create directly'),
+            ])
+            ->expectsQuestion(__('Name'), 'Single DB User')
+            ->expectsQuestion(__('Username'), 'singledbuser')
+            ->expectsQuestion(__('Email'), 'singledb@example.com')
+            ->expectsQuestion(__('Password'), 'password')
+            ->assertSuccessful();
+
+        $user = User::where('email', 'singledb@example.com')->first();
+        $this->assertSame('Single DB User', $user->name);
+        $this->assertSame(RoleEnum::User, $user->role);
+    }
 }

@@ -31,10 +31,12 @@ class CreateUserCommand extends Command
         $databases = glob(database_path('db/*.sqlite'));
         $subdomains = $databases ? array_map(fn (string $path) => basename($path, '.sqlite'), $databases) : [];
 
-        $options = array_merge(
-            [__('Current database'), __('New tenant database')],
-            $subdomains,
-        );
+        $options = [__('Current database')];
+
+        if (! config('app.single_db_per_app')) {
+            $options[] = __('New tenant database');
+            $options = array_merge($options, $subdomains);
+        }
 
         $where = select(
             label: __('Where should the user be added?'),
