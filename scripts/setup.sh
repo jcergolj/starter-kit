@@ -90,7 +90,7 @@ read -rp "Proceed? (y/N): " CONFIRM
 # Step 1: Install system dependencies
 step "Installing system dependencies..."
 sudo apt update
-sudo apt install -y "php${PHP_VERSION}-sqlite3" "php${PHP_VERSION}-gd" "php${PHP_VERSION}-exif"
+sudo apt install -y "php${PHP_VERSION}-sqlite3" "php${PHP_VERSION}-gd" "php${PHP_VERSION}-exif" libzip-dev sqlite3
 sudo phpenmod sqlite3 gd exif
 # Remove Apache if it was pulled in as a PHP dependency (conflicts with Caddy on port 80)
 if dpkg -l apache2 &>/dev/null; then
