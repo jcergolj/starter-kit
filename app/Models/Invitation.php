@@ -14,11 +14,12 @@ class Invitation extends Model
 
     protected $guarded = [];
 
-    public static function createFor(string $email, RoleEnum $role = RoleEnum::User): self
+    public static function createFor(string $email, RoleEnum $role = RoleEnum::User, string $lang = 'en'): self
     {
         return self::create([
             'email' => $email,
             'role' => $role,
+            'lang' => $lang,
             'token' => bin2hex(random_bytes(32)),
             'expires_at' => now()->addDays(7),
         ]);

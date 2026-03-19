@@ -11,6 +11,7 @@ use App\Models\Invitation;
 use App\Models\User;
 use App\Services\TenantDatabaseService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
@@ -102,7 +103,19 @@ class CreateUserCommand extends Command
             validate: ['email' => 'required|email|unique:users,email'],
         );
 
-        $invitation = Invitation::createFor($email, $role);
+        $languages = array_map(
+            fn (string $path) => basename($path, '.json'),
+            glob(lang_path('*.json')),
+        );
+
+        $lang = select(
+            label: __('Language'),
+            options: $languages,
+        );
+
+        $invitation = Invitation::createFor($email, $role, $lang);
+
+        App::setLocale($lang);
 
         Mail::to($invitation->email)->send(new InvitationMail($invitation));
 

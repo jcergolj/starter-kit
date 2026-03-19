@@ -131,6 +131,7 @@ class CreateUserCommandTest extends TestCase
                 __('Create directly'),
             ])
             ->expectsQuestion(__('Email'), 'invite@example.com')
+            ->expectsChoice(__('Language'), 'en', ['en', 'sl'])
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'invite@example.com')->first();
@@ -160,6 +161,7 @@ class CreateUserCommandTest extends TestCase
                 __('Create directly'),
             ])
             ->expectsQuestion(__('Email'), 'admin-invite@example.com')
+            ->expectsChoice(__('Language'), 'en', ['en', 'sl'])
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'admin-invite@example.com')->first();
@@ -189,6 +191,7 @@ class CreateUserCommandTest extends TestCase
                 __('Create directly'),
             ])
             ->expectsQuestion(__('Email'), 'superadmin-invite@example.com')
+            ->expectsChoice(__('Language'), 'en', ['en', 'sl'])
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'superadmin-invite@example.com')->first();
@@ -196,6 +199,33 @@ class CreateUserCommandTest extends TestCase
         $this->assertSame(RoleEnum::Superadmin, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'superadmin-invite@example.com');
+    }
+
+    #[Test]
+    public function it_stores_selected_language_on_invitation(): void
+    {
+        Mail::fake();
+
+        $this->artisan('app:create-user')
+            ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
+                __('Current database'),
+                __('New tenant database'),
+            ])
+            ->expectsChoice(__('User role?'), __('User'), [
+                __('User'),
+                __('Admin'),
+                __('Superadmin'),
+            ])
+            ->expectsChoice(__('How should the user be created?'), __('Send invitation'), [
+                __('Send invitation'),
+                __('Create directly'),
+            ])
+            ->expectsQuestion(__('Email'), 'lang-test@example.com')
+            ->expectsChoice(__('Language'), 'sl', ['en', 'sl'])
+            ->assertSuccessful();
+
+        $invitation = Invitation::where('email', 'lang-test@example.com')->first();
+        $this->assertSame('sl', $invitation->lang);
     }
 
     #[Test]
@@ -277,6 +307,7 @@ class CreateUserCommandTest extends TestCase
                 __('Create directly'),
             ])
             ->expectsQuestion(__('Email'), 'tenant-invite@example.com')
+            ->expectsChoice(__('Language'), 'en', ['en', 'sl'])
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'tenant-invite@example.com')->first();

@@ -102,6 +102,22 @@ class AcceptInvitationControllerTest extends TestCase
     }
 
     #[Test]
+    public function store_saves_invitation_lang_in_user_settings(): void
+    {
+        $invitation = Invitation::factory()->create(['lang' => 'sl']);
+
+        $this->post(route('accept.invitations.store', $invitation->token), [
+            'name' => 'Jane Doe',
+            'username' => 'janedoe',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+        ]);
+
+        $user = User::where('email', $invitation->email)->first();
+        $this->assertSame('sl', $user->settings->lang);
+    }
+
+    #[Test]
     public function store_creates_admin_user_when_invitation_is_admin(): void
     {
         $invitation = Invitation::factory()->create(['role' => RoleEnum::Admin]);

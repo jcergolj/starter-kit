@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\UserSettings;
 use App\Http\Requests\AcceptInvitationRequest;
 use App\Models\Invitation;
 use App\Models\User;
@@ -36,6 +37,7 @@ class AcceptInvitationController extends Controller
             'email' => $invitation->email,
             'role' => $invitation->role,
             'email_verified_at' => now(),
+            'settings' => (new UserSettings($invitation->lang))->toArray(),
         ]);
 
         $invitation->accept();
