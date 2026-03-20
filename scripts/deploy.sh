@@ -65,6 +65,8 @@ php artisan route:cache
 php artisan view:cache
 php artisan event:cache
 
+php artisan horizon:terminate
+
 # Back online
 php artisan up
 

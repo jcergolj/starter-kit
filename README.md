@@ -11,6 +11,7 @@
 - Git
 - curl
 - Cloudflare account with API token (DNS edit permission) and Zone ID
+- `redis-server` and `supervisor` (optional, for queue workers)
 
 ### Cloning the repository to the server
 
@@ -66,6 +67,27 @@ The script then:
 6. Sets ownership to `www-data` and fixes permissions on storage, cache, and database directories
 7. Builds Laravel caches (config, routes, views, events)
 8. Offers to open `.env` for editing
+
+### Queue worker with Supervisor (optional)
+
+During `setup.sh`, you will be asked whether to install Supervisor for running Laravel queue workers with Redis. If you choose yes, the script will:
+
+1. Install `supervisor` and `redis-server`
+2. Create a Supervisor config at `/etc/supervisor/conf.d/{APP_NAME}-worker.conf`
+3. Start the queue worker process
+
+To manage the worker after setup:
+
+```bash
+# Check status
+sudo supervisorctl status {APP_NAME}-worker:*
+
+# Restart after code changes (deploy.sh handles this automatically)
+sudo supervisorctl restart {APP_NAME}-worker:*
+
+# View logs
+tail -f /var/www/{APP_NAME}/storage/logs/worker.log
+```
 
 ### Subsequent deploys (`deploy.sh`)
 

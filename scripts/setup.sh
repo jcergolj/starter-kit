@@ -211,7 +211,34 @@ if [ -f "${APP_DIR}/scripts/post-setup.sh" ]; then
     success "Custom post-setup script completed."
 fi
 
-# Step 10: Prompt to edit .env
+# Step 10: Optional Horizon with Supervisor
+read -rp "Install Horizon with Supervisor? (y/N): " INSTALL_HORIZON
+if [ "$INSTALL_HORIZON" = "y" ]; then
+    step "Installing Redis and Supervisor..."
+    sudo apt install -y supervisor redis-server
+
+    # Create Supervisor config for Horizon
+    sudo tee /etc/supervisor/conf.d/${APP_NAME}-horizon.conf > /dev/null <<SUPEOF
+[program:${APP_NAME}-horizon]
+process_name=%(program_name)s
+command=php ${APP_DIR}/artisan horizon
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=${APP_DIR}/storage/logs/horizon.log
+stopwaitsecs=3600
+SUPEOF
+
+    sudo supervisorctl reread
+    sudo supervisorctl update
+    sudo supervisorctl start "${APP_NAME}-horizon"
+    success "Horizon installed and Supervisor configured"
+fi
+
+# Step 11: Prompt to edit .env
 echo ""
 success "Setup complete!"
 read -rp "Edit .env now? (y/N): " EDIT_ENV
