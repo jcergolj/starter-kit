@@ -144,6 +144,8 @@ ${DOMAIN} {
     file_server
     encode gzip
 
+    tls /etc/caddy/certs/cloudflare-wildcard.crt /etc/caddy/certs/cloudflare-wildcard.key
+
     log {
         output file /var/log/caddy/${APP_NAME}.access.log
     }
