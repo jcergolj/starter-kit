@@ -102,8 +102,11 @@ class InvitationControllerTest extends TestCase
 
         InAppNotification::assertSuccess(__('Invitation sent successfully.'));
 
-        $this->assertDatabaseHas('invitations', ['email' => 'invite@example.com']);
-        Mail::assertSent(InvitationMail::class, fn ($mail) => $mail->hasTo('invite@example.com'));
+        $invitation = Invitation::first();
+        $this->assertSame('invite@example.com', $invitation->email);
+        Mail::assertSent(InvitationMail::class, function ($mail) {
+            return $mail->hasTo('invite@example.com');
+        });
     }
 
     #[Test]

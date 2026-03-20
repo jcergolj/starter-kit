@@ -12,6 +12,8 @@ class TurboServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(resource_path('turbo'), 'turbo');
 
-        PendingTurboStreamResponse::macro('reload', fn () => TurboResponseFactory::makeStream('<turbo-stream action="refresh"></turbo-stream>'));
+        PendingTurboStreamResponse::macro('reload', function () {
+            return TurboResponseFactory::makeStream('<turbo-stream action="refresh"></turbo-stream>');
+        });
     }
 }

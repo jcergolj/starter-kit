@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Password;
+use App\Http\Requests\Settings\UpdatePasswordRequest;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
 
 class PasswordController extends Controller
@@ -14,13 +13,8 @@ class PasswordController extends Controller
         return view('settings.password.edit');
     }
 
-    public function update(Request $request)
+    public function update(UpdatePasswordRequest $request)
     {
-        $request->validate([
-            'current_password' => ['required', 'string', 'current_password'],
-            'password' => ['required', 'string', 'confirmed', Password::defaults()],
-        ]);
-
         $request->user()->update([
             'password' => $request->input('password'),
         ]);

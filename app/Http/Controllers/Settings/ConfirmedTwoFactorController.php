@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\ConfirmTwoFactorRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
@@ -19,14 +20,10 @@ class ConfirmedTwoFactorController extends Controller
         ]);
     }
 
-    public function update(Request $request, ConfirmTwoFactorAuthentication $confirmTwoFactor)
+    public function update(ConfirmTwoFactorRequest $request, ConfirmTwoFactorAuthentication $confirmTwoFactor)
     {
-        $input = $request->validate([
-            'code' => ['required', 'min:6'],
-        ]);
-
         try {
-            $confirmTwoFactor($request->user(), $input['code']);
+            $confirmTwoFactor($request->user(), $request->validated('code'));
         } catch (ValidationException $e) {
             throw $e->errorBag('default');
         }

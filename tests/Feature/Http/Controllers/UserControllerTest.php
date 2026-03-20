@@ -155,12 +155,10 @@ class UserControllerTest extends TestCase
 
         $response->assertRedirect(route('users.index'));
         InAppNotification::assertSuccess(__('User updated.'));
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'name' => 'Updated Name',
-            'username' => 'updateduser',
-            'email' => 'updated@example.com',
-        ]);
+        $updatedUser = User::find($user->id);
+        $this->assertSame('Updated Name', $updatedUser->name);
+        $this->assertSame('updateduser', $updatedUser->username);
+        $this->assertSame('updated@example.com', $updatedUser->email);
     }
 
     #[Test]

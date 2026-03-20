@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
+use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
 use Rector\Privatization\Rector\Class_\FinalizeTestCaseClassRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
 use RectorLaravel\Rector\Class_\AnonymousMigrationsRector;
@@ -50,6 +51,7 @@ return RectorConfig::configure()
     })())
     ->withPhpSets(php83: true)
     ->withSkip([
+        ClosureToArrowFunctionRector::class,
         FinalizeTestCaseClassRector::class,
         RequestStaticValidateToInjectRector::class => [
             __DIR__.'/tests',

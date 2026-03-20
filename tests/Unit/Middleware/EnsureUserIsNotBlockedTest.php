@@ -24,12 +24,16 @@ class EnsureUserIsNotBlockedTest extends TestCase
     {
         $user = User::factory()->blocked()->create();
         $request = Request::create('/dashboard');
-        $request->setUserResolver(fn () => $user);
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
 
         $middleware = new EnsureUserIsNotBlocked;
 
         $this->expectException(HttpException::class);
-        $middleware->handle($request, fn () => new Response('OK'));
+        $middleware->handle($request, function () {
+            return new Response('OK');
+        });
     }
 
     #[Test]
@@ -37,7 +41,9 @@ class EnsureUserIsNotBlockedTest extends TestCase
     {
         $user = User::factory()->create();
         $request = Request::create('/dashboard');
-        $request->setUserResolver(fn () => $user);
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
 
         $nextCalled = false;
         $middleware = new EnsureUserIsNotBlocked;
@@ -55,7 +61,9 @@ class EnsureUserIsNotBlockedTest extends TestCase
     public function guest_passes_through(): void
     {
         $request = Request::create('/');
-        $request->setUserResolver(fn () => null);
+        $request->setUserResolver(function () {
+            return null;
+        });
 
         $nextCalled = false;
         $middleware = new EnsureUserIsNotBlocked;

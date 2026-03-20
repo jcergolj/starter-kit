@@ -29,12 +29,24 @@ class FortifyServiceProvider extends ServiceProvider
 
     private function configureFortifyViews(): void
     {
-        Fortify::twoFactorChallengeView(fn () => view('auth.two-factor-challenge'));
-        Fortify::confirmPasswordView(fn () => view('auth.confirm-password'));
-        Fortify::loginView(fn () => view('auth.login'));
-        Fortify::verifyEmailView(fn () => view('auth.verify-email'));
-        Fortify::resetPasswordView(fn () => view('auth.reset-password'));
-        Fortify::requestPasswordResetLinkView(fn () => view('auth.forgot-password'));
+        Fortify::twoFactorChallengeView(function () {
+            return view('auth.two-factor-challenge');
+        });
+        Fortify::confirmPasswordView(function () {
+            return view('auth.confirm-password');
+        });
+        Fortify::loginView(function () {
+            return view('auth.login');
+        });
+        Fortify::verifyEmailView(function () {
+            return view('auth.verify-email');
+        });
+        Fortify::resetPasswordView(function () {
+            return view('auth.reset-password');
+        });
+        Fortify::requestPasswordResetLinkView(function () {
+            return view('auth.forgot-password');
+        });
     }
 
     private function configureRateLimiting(): void
@@ -45,7 +57,9 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
-        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by($request->session()->get('login.id')));
+        RateLimiter::for('two-factor', function (Request $request) {
+            return Limit::perMinute(5)->by($request->session()->get('login.id'));
+        });
     }
 
     private function configureFotifyActions(): void

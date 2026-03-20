@@ -45,8 +45,12 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function settings(): Attribute
     {
         return Attribute::make(
-            get: fn (?string $value) => UserSettings::fromArray(json_decode($value ?? '{}', true)),
-            set: fn (UserSettings|array|null $value) => ['settings' => json_encode($value instanceof UserSettings ? $value->toArray() : ($value ?? ['lang' => 'en']))],
+            get: function (?string $value) {
+                return UserSettings::fromArray(json_decode($value ?? '{}', true));
+            },
+            set: function (UserSettings|array|null $value) {
+                return ['settings' => json_encode($value instanceof UserSettings ? $value->toArray() : ($value ?? ['lang' => 'en']))];
+            },
         );
     }
 

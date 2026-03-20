@@ -138,7 +138,9 @@ class CreateUserCommandTest extends TestCase
         $this->assertNotNull($invitation);
         $this->assertSame(RoleEnum::User, $invitation->role);
 
-        Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'invite@example.com');
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
+            return $mail->invitation->email === 'invite@example.com';
+        });
     }
 
     #[Test]
@@ -168,7 +170,9 @@ class CreateUserCommandTest extends TestCase
         $this->assertNotNull($invitation);
         $this->assertSame(RoleEnum::Admin, $invitation->role);
 
-        Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'admin-invite@example.com');
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
+            return $mail->invitation->email === 'admin-invite@example.com';
+        });
     }
 
     #[Test]
@@ -198,7 +202,9 @@ class CreateUserCommandTest extends TestCase
         $this->assertNotNull($invitation);
         $this->assertSame(RoleEnum::Superadmin, $invitation->role);
 
-        Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'superadmin-invite@example.com');
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
+            return $mail->invitation->email === 'superadmin-invite@example.com';
+        });
     }
 
     #[Test]
@@ -314,7 +320,9 @@ class CreateUserCommandTest extends TestCase
         $this->assertNotNull($invitation);
         $this->assertSame(RoleEnum::User, $invitation->role);
 
-        Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail) => $mail->invitation->email === 'tenant-invite@example.com');
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
+            return $mail->invitation->email === 'tenant-invite@example.com';
+        });
     }
 
     #[Test]

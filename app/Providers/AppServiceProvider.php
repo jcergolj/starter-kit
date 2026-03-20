@@ -16,20 +16,26 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton('TenantDatabaseService', fn ($app) => new TenantDatabaseService);
+        $this->app->singleton('TenantDatabaseService', function ($app) {
+            return new TenantDatabaseService;
+        });
     }
 
     public function boot(): void
     {
-        Mail::extend('brevo', fn () => (new BrevoTransportFactory)->create(
-            new Dsn(
-                'brevo+api',
-                'default',
-                config('services.brevo.key')
-            )
-        ));
+        Mail::extend('brevo', function () {
+            return (new BrevoTransportFactory)->create(
+                new Dsn(
+                    'brevo+api',
+                    'default',
+                    config('services.brevo.key')
+                )
+            );
+        });
 
-        LogViewer::auth(fn ($request) => $request->user()?->role === RoleEnum::Superadmin);
+        LogViewer::auth(function ($request) {
+            return $request->user()?->role === RoleEnum::Superadmin;
+        });
 
         DB::prohibitDestructiveCommands($this->app->isProduction());
 

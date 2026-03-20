@@ -30,7 +30,9 @@ class CreateUserCommand extends Command
         $newTenantSubdomain = null;
 
         $databases = glob(database_path('db/*.sqlite'));
-        $subdomains = $databases ? array_map(fn (string $path) => basename($path, '.sqlite'), $databases) : [];
+        $subdomains = $databases ? array_map(function (string $path) {
+            return basename($path, '.sqlite');
+        }, $databases) : [];
 
         $options = [__('Current database')];
 
@@ -104,7 +106,9 @@ class CreateUserCommand extends Command
         );
 
         $languages = array_map(
-            fn (string $path) => basename($path, '.json'),
+            function (string $path) {
+                return basename($path, '.json');
+            },
             glob(lang_path('*.json')),
         );
 

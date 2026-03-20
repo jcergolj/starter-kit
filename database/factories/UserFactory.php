@@ -33,30 +33,38 @@ class UserFactory extends Factory
 
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => RoleEnum::Admin,
-        ]);
+        return $this->state(function (array $attributes) {
+            return [
+                'role' => RoleEnum::Admin,
+            ];
+        });
     }
 
     public function superadmin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => RoleEnum::Superadmin,
-        ]);
+        return $this->state(function (array $attributes) {
+            return [
+                'role' => RoleEnum::Superadmin,
+            ];
+        });
     }
 
     public function blocked(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'blocked_at' => now(),
-        ]);
+        return $this->state(function (array $attributes) {
+            return [
+                'blocked_at' => now(),
+            ];
+        });
     }
 
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->state(function (array $attributes) {
+            return [
+                'email_verified_at' => null,
+            ];
+        });
     }
 
     public function withTwoFactorAuthenticationEnabled(): static

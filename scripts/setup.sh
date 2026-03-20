@@ -90,8 +90,9 @@ read -rp "Proceed? (y/N): " CONFIRM
 # Step 1: Install system dependencies
 step "Installing system dependencies..."
 sudo apt update
-sudo apt install -y "php${PHP_VERSION}-sqlite3" "php${PHP_VERSION}-gd" "php${PHP_VERSION}-exif" libzip-dev sqlite3
+sudo apt install -y "php${PHP_VERSION}-sqlite3" "php${PHP_VERSION}-gd" "php${PHP_VERSION}-exif" libzip-dev sqlite3 php-redis
 sudo phpenmod sqlite3 gd exif
+
 # Remove Apache if it was pulled in as a PHP dependency (conflicts with Caddy on port 80)
 if dpkg -l apache2 &>/dev/null; then
     warn "Apache was installed as a PHP dependency — removing it (Caddy handles HTTP)"
@@ -237,6 +238,8 @@ SUPEOF
     sudo supervisorctl start "${APP_NAME}-horizon"
     success "Horizon installed and Supervisor configured"
 fi
+
+php artisan key:generate
 
 # Step 11: Prompt to edit .env
 echo ""

@@ -74,7 +74,9 @@ class ConnectToUserDatabaseTest extends TestCase
 
         $request = Request::create('http://nonexistent.example.com/dashboard');
 
-        $response = $this->middleware->handle($request, fn ($req) => new Response('OK'));
+        $response = $this->middleware->handle($request, function ($req) {
+            return new Response('OK');
+        });
 
         $this->assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
     }
@@ -105,11 +107,15 @@ class ConnectToUserDatabaseTest extends TestCase
 
         try {
             $request = Request::create('http://wronguser.example.com/dashboard');
-            $request->setUserResolver(fn () => $user);
+            $request->setUserResolver(function () use ($user) {
+                return $user;
+            });
 
             $exceptionThrown = false;
             try {
-                $this->middleware->handle($request, fn ($req) => new Response('OK'));
+                $this->middleware->handle($request, function ($req) {
+                    return new Response('OK');
+                });
             } catch (HttpException $e) {
                 $exceptionThrown = true;
                 $this->assertSame(Response::HTTP_FORBIDDEN, $e->getStatusCode());
@@ -140,7 +146,9 @@ class ConnectToUserDatabaseTest extends TestCase
 
         try {
             $request = Request::create('http://tenantowner.example.com/dashboard');
-            $request->setUserResolver(fn () => $user);
+            $request->setUserResolver(function () use ($user) {
+                return $user;
+            });
 
             $nextCalled = false;
             $response = $this->middleware->handle($request, function ($req) use (&$nextCalled) {

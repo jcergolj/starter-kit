@@ -23,15 +23,19 @@ class InvitationFactory extends Factory
 
     public function accepted(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'accepted_at' => now(),
-        ]);
+        return $this->state(function (array $attributes) {
+            return [
+                'accepted_at' => now(),
+            ];
+        });
     }
 
     public function expired(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'expires_at' => now()->subDay(),
-        ]);
+        return $this->state(function (array $attributes) {
+            return [
+                'expires_at' => now()->subDay(),
+            ];
+        });
     }
 }

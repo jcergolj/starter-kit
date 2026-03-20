@@ -35,9 +35,13 @@ class SetLocaleMiddlewareTest extends TestCase
         ]);
 
         $request = Request::create('/dashboard');
-        $request->setUserResolver(fn () => $user);
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
 
-        $this->middleware->handle($request, fn () => new Response('OK'));
+        $this->middleware->handle($request, function () {
+            return new Response('OK');
+        });
 
         $this->assertSame('sl', app()->getLocale());
     }
@@ -49,7 +53,9 @@ class SetLocaleMiddlewareTest extends TestCase
 
         $request = Request::create('/dashboard');
 
-        $this->middleware->handle($request, fn () => new Response('OK'));
+        $this->middleware->handle($request, function () {
+            return new Response('OK');
+        });
 
         $this->assertSame('sl', app()->getLocale());
     }

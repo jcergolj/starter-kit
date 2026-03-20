@@ -94,11 +94,10 @@ class AcceptInvitationControllerTest extends TestCase
             'password_confirmation' => 'Secret123!',
         ]);
 
-        $this->assertDatabaseHas('users', [
-            'name' => 'Jane Doe',
-            'username' => 'janedoe',
-            'email' => 'invited@example.com',
-        ]);
+        $user = User::first();
+        $this->assertSame('Jane Doe', $user->name);
+        $this->assertSame('janedoe', $user->username);
+        $this->assertSame('invited@example.com', $user->email);
     }
 
     #[Test]
@@ -192,7 +191,8 @@ class AcceptInvitationControllerTest extends TestCase
             'password_confirmation' => 'Secret123!',
         ]);
 
-        $this->assertDatabaseHas('users', ['email' => 'real@example.com']);
+        $user = User::first();
+        $this->assertSame('real@example.com', $user->email);
         $this->assertDatabaseMissing('users', ['email' => 'spoofed@example.com']);
     }
 

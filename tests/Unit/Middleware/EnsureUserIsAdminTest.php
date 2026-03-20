@@ -24,7 +24,9 @@ class EnsureUserIsAdminTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
         $request = Request::create('/invitations/create');
-        $request->setUserResolver(fn () => $admin);
+        $request->setUserResolver(function () use ($admin) {
+            return $admin;
+        });
 
         $nextCalled = false;
         $middleware = new EnsureUserIsAdmin;
@@ -43,7 +45,9 @@ class EnsureUserIsAdminTest extends TestCase
     {
         $superadmin = User::factory()->superadmin()->create();
         $request = Request::create('/invitations/create');
-        $request->setUserResolver(fn () => $superadmin);
+        $request->setUserResolver(function () use ($superadmin) {
+            return $superadmin;
+        });
 
         $nextCalled = false;
         $middleware = new EnsureUserIsAdmin;
@@ -62,23 +66,31 @@ class EnsureUserIsAdminTest extends TestCase
     {
         $nonAdmin = User::factory()->create();
         $request = Request::create('/invitations/create');
-        $request->setUserResolver(fn () => $nonAdmin);
+        $request->setUserResolver(function () use ($nonAdmin) {
+            return $nonAdmin;
+        });
 
         $middleware = new EnsureUserIsAdmin;
 
         $this->expectException(HttpException::class);
-        $middleware->handle($request, fn () => new Response('OK'));
+        $middleware->handle($request, function () {
+            return new Response('OK');
+        });
     }
 
     #[Test]
     public function guest_gets_403(): void
     {
         $request = Request::create('/invitations/create');
-        $request->setUserResolver(fn () => null);
+        $request->setUserResolver(function () {
+            return null;
+        });
 
         $middleware = new EnsureUserIsAdmin;
 
         $this->expectException(HttpException::class);
-        $middleware->handle($request, fn () => new Response('OK'));
+        $middleware->handle($request, function () {
+            return new Response('OK');
+        });
     }
 }
