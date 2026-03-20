@@ -187,6 +187,19 @@ chmod -R 775 "$APP_DIR/database"
 chmod 664 "$APP_DIR/database/database.sqlite"
 success "Permissions set"
 
+# Step 6b: Allow deploy user to terminate Horizon as www-data without password
+step "Configuring sudoers for Horizon terminate..."
+SUDOERS_LINE="$(whoami) ALL=(www-data) NOPASSWD: /usr/bin/php ${APP_DIR}/artisan horizon\:terminate"
+SUDOERS_FILE="/etc/sudoers.d/$(whoami)"
+if [ -f "$SUDOERS_FILE" ] && grep -qF "horizon" "$SUDOERS_FILE"; then
+    success "Sudoers entry for Horizon already exists — skipping"
+else
+    echo "$SUDOERS_LINE" | sudo tee -a "$SUDOERS_FILE" > /dev/null
+    sudo chmod 0440 "$SUDOERS_FILE"
+    sudo visudo -c -f "$SUDOERS_FILE" || error "Invalid sudoers syntax"
+    success "Sudoers entry added"
+fi
+
 # Step 7: Scheduler cron job
 step "Setting up Laravel scheduler cron..."
 CRON_JOB="* * * * * cd ${APP_DIR} && php artisan schedule:run >> /dev/null 2>&1"
