@@ -14,12 +14,13 @@
     ],
     "sail": false,
     "skills": [
-        "pest-testing",
+        "laravel-best-practices",
+        "configuring-horizon",
         "developing-with-turbo-basics",
         "developing-with-turbo-drive",
         "developing-with-turbo-frames",
         "developing-with-turbo-streams",
         "developing-with-turbo-tests",
-        "developing-with-fortify"
+        "fortify-development"
     ]
 }
