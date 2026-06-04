@@ -9,7 +9,6 @@ use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Requests\AcceptInvitationRequest;
 use App\Models\Invitation;
 use App\Models\User;
-use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -34,8 +33,6 @@ class AcceptInvitationControllerTest extends TestCase
     #[Test]
     public function show_renders_accept_form_for_valid_token(): void
     {
-        $this->withoutMiddleware(HotreloadMiddleware::class);
-
         $invitation = Invitation::factory()->create();
 
         $response = $this->get(route('invitations.accept', $invitation->token));

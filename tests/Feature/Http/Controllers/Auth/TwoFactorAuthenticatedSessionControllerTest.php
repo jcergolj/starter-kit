@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Auth;
 
 use App\Models\User;
-use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
 use Laravel\Fortify\Fortify;
@@ -20,8 +19,6 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
     #[Test]
     public function two_factor_challenge_screen_can_be_rendered(): void
     {
-        $this->withoutMiddleware(HotreloadMiddleware::class);
-
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
         Session::put([

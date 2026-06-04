@@ -9,7 +9,6 @@ use App\Http\Requests\SendInvitationRequest;
 use App\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\User;
-use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
@@ -56,8 +55,6 @@ class InvitationControllerTest extends TestCase
     #[Test]
     public function admin_can_view_invite_form(): void
     {
-        $this->withoutMiddleware(HotreloadMiddleware::class);
-
         $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->get(route('invitations.create'));

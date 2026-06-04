@@ -6,7 +6,6 @@ namespace Tests\Feature\Http\Controllers\Settings;
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Models\User;
-use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -21,8 +20,6 @@ class PasswordControllerTest extends TestCase
     #[Test]
     public function edit_displays_password_form(): void
     {
-        $this->withoutMiddleware(HotreloadMiddleware::class);
-
         $user = User::factory()->create();
 
         $this->actingAs($user)->get(route('settings.password.edit'))

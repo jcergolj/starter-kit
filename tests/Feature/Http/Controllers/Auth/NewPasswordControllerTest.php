@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Auth;
 
 use App\Models\User;
-use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -19,8 +18,6 @@ class NewPasswordControllerTest extends TestCase
     #[Test]
     public function reset_password_screen_can_be_rendered(): void
     {
-        $this->withoutMiddleware(HotreloadMiddleware::class);
-
         Notification::fake();
 
         $user = User::factory()->create();

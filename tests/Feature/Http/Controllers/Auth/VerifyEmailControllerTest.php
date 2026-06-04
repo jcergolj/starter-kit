@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Auth;
 
 use App\Models\User;
-use HotwiredLaravel\Hotreload\Http\Middleware\HotreloadMiddleware;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -20,8 +19,6 @@ class VerifyEmailControllerTest extends TestCase
     #[Test]
     public function email_verification_screen_can_be_rendered(): void
     {
-        $this->withoutMiddleware(HotreloadMiddleware::class);
-
         $user = User::factory()->unverified()->create();
 
         $response = $this->actingAs($user)->get('/email/verify');
