@@ -33,7 +33,9 @@ class BlockedUserControllerTest extends TestCase
         $response = $this->actingAs($admin)->post(route('blocked-users.store', $user));
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
+
         $response->assertMiddlewareIsApplied('admin');
     }
 
@@ -46,7 +48,9 @@ class BlockedUserControllerTest extends TestCase
         $response = $this->actingAs($admin)->delete(route('blocked-users.destroy', $user));
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
+
         $response->assertMiddlewareIsApplied('admin');
     }
 
@@ -59,7 +63,9 @@ class BlockedUserControllerTest extends TestCase
         $response = $this->actingAs($admin)->post(route('blocked-users.store', $user));
 
         $response->assertRedirect(route('users.index'));
+
         InAppNotification::assertSuccess(__('User blocked.'));
+
         $this->assertNotNull($user->fresh()->blocked_at);
     }
 
@@ -72,7 +78,9 @@ class BlockedUserControllerTest extends TestCase
         $response = $this->actingAs($admin)->delete(route('blocked-users.destroy', $user));
 
         $response->assertRedirect(route('users.index'));
+
         InAppNotification::assertSuccess(__('User unblocked.'));
+
         $this->assertNull($user->fresh()->blocked_at);
     }
 

@@ -44,7 +44,9 @@ class ProfileControllerTest extends TestCase
         $response->assertRedirect();
 
         $user->refresh();
+
         $this->assertEquals('New Name', $user->name);
+
         $this->assertEquals('new@example.com', $user->email);
     }
 
@@ -121,6 +123,7 @@ class ProfileControllerTest extends TestCase
         $response->assertRedirect('/');
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
+
         $this->assertGuest();
     }
 
@@ -182,7 +185,9 @@ class ProfileControllerTest extends TestCase
         $user->refresh();
 
         $this->assertEquals('Test User', $user->name);
+
         $this->assertEquals('test@example.com', $user->email);
+
         $this->assertNull($user->email_verified_at);
     }
 
@@ -213,6 +218,7 @@ class ProfileControllerTest extends TestCase
         ])->assertValid()->assertRedirect('/');
 
         $this->assertGuest();
+
         $this->assertModelMissing($user);
     }
 

@@ -74,6 +74,7 @@ class TwoFactorControllerTest extends TestCase
         $user->refresh();
 
         $this->assertNotNull($user->two_factor_secret);
+
         $this->assertNull($user->two_factor_confirmed_at);
     }
 
@@ -83,7 +84,9 @@ class TwoFactorControllerTest extends TestCase
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
         $this->assertNotNull($user->two_factor_secret);
+
         $this->assertNotNull($user->two_factor_confirmed_at);
+
         $this->assertNotNull($user->two_factor_recovery_codes);
 
         $this->actingAs($user)
@@ -93,7 +96,9 @@ class TwoFactorControllerTest extends TestCase
         $user->refresh();
 
         $this->assertNull($user->two_factor_secret);
+
         $this->assertNull($user->two_factor_confirmed_at);
+
         $this->assertNull($user->two_factor_recovery_codes);
     }
 }

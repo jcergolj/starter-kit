@@ -17,6 +17,7 @@ class DashboardTest extends TestCase
     public function guests_are_redirected_to_the_login_page(): void
     {
         $response = $this->get('/dashboard');
+
         $response->assertRedirect('/login');
     }
 
@@ -27,6 +28,7 @@ class DashboardTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->get('/dashboard');
+
         $response->assertOk();
     }
 

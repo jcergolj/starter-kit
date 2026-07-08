@@ -31,6 +31,7 @@ class EnsureUserIsNotBlockedTest extends TestCase
         $middleware = new EnsureUserIsNotBlocked;
 
         $this->expectException(HttpException::class);
+
         $middleware->handle($request, function () {
             return new Response('OK');
         });
@@ -54,6 +55,7 @@ class EnsureUserIsNotBlockedTest extends TestCase
         });
 
         $this->assertTrue($nextCalled);
+
         $this->assertSame(200, $response->getStatusCode());
     }
 
@@ -74,6 +76,7 @@ class EnsureUserIsNotBlockedTest extends TestCase
         });
 
         $this->assertTrue($nextCalled);
+
         $this->assertSame(200, $response->getStatusCode());
     }
 }

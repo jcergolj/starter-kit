@@ -44,6 +44,7 @@ class UpdateUserPasswordTest extends TestCase
         ]);
 
         $user->refresh();
+
         $this->assertTrue(Hash::check('NewPassword123!', $user->password));
     }
 

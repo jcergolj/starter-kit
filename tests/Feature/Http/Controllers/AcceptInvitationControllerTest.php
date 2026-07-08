@@ -65,6 +65,7 @@ class AcceptInvitationControllerTest extends TestCase
         $response = $this->get(route('invitations.accept', $invitation->token));
 
         $response->assertRedirect(route('login'));
+
         $response->assertSessionHas('status', __('This invitation is no longer valid.'));
     }
 
@@ -76,6 +77,7 @@ class AcceptInvitationControllerTest extends TestCase
         $response = $this->get(route('invitations.accept', $invitation->token));
 
         $response->assertRedirect(route('login'));
+
         $response->assertSessionHas('status', __('This invitation is no longer valid.'));
     }
 
@@ -92,8 +94,11 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::first();
+
         $this->assertSame('Jane Doe', $user->name);
+
         $this->assertSame('janedoe', $user->username);
+
         $this->assertSame('invited@example.com', $user->email);
     }
 
@@ -110,6 +115,7 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::where('email', $invitation->email)->first();
+
         $this->assertSame('sl', $user->settings->lang);
     }
 
@@ -126,6 +132,7 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::where('email', $invitation->email)->first();
+
         $this->assertSame(RoleEnum::Admin, $user->role);
     }
 
@@ -142,6 +149,7 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::where('email', $invitation->email)->first();
+
         $this->assertSame(RoleEnum::User, $user->role);
     }
 
@@ -158,6 +166,7 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::where('email', $invitation->email)->first();
+
         $this->assertNotNull($user->email_verified_at);
     }
 
@@ -189,7 +198,9 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $user = User::first();
+
         $this->assertSame('real@example.com', $user->email);
+
         $this->assertDatabaseMissing('users', ['email' => 'spoofed@example.com']);
     }
 
@@ -206,6 +217,7 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('login'));
+
         $response->assertSessionHas('status', __('Invitation accepted. You can now log in.'));
     }
 
@@ -222,7 +234,9 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('login'));
+
         $response->assertSessionHas('status', __('This invitation is no longer valid.'));
+
         $this->assertDatabaseEmpty('users');
     }
 
@@ -239,7 +253,9 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('login'));
+
         $response->assertSessionHas('status', __('This invitation is no longer valid.'));
+
         $this->assertDatabaseEmpty('users');
     }
 }

@@ -21,9 +21,13 @@ class InvitationTest extends TestCase
         $invitation = Invitation::createFor('test@example.com');
 
         $this->assertSame('test@example.com', $invitation->email);
+
         $this->assertNotEmpty($invitation->token);
+
         $this->assertSame(64, strlen($invitation->token));
+
         $this->assertNull($invitation->accepted_at);
+
         $this->assertTrue($invitation->expires_at->isFuture());
     }
 

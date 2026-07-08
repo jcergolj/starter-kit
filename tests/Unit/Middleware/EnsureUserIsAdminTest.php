@@ -37,6 +37,7 @@ class EnsureUserIsAdminTest extends TestCase
         });
 
         $this->assertTrue($nextCalled);
+
         $this->assertSame(200, $response->getStatusCode());
     }
 
@@ -58,6 +59,7 @@ class EnsureUserIsAdminTest extends TestCase
         });
 
         $this->assertTrue($nextCalled);
+
         $this->assertSame(200, $response->getStatusCode());
     }
 
@@ -73,6 +75,7 @@ class EnsureUserIsAdminTest extends TestCase
         $middleware = new EnsureUserIsAdmin;
 
         $this->expectException(HttpException::class);
+
         $middleware->handle($request, function () {
             return new Response('OK');
         });
@@ -89,6 +92,7 @@ class EnsureUserIsAdminTest extends TestCase
         $middleware = new EnsureUserIsAdmin;
 
         $this->expectException(HttpException::class);
+
         $middleware->handle($request, function () {
             return new Response('OK');
         });

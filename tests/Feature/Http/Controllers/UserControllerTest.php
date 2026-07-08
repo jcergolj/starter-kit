@@ -36,7 +36,9 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('users.index'));
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
+
         $response->assertMiddlewareIsApplied('admin');
     }
 
@@ -49,7 +51,9 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('users.edit', $user));
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
+
         $response->assertMiddlewareIsApplied('admin');
     }
 
@@ -66,7 +70,9 @@ class UserControllerTest extends TestCase
         ]);
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
+
         $response->assertMiddlewareIsApplied('admin');
     }
 
@@ -90,7 +96,9 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($admin)->delete(route('users.destroy', $user));
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
+
         $response->assertMiddlewareIsApplied('admin');
     }
 
@@ -103,6 +111,7 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('users.index'));
 
         $response->assertOk();
+
         $response->assertSeeText($user->username);
     }
 
@@ -115,8 +124,11 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('users.index'));
 
         $response->assertOk();
+
         $response->assertSeeText($otherUser->username);
+
         $this->assertDatabaseCount('users', 2);
+
         $this->assertCount(1, User::where('role', RoleEnum::User)->get());
     }
 
@@ -151,10 +163,14 @@ class UserControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('users.index'));
+
         InAppNotification::assertSuccess(__('User updated.'));
+
         $updatedUser = User::find($user->id);
         $this->assertSame('Updated Name', $updatedUser->name);
+
         $this->assertSame('updateduser', $updatedUser->username);
+
         $this->assertSame('updated@example.com', $updatedUser->email);
     }
 
@@ -171,6 +187,7 @@ class UserControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('users.index'));
+
         InAppNotification::assertSuccess(__('User updated.'));
     }
 
@@ -183,7 +200,9 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($admin)->delete(route('users.destroy', $user));
 
         $response->assertRedirect(route('users.index'));
+
         InAppNotification::assertSuccess(__('User deleted.'));
+
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 

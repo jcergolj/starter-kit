@@ -64,6 +64,7 @@ class ConfirmedTwoFactorControllerTest extends TestCase
         $user->refresh();
 
         $this->assertNotNull($user->two_factor_confirmed_at);
+
         $this->assertNotNull($user->two_factor_recovery_codes);
     }
 

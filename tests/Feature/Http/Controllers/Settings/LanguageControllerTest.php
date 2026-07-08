@@ -27,6 +27,7 @@ class LanguageControllerTest extends TestCase
         $response = $this->actingAs($user)->get(route('settings.language.edit'));
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
     }
 

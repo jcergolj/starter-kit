@@ -25,6 +25,7 @@ class UserTest extends TestCase
         ]);
 
         $this->assertInstanceOf(UserSettings::class, $user->settings);
+
         $this->assertSame('sl', $user->settings->lang);
     }
 
@@ -36,6 +37,7 @@ class UserTest extends TestCase
         ]);
 
         $this->assertInstanceOf(UserSettings::class, $user->settings);
+
         $this->assertSame('en', $user->settings->lang);
     }
 
@@ -93,6 +95,7 @@ class UserTest extends TestCase
         $user = User::factory()->create();
 
         $this->assertInstanceOf(RoleEnum::class, $user->role);
+
         $this->assertSame(RoleEnum::User, $user->role);
     }
 

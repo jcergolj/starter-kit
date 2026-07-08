@@ -47,6 +47,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
         ]);
 
         $response->assertRedirect('/two-factor-challenge');
+
         $this->assertEquals($user->id, Session::get('login.id'));
     }
 
@@ -71,6 +72,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
         ]);
 
         $response->assertRedirect('/dashboard');
+
         $this->assertAuthenticatedAs($user);
     }
 
@@ -114,6 +116,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
         ]);
 
         $response->assertRedirect('/dashboard');
+
         $this->assertAuthenticatedAs($user);
 
         $this->assertNotContains($recoveryCode, json_decode((string) decrypt($user->fresh()->two_factor_recovery_codes), true));

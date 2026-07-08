@@ -42,7 +42,9 @@ class UpdateUserProfileInformationTest extends TestCase
         ]);
 
         $user->refresh();
+
         $this->assertSame('Jane Doe', $user->name);
+
         $this->assertSame('jane@example.com', $user->email);
     }
 
@@ -144,7 +146,9 @@ class UpdateUserProfileInformationTest extends TestCase
         ]);
 
         $user->refresh();
+
         $this->assertSame('Jane Doe', $user->name);
+
         $this->assertSame('john@example.com', $user->email);
     }
 

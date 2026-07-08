@@ -38,7 +38,9 @@ class InvitationControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('invitations.create'));
 
         $response->assertMiddlewareIsApplied('auth');
+
         $response->assertMiddlewareIsApplied('verified');
+
         $response->assertMiddlewareIsApplied('admin');
     }
 
@@ -101,6 +103,7 @@ class InvitationControllerTest extends TestCase
 
         $invitation = Invitation::first();
         $this->assertSame('invite@example.com', $invitation->email);
+
         Mail::assertSent(InvitationMail::class, function ($mail) {
             return $mail->hasTo('invite@example.com');
         });

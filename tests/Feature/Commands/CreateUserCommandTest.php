@@ -42,10 +42,15 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $user = User::where('email', 'john@example.com')->first();
+
         $this->assertSame('John Doe', $user->name);
+
         $this->assertSame('johndoe', $user->username);
+
         $this->assertTrue(Hash::check('password', $user->password));
+
         $this->assertSame(RoleEnum::User, $user->role);
+
         $this->assertNotNull($user->email_verified_at);
     }
 
@@ -74,9 +79,13 @@ class CreateUserCommandTest extends TestCase
 
         $user = User::where('email', 'admin@example.com')->first();
         $this->assertSame('Admin User', $user->name);
+
         $this->assertSame('admin', $user->username);
+
         $this->assertTrue(Hash::check('password', $user->password));
+
         $this->assertSame(RoleEnum::Admin, $user->role);
+
         $this->assertNotNull($user->email_verified_at);
     }
 
@@ -105,9 +114,13 @@ class CreateUserCommandTest extends TestCase
 
         $user = User::where('email', 'superadmin@example.com')->first();
         $this->assertSame('Super Admin', $user->name);
+
         $this->assertSame('superadmin', $user->username);
+
         $this->assertTrue(Hash::check('password', $user->password));
+
         $this->assertSame(RoleEnum::Superadmin, $user->role);
+
         $this->assertNotNull($user->email_verified_at);
     }
 
@@ -136,6 +149,7 @@ class CreateUserCommandTest extends TestCase
 
         $invitation = Invitation::where('email', 'invite@example.com')->first();
         $this->assertNotNull($invitation);
+
         $this->assertSame(RoleEnum::User, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
@@ -168,6 +182,7 @@ class CreateUserCommandTest extends TestCase
 
         $invitation = Invitation::where('email', 'admin-invite@example.com')->first();
         $this->assertNotNull($invitation);
+
         $this->assertSame(RoleEnum::Admin, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
@@ -200,6 +215,7 @@ class CreateUserCommandTest extends TestCase
 
         $invitation = Invitation::where('email', 'superadmin-invite@example.com')->first();
         $this->assertNotNull($invitation);
+
         $this->assertSame(RoleEnum::Superadmin, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
@@ -259,7 +275,9 @@ class CreateUserCommandTest extends TestCase
 
         $user = User::where('email', 'tenant@example.com')->first();
         $this->assertSame('Tenant User', $user->name);
+
         $this->assertSame('test-tenant', $user->username);
+
         $this->assertSame(RoleEnum::User, $user->role);
     }
 
@@ -288,7 +306,9 @@ class CreateUserCommandTest extends TestCase
 
         $user = User::where('email', 'tenant-admin@example.com')->first();
         $this->assertSame('Tenant Admin', $user->name);
+
         $this->assertSame('admin-tenant', $user->username);
+
         $this->assertSame(RoleEnum::Admin, $user->role);
     }
 
@@ -318,6 +338,7 @@ class CreateUserCommandTest extends TestCase
 
         $invitation = Invitation::where('email', 'tenant-invite@example.com')->first();
         $this->assertNotNull($invitation);
+
         $this->assertSame(RoleEnum::User, $invitation->role);
 
         Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
@@ -407,6 +428,7 @@ class CreateUserCommandTest extends TestCase
 
         $user = User::where('email', 'singledb@example.com')->first();
         $this->assertSame('Single DB User', $user->name);
+
         $this->assertSame(RoleEnum::User, $user->role);
     }
 }

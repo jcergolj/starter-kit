@@ -48,6 +48,7 @@ class ConnectToUserDatabaseTest extends TestCase
         });
 
         $this->assertTrue($nextCalled);
+
         $this->assertSame(200, $response->getStatusCode());
     }
 
@@ -64,6 +65,7 @@ class ConnectToUserDatabaseTest extends TestCase
         });
 
         $this->assertTrue($nextCalled);
+
         $this->assertSame(200, $response->getStatusCode());
     }
 

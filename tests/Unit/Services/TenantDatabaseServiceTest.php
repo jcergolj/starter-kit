@@ -128,6 +128,7 @@ class TenantDatabaseServiceTest extends TestCase
     public function validate_subdomain_throws_exception_for_invalid_formats(string $subdomain): void
     {
         $this->expectException(InvalidSubdomainFormat::class);
+
         $this->expectExceptionMessage("Invalid subdomain format: '{$subdomain}'.");
 
         $this->service->validateSubdomain($subdomain);
