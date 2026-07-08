@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e2a979d5e6b35e37ab015c7004ce5e32",
+    "content-hash": "e76aa6618517ed3b4d3c1d6a9cc9387f",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -9760,20 +9760,24 @@
         },
         {
             "name": "jcergolj/rector-for-laravel",
-            "version": "v0.9",
+            "version": "v2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jcergolj/rector-for-laravel.git",
-                "reference": "fc947ad3a3502c43c8acc37192682fe4fb11491f"
+                "reference": "f2ed75433bb9968df68c8c4e3bcdbfd283191e84"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jcergolj/rector-for-laravel/zipball/fc947ad3a3502c43c8acc37192682fe4fb11491f",
-                "reference": "fc947ad3a3502c43c8acc37192682fe4fb11491f",
+                "url": "https://api.github.com/repos/jcergolj/rector-for-laravel/zipball/f2ed75433bb9968df68c8c4e3bcdbfd283191e84",
+                "reference": "f2ed75433bb9968df68c8c4e3bcdbfd283191e84",
                 "shasum": ""
             },
             "require": {
                 "driftingly/rector-laravel": "2.*"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.29",
+                "phpunit/phpunit": "^13.0"
             },
             "type": "library",
             "extra": {
@@ -9800,9 +9804,9 @@
             "description": "Rector rules for Laravel projects",
             "support": {
                 "issues": "https://github.com/jcergolj/rector-for-laravel/issues",
-                "source": "https://github.com/jcergolj/rector-for-laravel/tree/v0.9"
+                "source": "https://github.com/jcergolj/rector-for-laravel/tree/v2"
             },
-            "time": "2026-03-10T13:50:46+00:00"
+            "time": "2026-07-08T12:20:41+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",

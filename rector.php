@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Jcergolj\RectorForLaravel\CustomRules\AddBlankLineAfterPhpUnitAssertionRector;
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
 use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
@@ -58,6 +59,7 @@ return RectorConfig::configure()
         ],
     ])
     ->withRules([
+        AddBlankLineAfterPhpUnitAssertionRector::class,
         AddVoidReturnTypeWhereNoReturnRector::class,
         AnonymousMigrationsRector::class,
         AppEnvironmentComparisonToParameterRector::class,
