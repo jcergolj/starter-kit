@@ -99,7 +99,6 @@ return RectorConfig::configure()
     )->withPreparedSets(
         deadCode: true,
         codeQuality: true,
-        instanceOf: true,
         earlyReturn: true,
         carbon: true,
         phpunitCodeQuality: true,
