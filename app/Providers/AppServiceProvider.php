@@ -6,11 +6,11 @@ use App\Enums\RoleEnum;
 use App\Services\TenantDatabaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Opcodes\LogViewer\Facades\LogViewer;
 use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
 use Symfony\Component\Mailer\Transport\Dsn;
-use URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,9 +37,9 @@ class AppServiceProvider extends ServiceProvider
             return $request->user()?->role === RoleEnum::Superadmin;
         });
 
-        DB::prohibitDestructiveCommands($this->app->isProduction());
+        DB::prohibitDestructiveCommands($this->app->environment('production'));
 
-        if (! $this->app->isLocal() && ! $this->app->environment('testing')) {
+        if (! $this->app->environment(['local', 'testing'])) {
             URL::forceScheme('https');
         }
     }

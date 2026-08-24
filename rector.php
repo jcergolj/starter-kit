@@ -3,12 +3,18 @@
 declare(strict_types=1);
 
 use Jcergolj\RectorForLaravel\CustomRules\AddBlankLineAfterPhpUnitAssertionRector;
+use Jcergolj\RectorForLaravel\CustomRules\ArrowFunctionToClosureRector;
+use Jcergolj\RectorForLaravel\CustomRules\ModelQueryToDirectStaticCallRector;
+use Jcergolj\RectorForLaravel\CustomRules\PhpUnitTestDocblockToAttributeRector;
+use Jcergolj\RectorForLaravel\CustomRules\RemoveFillableFromUnguardedModelsRector;
+use Jcergolj\RectorForLaravel\CustomRules\RemoveMigrationDownMethodRector;
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
 use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
 use Rector\Privatization\Rector\Class_\FinalizeTestCaseClassRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
 use RectorLaravel\Rector\Class_\AnonymousMigrationsRector;
+use RectorLaravel\Rector\Class_\ModelCastsPropertyToCastsMethodRector;
 use RectorLaravel\Rector\Class_\RemoveModelPropertyFromFactoriesRector;
 use RectorLaravel\Rector\Coalesce\ApplyDefaultInsteadOfNullCoalesceRector;
 use RectorLaravel\Rector\Expr\AppEnvironmentComparisonToParameterRector;
@@ -87,6 +93,12 @@ return RectorConfig::configure()
         ThrowIfRector::class,
         UseComponentPropertyWithinCommandsRector::class,
         ValidationRuleArrayStringValueToArrayRector::class,
+        ArrowFunctionToClosureRector::class,
+        ModelCastsPropertyToCastsMethodRector::class,
+        ModelQueryToDirectStaticCallRector::class,
+        PhpUnitTestDocblockToAttributeRector::class,
+        RemoveFillableFromUnguardedModelsRector::class,
+        RemoveMigrationDownMethodRector::class,
     ])
     ->withCache(
         cacheClass: FileCacheStorage::class,

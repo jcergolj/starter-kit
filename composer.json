@@ -37,7 +37,7 @@
         "jcergolj/http-client-generator-for-laravel": "dev-master",
         "jcergolj/laravel-form-request-assertions": "^1.5",
         "jcergolj/laravel-view-test-assertions": "^2.7",
-        "jcergolj/rector-for-laravel": "2",
+        "jcergolj/rector-for-laravel": "3",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.2",
         "laravel/pail": "^1.2.2",
@@ -94,7 +94,7 @@
         "phpstan": "./vendor/bin/phpstan analyse --memory-limit=2G",
         "env-sync": "php artisan envy:sync --dry",
         "env-prune": "php artisan envy:prune --dry",
-        "pint": "vendor/bin/pint",
+        "pint": "./vendor/bin/pint --parallel",
         "rector": "vendor/bin/rector",
         "test": "php artisan test",
         "analyse": [
