@@ -1,119 +1,180 @@
 @props(['transitions' => true, 'scalable' => false, 'title' => null])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        @include('partials.head', [
-            'transitions' => $transitions,
-            'scalable' => $scalable,
-            'title' => $title,
-        ])
-    </head>
-    <body @class(["min-h-screen flex flex-col"]) style="background: var(--color-bg);">
-        <!-- Top Navigation - Dark Theme -->
-        <nav class="app-nav sticky top-0 z-50">
-            <div class="mx-auto px-2 sm:px-4 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <!-- Left side - Logo and main navigation -->
-                    <div class="flex items-center">
-                        <!-- Logo -->
-                        <a href="{{ route('dashboard') }}" class="flex items-center mr-8">
-                            <x-app-logo />
-                        </a>
+<head>
+    @include('partials.head', [
+        'transitions' => $transitions,
+        'scalable' => $scalable,
+        'title' => $title,
+    ])
+</head>
+<body @class(['min-h-screen flex flex-col']) style="background: var(--color-bg)">
+    <!-- Top Navigation - Dark Theme -->
+    <nav class="app-nav sticky top-0 z-50">
+        <div class="mx-auto px-2 sm:px-4 lg:px-8">
+            <div class="flex h-16 justify-between">
+                <!-- Left side - Logo and main navigation -->
+                <div class="flex items-center">
+                    <!-- Logo -->
+                    <a href="{{ route('dashboard') }}" class="mr-8 flex items-center">
+                        <x-app-logo />
+                    </a>
 
-                        <!-- Desktop Navigation -->
-                        <div class="hidden md:flex space-x-1">
-                            <x-navbar.nav-item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')">
-                                {{ __('Dashboard') }}
-                            </x-navbar.nav-item>
-                            @auth
-                                @if(auth()->user()->isAdmin())
-                                    <x-navbar.nav-item icon="envelope" :href="route('invitations.create')" :current="request()->routeIs('invitations.*')">
-                                        {{ __('Invitations') }}
-                                    </x-navbar.nav-item>
-                                    <x-navbar.nav-item icon="users" :href="route('users.index')" :current="request()->routeIs('users.*')">
-                                        {{ __('Users') }}
-                                    </x-navbar.nav-item>
-                                @endif
+                    <!-- Desktop Navigation -->
+                    <div class="hidden space-x-1 md:flex">
+                        <x-navbar.nav-item
+                            icon="home"
+                            :href="route('dashboard')"
+                            :current="request()->routeIs('dashboard')"
+                        >
+                            {{ __('Dashboard') }}
+                        </x-navbar.nav-item>
+                        @auth
+                            @if (auth()->user()->isAdmin())
+                                <x-navbar.nav-item
+                                    icon="envelope"
+                                    :href="route('invitations.create')"
+                                    :current="request()->routeIs('invitations.*')"
+                                >
+                                    {{ __('Invitations') }}
+                                </x-navbar.nav-item>
+                                <x-navbar.nav-item
+                                    icon="users"
+                                    :href="route('users.index')"
+                                    :current="request()->routeIs('users.*')"
+                                >
+                                    {{ __('Users') }}
+                                </x-navbar.nav-item>
+                            @endif
 
-                                @if(auth()->user()->isSuperadmin())
-                                    <x-navbar.nav-item icon="cog-6-tooth" :href="route('horizon.index')">
-                                         {{ __('Horizon') }}
-                                    </x-navbar.nav-item>
+                            @if (auth()->user()->isSuperadmin())
+                                <x-navbar.nav-item icon="cog-6-tooth" :href="route('horizon.index')">
+                                    {{ __('Horizon') }}
+                                </x-navbar.nav-item>
 
-                                    <x-navbar.nav-item icon="document-text" :href="route('log-viewer.index')" :current="request()->routeIs('log-viewer.*')">
-                                        {{ __('Logs') }}
-                                    </x-navbar.nav-item>
-                                @endif
+                                <x-navbar.nav-item
+                                    icon="document-text"
+                                    :href="route('log-viewer.index')"
+                                    :current="request()->routeIs('log-viewer.*')"
+                                >
+                                    {{ __('Logs') }}
+                                </x-navbar.nav-item>
+                            @endif
 
-
-                            @endauth
-                        </div>
+                        @endauth
                     </div>
+                </div>
 
-                    <!-- Right side - User menu -->
-                    <div class="flex items-center space-x-4">
-                        <!-- Settings link -->
-                        <a href="{{ route('settings') }}" class="nav-user-link flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md transition-colors">
-                            <x-profile :initials="auth()->user()->initials()" class="p-0!" />
-                            <span class="hidden sm:block">{{ auth()->user()->username }}</span>
-                        </a>
+                <!-- Right side - User menu -->
+                <div class="flex items-center space-x-4">
+                    <!-- Settings link -->
+                    <a
+                        href="{{ route('settings') }}"
+                        class="nav-user-link flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+                    >
+                        <x-profile :initials="auth()->user()->initials()" class="p-0!" />
+                        <span class="hidden sm:block">{{ auth()->user()->username }}</span>
+                    </a>
 
-                        <!-- Mobile menu button -->
-                        <div class="md:hidden" data-controller="mobile-menu">
-                            <button type="button" class="mobile-menu-btn inline-flex items-center justify-center p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/20" aria-controls="mobile-menu" aria-expanded="false" data-action="mobile-menu#toggle">
-                                <span class="sr-only">Open main menu</span>
-                                <svg data-mobile-menu-target="openIcon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                                <svg data-mobile-menu-target="closeIcon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden" data-controller="mobile-menu">
+                        <button
+                            type="button"
+                            class="mobile-menu-btn inline-flex items-center justify-center rounded-md p-2 focus:ring-2 focus:ring-white/20 focus:outline-none focus:ring-inset"
+                            aria-controls="mobile-menu"
+                            aria-expanded="false"
+                            data-action="mobile-menu#toggle"
+                        >
+                            <span class="sr-only">Open main menu</span>
+                            <svg data-mobile-menu-target="openIcon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <svg data-mobile-menu-target="closeIcon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
 
-                            <!-- Mobile menu -->
-                            <div data-mobile-menu-target="menu" class="md:hidden hidden absolute right-0 top-full mt-1 w-56 rounded-lg shadow-lg overflow-hidden" id="mobile-menu" style="background: var(--color-nav-bg);">
-                                <div class="px-2 pt-2 pb-3 space-y-1">
-                                    <x-navbar.nav-item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" class="block w-full text-left" data-action="click->mobile-menu#close">
-                                        {{ __('Dashboard') }}
-                                    </x-navbar.nav-item>
-                                    @auth
-                                        @if(auth()->user()->isAdmin())
-                                            <x-navbar.nav-item icon="envelope" :href="route('invitations.create')" :current="request()->routeIs('invitations.*')" class="block w-full text-left" data-action="click->mobile-menu#close">
-                                                {{ __('Invitations') }}
-                                            </x-navbar.nav-item>
-                                            <x-navbar.nav-item icon="users" :href="route('users.index')" :current="request()->routeIs('users.*')" class="block w-full text-left" data-action="click->mobile-menu#close">
-                                                {{ __('Users') }}
-                                            </x-navbar.nav-item>
-                                        @endif
+                        <!-- Mobile menu -->
+                        <div
+                            data-mobile-menu-target="menu"
+                            class="absolute top-full right-0 mt-1 hidden w-56 overflow-hidden rounded-lg shadow-lg md:hidden"
+                            id="mobile-menu"
+                            style="background: var(--color-nav-bg)"
+                        >
+                            <div class="space-y-1 px-2 pt-2 pb-3">
+                                <x-navbar.nav-item
+                                    icon="home"
+                                    :href="route('dashboard')"
+                                    :current="request()->routeIs('dashboard')"
+                                    class="block w-full text-left"
+                                    data-action="click->mobile-menu#close"
+                                >
+                                    {{ __('Dashboard') }}
+                                </x-navbar.nav-item>
+                                @auth
+                                    @if (auth()->user()->isAdmin())
+                                        <x-navbar.nav-item
+                                            icon="envelope"
+                                            :href="route('invitations.create')"
+                                            :current="request()->routeIs('invitations.*')"
+                                            class="block w-full text-left"
+                                            data-action="click->mobile-menu#close"
+                                        >
+                                            {{ __('Invitations') }}
+                                        </x-navbar.nav-item>
+                                        <x-navbar.nav-item
+                                            icon="users"
+                                            :href="route('users.index')"
+                                            :current="request()->routeIs('users.*')"
+                                            class="block w-full text-left"
+                                            data-action="click->mobile-menu#close"
+                                        >
+                                            {{ __('Users') }}
+                                        </x-navbar.nav-item>
+                                    @endif
 
-                                        @if(auth()->user()->isSuperadmin())
-                                            <x-navbar.nav-item icon="cog-6-tooth" :href="route('horizon.index')" class="block w-full text-left" data-action="click->mobile-menu#close">
-                                                {{ __('Horizon') }}
-                                            </x-navbar.nav-item>
-                                            <x-navbar.nav-item icon="document-text" :href="route('log-viewer.index')" :current="request()->routeIs('log-viewer.*')" class="block w-full text-left" data-action="click->mobile-menu#close">
-                                                {{ __('Logs') }}
-                                            </x-navbar.nav-item>
-                                        @endif
-                                    @endauth
-                                </div>
+                                    @if (auth()->user()->isSuperadmin())
+                                        <x-navbar.nav-item
+                                            icon="cog-6-tooth"
+                                            :href="route('horizon.index')"
+                                            class="block w-full text-left"
+                                            data-action="click->mobile-menu#close"
+                                        >
+                                            {{ __('Horizon') }}
+                                        </x-navbar.nav-item>
+                                        <x-navbar.nav-item
+                                            icon="document-text"
+                                            :href="route('log-viewer.index')"
+                                            :current="request()->routeIs('log-viewer.*')"
+                                            class="block w-full text-left"
+                                            data-action="click->mobile-menu#close"
+                                        >
+                                            {{ __('Logs') }}
+                                        </x-navbar.nav-item>
+                                    @endif
+                                @endauth
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </nav>
+        </div>
+    </nav>
 
-        <x-in-app-notifications::notification />
+    <x-in-app-notifications::notification />
 
-        <!-- Main Content -->
-        <main class="flex-1" style="background: var(--color-bg);">
-            {{ $slot }}
-        </main>
+    <!-- Main Content -->
+    <main class="flex-1" style="background: var(--color-bg)">{{ $slot }}</main>
 
-        <footer class="py-4 text-center text-sm" style="color: var(--color-text);">
-            <a href="https://businessautomationby.jcergolj.me.uk/" target="_blank" rel="noopener noreferrer" class="underline hover:no-underline">
-                {{ __('Business Automation by jcergolj') }}
-            </a>
-        </footer>
-    </body>
+    <footer class="py-4 text-center text-sm" style="color: var(--color-text)">
+        <a
+            href="https://businessautomationby.jcergolj.me.uk/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline hover:no-underline"
+        >
+            {{ __('Business Automation by jcergolj') }}
+        </a>
+    </footer>
+</body>
 </html>

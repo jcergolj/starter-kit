@@ -1,13 +1,22 @@
 <x-layouts.app :title="__('Delete profile')">
-    <section class="w-full lg:max-w-xl mx-auto">
+    <section class="mx-auto w-full lg:max-w-xl">
         <x-back-link :href="route('settings')">{{ __('Profile & Settings') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Delete profile') }}</x-text.heading>
         <x-text.subheading>{{ __('Delete your account and all of its resources') }}</x-text.subheading>
 
         <x-page-card class="my-6">
-            <p class="text-sm">{{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}</p>
+            <p class="text-sm">
+                {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
+            </p>
 
-            <form id="delete-profile-form" action="{{ route('settings.profile.destroy') }}" method="post" class="mt-6 w-full space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
+            <form
+                id="delete-profile-form"
+                action="{{ route('settings.profile.destroy') }}"
+                method="post"
+                class="mt-6 w-full space-y-6"
+                data-controller="bridge--form"
+                data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd"
+            >
                 @csrf
 
                 <!-- Current Password -->
@@ -31,7 +40,14 @@
 
                 <div class="flex items-center gap-4">
                     <div class="flex items-center justify-end">
-                        <x-form.button.danger type="submit" class="w-full" data-bridge--form-target="submit" data-bridge-title="{{ __('Delete') }}" data-bridge-destructive="true">{{ __('Delete account') }}</x-form.button.danger>
+                        <x-form.button.danger
+                            type="submit"
+                            class="w-full"
+                            data-bridge--form-target="submit"
+                            data-bridge-title="{{ __('Delete') }}"
+                            data-bridge-destructive="true"
+                        >
+                            {{ __('Delete account') }}</x-form.button.danger>
                     </div>
                 </div>
             </form>

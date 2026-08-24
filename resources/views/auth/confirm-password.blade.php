@@ -1,19 +1,34 @@
 <x-layouts.auth :title="__('Confirm password')">
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Confirm password')" :description="__('This is a secure area of the application. Please confirm your password before continuing.')" />
+        <x-auth-header
+            :title="__('Confirm password')"
+            :description="__('This is a secure area of the application. Please confirm your password before continuing.')"
+        />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form id="confirm-password-form" action="{{ route('password.confirm.store') }}" method="post" class="flex flex-col gap-6">
+        <form
+            id="confirm-password-form"
+            action="{{ route('password.confirm.store') }}"
+            method="post"
+            class="flex flex-col gap-6"
+        >
             @csrf
 
             <!-- Password -->
             <div>
                 <x-form.label for="password">{{ __('Password') }}</x-form.label>
 
-                <x-form.password-input id="password" name="password" required autocomplete="current-password"
-                    :placeholder="__('Password')" :data-error="$errors->has('password')" class="mt-2" />
+                <x-form.password-input
+                    id="password"
+                    name="password"
+                    required
+                    autocomplete="current-password"
+                    :placeholder="__('Password')"
+                    :data-error="$errors->has('password')"
+                    class="mt-2"
+                />
 
                 <x-form.error for="password" />
             </div>

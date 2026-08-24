@@ -6,6 +6,7 @@ jobs:
     name: "code formatter"
     uses: jcergolj/reusable-github-actions/.github/workflows/code-formatter.yml@master
     with:
+      pint-blade: true
       skip-npm: true
 
   larastan:

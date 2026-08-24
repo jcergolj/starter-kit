@@ -1,11 +1,19 @@
 <x-layouts.app :title="__('Update password')">
-    <section class="w-full lg:max-w-xl mx-auto">
+    <section class="mx-auto w-full lg:max-w-xl">
         <x-back-link :href="route('settings')">{{ __('Profile & Settings') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Update password') }}</x-text.heading>
-        <x-text.subheading>{{ __('Ensure your account is using a long, random password to stay secure') }}</x-text.subheading>
+        <x-text.subheading>
+            {{ __('Ensure your account is using a long, random password to stay secure') }}</x-text.subheading>
 
         <x-page-card class="my-6">
-            <form id="update-password-form" action="{{ route('settings.password.update') }}" method="post" class="space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
+            <form
+                id="update-password-form"
+                action="{{ route('settings.password.update') }}"
+                method="post"
+                class="space-y-6"
+                data-controller="bridge--form"
+                data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd"
+            >
                 @csrf
                 @method('put')
 
@@ -63,7 +71,13 @@
 
                 <div class="flex items-center gap-4">
                     <div class="flex items-center justify-end">
-                        <x-form.button.primary type="submit" class="w-full" data-bridge--form-target="submit" data-bridge-title="{{ __('Save') }}">{{ __('Save') }}</x-form.button.primary>
+                        <x-form.button.primary
+                            type="submit"
+                            class="w-full"
+                            data-bridge--form-target="submit"
+                            data-bridge-title="{{ __('Save') }}"
+                        >
+                            {{ __('Save') }}</x-form.button.primary>
                     </div>
                 </div>
             </form>

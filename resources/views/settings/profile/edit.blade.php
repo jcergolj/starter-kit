@@ -1,12 +1,19 @@
 <x-layouts.app :title="__('Profile')">
-    <section class="w-full lg:max-w-xl mx-auto">
+    <section class="mx-auto w-full lg:max-w-xl">
         <x-back-link :href="route('settings')">{{ __('Profile & Settings') }}</x-back-link>
         <x-text.heading size="xl">{{ __('Profile') }}</x-text.heading>
-        
+
         <x-text.subheading>{{ __('Update your name and email address') }}</x-text.subheading>
 
         <x-page-card class="my-6">
-            <form id="edit-profile-form" action="{{ route('settings.profile.update') }}" method="post" class="w-full space-y-6" data-controller="bridge--form" data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd">
+            <form
+                id="edit-profile-form"
+                action="{{ route('settings.profile.update') }}"
+                method="post"
+                class="w-full space-y-6"
+                data-controller="bridge--form"
+                data-action="turbo:submit-start->bridge--form#submitStart turbo:submit-end->bridge--form#submitEnd"
+            >
                 @csrf
                 @method('put')
 
@@ -47,13 +54,11 @@
 
                     <x-form.error for="email" />
 
-                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
+                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
                         <div class="flex flex-col justify-center">
-                            <x-text class="mt-4">
-                                {{ __('Your email address is unverified.') }}
-                            </x-text>
+                            <x-text class="mt-4"> {{ __('Your email address is unverified.') }} </x-text>
 
-                            <x-form.button.link form="resend-email-verification" class="text-sm cursor-pointer">
+                            <x-form.button.link form="resend-email-verification" class="cursor-pointer text-sm">
                                 {{ __('Re-send the verification email') }}
                             </x-form.button.link>
                         </div>
@@ -62,7 +67,13 @@
 
                 <div class="flex items-center gap-4">
                     <div class="flex items-center justify-end">
-                        <x-form.button.primary type="submit" class="w-full" data-bridge--form-target="submit" data-bridge-title="{{ __('Save') }}">{{ __('Save') }}</x-form.button.primary>
+                        <x-form.button.primary
+                            type="submit"
+                            class="w-full"
+                            data-bridge--form-target="submit"
+                            data-bridge-title="{{ __('Save') }}"
+                        >
+                            {{ __('Save') }}</x-form.button.primary>
                     </div>
                 </div>
             </form>

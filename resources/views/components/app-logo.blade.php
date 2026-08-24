@@ -1,4 +1,4 @@
-<div class="flex aspect-square size-8 items-center justify-center rounded-md bg-accent-content text-accent">
+<div class="bg-accent-content text-accent flex aspect-square size-8 items-center justify-center rounded-md">
     <x-app-logo-icon class="size-5" />
 </div>
 

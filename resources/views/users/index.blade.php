@@ -1,5 +1,5 @@
 <x-layouts.app :title="__('Users')">
-    <section class="w-full lg:max-w-4xl mx-auto">
+    <section class="mx-auto w-full lg:max-w-4xl">
         <x-text.heading size="xl">{{ __('Users') }}</x-text.heading>
         @if ($users->isEmpty())
             <p class="mt-4 text-sm">{{ __('No users found.') }}</p>
@@ -30,15 +30,33 @@
                                 </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-ghost">{{ __('Edit') }}</a>
+                                        <a
+                                            href="{{ route('users.edit', $user) }}"
+                                            class="btn btn-sm btn-ghost"
+                                        >{{ __('Edit') }}</a>
 
                                         @if ($user->isBlocked())
-                                            <a href="{{ route('blocked-users.destroy', $user) }}" class="btn btn-secondary btn-sm" data-turbo-method="delete" data-turbo-confirm="{{ __('Are you sure you want to unblock this user?') }}">{{ __('Unblock') }}</a>
+                                            <a
+                                                href="{{ route('blocked-users.destroy', $user) }}"
+                                                class="btn btn-secondary btn-sm"
+                                                data-turbo-method="delete"
+                                                data-turbo-confirm="{{ __('Are you sure you want to unblock this user?') }}"
+                                            >{{ __('Unblock') }}</a>
                                         @else
-                                            <a href="{{ route('blocked-users.store', $user) }}" class="btn btn-secondary btn-sm" data-turbo-method="post" data-turbo-confirm="{{ __('Are you sure you want to block this user?') }}">{{ __('Block') }}</a>
+                                            <a
+                                                href="{{ route('blocked-users.store', $user) }}"
+                                                class="btn btn-secondary btn-sm"
+                                                data-turbo-method="post"
+                                                data-turbo-confirm="{{ __('Are you sure you want to block this user?') }}"
+                                            >{{ __('Block') }}</a>
                                         @endif
 
-                                        <a href="{{ route('users.destroy', $user) }}" class="btn btn-error btn-sm" data-turbo-method="delete" data-turbo-confirm="{{ __('Are you sure you want to delete this user?') }}">{{ __('Delete') }}</a>
+                                        <a
+                                            href="{{ route('users.destroy', $user) }}"
+                                            class="btn btn-error btn-sm"
+                                            data-turbo-method="delete"
+                                            data-turbo-confirm="{{ __('Are you sure you want to delete this user?') }}"
+                                        >{{ __('Delete') }}</a>
                                     </div>
                                 </td>
                             </tr>
