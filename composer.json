@@ -31,13 +31,13 @@
     },
     "require-dev": {
         "brianium/paratest": "^7.22",
-        "deployer/deployer": "^8.0",
         "fakerphp/faker": "^1.23",
         "hotwired-laravel/hotreload": "^0.0.10",
         "jcergolj/additional-test-assertions-for-laravel": "^2.2",
         "jcergolj/http-client-generator-for-laravel": "dev-master",
         "jcergolj/laravel-form-request-assertions": "^1.5",
         "jcergolj/laravel-view-test-assertions": "^2.7",
+        "jcergolj/metator-for-laravel": "@dev",
         "jcergolj/rector-for-laravel": "3",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.2",
@@ -122,5 +122,10 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [{
+        "name": "metator",
+        "type": "path",
+        "url": "../metator-for-laravel"
+    }]
 }

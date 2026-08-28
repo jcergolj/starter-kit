@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "82dac3dd95b3be58bfa61713a1abe8ba",
+    "content-hash": "ade7460990a6b0d0d8fc29fb05f028fd",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -9953,6 +9953,42 @@
             "time": "2025-04-08T11:39:23+00:00"
         },
         {
+            "name": "jcergolj/metator-for-laravel",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "../metator-for-laravel",
+                "reference": "346788b80365fa66cd5cd6c5029e487a745a5649"
+            },
+            "require": {
+                "deployer/deployer": "^8.0",
+                "illuminate/console": "^12.0 || ^13.0",
+                "illuminate/filesystem": "^12.0 || ^13.0",
+                "illuminate/support": "^12.0 || ^13.0",
+                "php": "^8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Jcergolj\\MetatorForLaravel\\MetatorServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Jcergolj\\MetatorForLaravel\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Laravel package that installs Deployer deployment scaffolding into an application.",
+            "transport-options": {
+                "relative": true
+            }
+        },
+        {
             "name": "jcergolj/rector-for-laravel",
             "version": "v3",
             "source": {
@@ -13219,7 +13255,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "jcergolj/http-client-generator-for-laravel": 20
+        "jcergolj/http-client-generator-for-laravel": 20,
+        "jcergolj/metator-for-laravel": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
