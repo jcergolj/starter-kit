@@ -1,5 +1,75 @@
 # Starter Kit
 
+## Theme Customization
+
+This application uses:
+
+- `tonysm/tailwindcss-laravel` for the standalone Tailwind build
+- `tonysm/importmap-laravel` for JavaScript modules without Node bundling
+- daisyUI in standalone plugin mode from local files in `resources/css/tailwind/`
+
+### Where the theme lives
+
+The authoritative theme definition is in `resources/css/app.css`.
+
+Use the daisyUI standalone theme plugin block near the top of that file:
+
+```css
+@plugin "./tailwind/daisyui.js" {
+    themes: false;
+}
+
+@plugin "./tailwind/daisyui-theme.mjs" {
+    name: "light";
+    default: true;
+    color-scheme: light;
+
+    --color-base-100: #ffffff;
+    --color-base-200: #f8fafc;
+    --color-base-300: #edf2f7;
+    --color-base-content: #0f172a;
+    --color-primary: #3b82f6;
+    --color-primary-content: #eff6ff;
+    --color-secondary: #475569;
+    --color-secondary-content: #f8fafc;
+    --color-accent: #3b82f6;
+    --color-accent-content: #eff6ff;
+    --color-neutral: #0f172a;
+    --color-neutral-content: #f8fafc;
+    --color-info: #3b82f6;
+    --color-info-content: #eff6ff;
+    --color-success: #0f766e;
+    --color-success-content: #f0fdfa;
+    --color-warning: #f59e0b;
+    --color-warning-content: #451a03;
+    --color-error: #dc2626;
+    --color-error-content: #fef2f2;
+}
+```
+
+### How to change the theme
+
+1. Edit the daisyUI theme tokens in `resources/css/app.css`
+2. Keep `@plugin "./tailwind/daisyui.js" { themes: false; }` so built-in daisyUI themes do not override the app theme
+3. Keep the layout `<html>` tags on `data-theme="light"` unless you are intentionally adding more themes
+4. Rebuild CSS with:
+
+```bash
+php artisan tailwindcss:build --no-tty
+```
+
+For local development you can keep the watcher running:
+
+```bash
+php artisan tailwindcss:watch --no-tty
+```
+
+### Important
+
+- Do not edit `public/dist/css/app.css`; it is generated output and will be overwritten on every build
+- The stylesheet link should include a build-based `?v=` query string in the shared head partial to prevent stale browser caches from making the old theme appear after rebuilds
+- If a theme change does not appear immediately, do a hard refresh first
+
 ## Deployment
 
 ### Prerequisites
