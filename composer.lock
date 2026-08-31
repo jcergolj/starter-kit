@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ade7460990a6b0d0d8fc29fb05f028fd",
+    "content-hash": "23ebb5065b37fceb9b11cbf26b37b3be",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -9954,11 +9954,17 @@
         },
         {
             "name": "jcergolj/metator-for-laravel",
-            "version": "dev-master",
-            "dist": {
-                "type": "path",
-                "url": "../metator-for-laravel",
+            "version": "v1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jcergolj/metator-for-laravel.git",
                 "reference": "346788b80365fa66cd5cd6c5029e487a745a5649"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jcergolj/metator-for-laravel/zipball/346788b80365fa66cd5cd6c5029e487a745a5649",
+                "reference": "346788b80365fa66cd5cd6c5029e487a745a5649",
+                "shasum": ""
             },
             "require": {
                 "deployer/deployer": "^8.0",
@@ -9980,13 +9986,16 @@
                     "Jcergolj\\MetatorForLaravel\\": "src/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
             "description": "Laravel package that installs Deployer deployment scaffolding into an application.",
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/jcergolj/metator-for-laravel/issues",
+                "source": "https://github.com/jcergolj/metator-for-laravel/tree/v1"
+            },
+            "time": "2026-08-28T08:36:45+00:00"
         },
         {
             "name": "jcergolj/rector-for-laravel",
@@ -13255,8 +13264,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "jcergolj/http-client-generator-for-laravel": 20,
-        "jcergolj/metator-for-laravel": 20
+        "jcergolj/http-client-generator-for-laravel": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
