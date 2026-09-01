@@ -4,42 +4,46 @@ on:
 jobs:
   code-formatter:
     name: "code formatter"
-    uses: jcergolj/reusable-github-actions/.github/workflows/code-formatter.yml@v3
+    uses: jcergolj/reusable-github-actions/.github/workflows/code-formatter.yml@master
     with:
       pint-blade: true
       skip-npm: true
 
   larastan:
     name: "larastan"
-    uses: jcergolj/reusable-github-actions/.github/workflows/larastan.yml@v3
+    uses: jcergolj/reusable-github-actions/.github/workflows/larastan.yml@master
 
   envy:
     name: "envy"
-    uses: jcergolj/reusable-github-actions/.github/workflows/envy.yml@v3
+    uses: jcergolj/reusable-github-actions/.github/workflows/envy.yml@master
 
   tests:
     name: "tests"
-    uses: jcergolj/reusable-github-actions/.github/workflows/tests.yml@v3
+    uses: jcergolj/reusable-github-actions/.github/workflows/tests.yml@master
     with:
       install-tailwind-css: true
 
+  phpmd:
+    name: "phpmd"
+    uses: jcergolj/reusable-github-actions/.github/workflows/phpmd.yml@master
+
   gitleaks:
     name: "gitleaks scan"
-    uses: jcergolj/reusable-github-actions/.github/workflows/gitleaks.yml@v3
+    uses: jcergolj/reusable-github-actions/.github/workflows/gitleaks.yml@master
 
   trufflehog-scan:
     name: "trufflehog scan"
-    uses: jcergolj/reusable-github-actions/.github/workflows/trufflehog-scan.yml@v3
+    uses: jcergolj/reusable-github-actions/.github/workflows/trufflehog-scan.yml@master
 
-  deploy:
-    if: github.ref == 'refs/heads/master'
-    name: "deploy"
-    needs:
-      - code-formatter
-      - larastan
-      - envy
-      - tests
-      - gitleaks
-      - trufflehog-scan
-    uses: jcergolj/reusable-github-actions/.github/workflows/deploy-only.yml@v3
-    secrets: inherit
+  # deploy:
+  #   if: github.ref == 'refs/heads/master'
+  #   name: "deploy"
+  #   needs:
+  #     - code-formatter
+  #     - larastan
+  #     - envy
+  #     - tests
+  #     - gitleaks
+  #     - trufflehog-scan
+  #   uses: jcergolj/reusable-github-actions/.github/workflows/deploy-only.yml@v3
+  #   secrets: inherit

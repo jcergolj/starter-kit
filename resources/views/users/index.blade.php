@@ -32,7 +32,7 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <a
                                             href="{{ route('users.edit', $user) }}"
-                                            class="btn btn-sm btn-ghost"
+                                            class="btn btn-sm btn-edit"
                                         >{{ __('Edit') }}</a>
 
                                         @if ($user->isBlocked())

@@ -3,6 +3,7 @@
 namespace Deployer;
 
 require 'recipe/laravel.php';
+require 'contrib/php-fpm.php';
 
 set('application', 'starter-kit');
 
@@ -40,12 +41,6 @@ task('deploy:cache', function () {
     run('cd {{release_path}} && {{bin/php}} artisan optimize');
 });
 
-// If this app uses Horizon, keep Supervisor on the server running Horizon
-// and uncomment this task and hook.
-// task('deploy:horizon', function () {
-//     run('cd {{release_path}} && {{bin/php}} artisan horizon:terminate');
-// });
-
 after('deploy:vendors', 'deploy:assets');
 after('artisan:migrate', 'deploy:cache');
 
@@ -55,6 +50,10 @@ after('artisan:migrate', 'deploy:cache');
 
 // If this app uses Horizon, configure Supervisor on the server for Horizon and
 // uncomment this hook instead.
-// after('deploy:symlink', 'deploy:horizon');
+// after('deploy:symlink', 'artisan:horizon:terminate');
+
+// If your server still requires a PHP-FPM reload after symlinking the new
+// release, uncomment this hook.
+// after('deploy:symlink', 'php-fpm:reload');
 
 after('deploy:failed', 'deploy:unlock');

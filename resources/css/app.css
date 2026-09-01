@@ -5,9 +5,43 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @plugin "./tailwind/daisyui.js" {
-    /* Light theme only - clean and minimalistic */
-    themes: light --default;
-};
+    themes: false;
+}
+
+@plugin "./tailwind/daisyui-theme.mjs" {
+    name: "light";
+    default: true;
+    color-scheme: light;
+
+    --color-base-100: #ffffff;
+    --color-base-200: #f8fafc;
+    --color-base-300: #edf2f7;
+    --color-base-content: #0f172a;
+    --color-primary: #3b82f6;
+    --color-primary-content: #eff6ff;
+    --color-secondary: #475569;
+    --color-secondary-content: #f8fafc;
+    --color-accent: #3b82f6;
+    --color-accent-content: #eff6ff;
+    --color-neutral: #0f172a;
+    --color-neutral-content: #f8fafc;
+    --color-info: #3b82f6;
+    --color-info-content: #eff6ff;
+    --color-success: #0f766e;
+    --color-success-content: #f0fdfa;
+    --color-warning: #f59e0b;
+    --color-warning-content: #451a03;
+    --color-error: #dc2626;
+    --color-error-content: #fef2f2;
+    --radius-selector: 1rem;
+    --radius-field: 1rem;
+    --radius-box: 1rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+}
 
 @theme {
     --animate-appear-then-fade-out: appear-then-fade-out 5s both;
@@ -43,13 +77,16 @@
     @apply hidden;
 }
 
-/* Input visibility - visible borders on form inputs */
 .input,
 .select,
 .textarea {
-    border: 1.5px solid var(--color-border);
+    min-height: 3.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
     background: var(--color-surface);
-    transition: border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+    color: var(--color-text);
+    box-shadow: none;
+    transition: border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth), background-color 0.2s var(--ease-smooth);
 }
 
 .input:focus,
@@ -57,8 +94,9 @@
 .select:focus,
 .textarea:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     outline: none;
+    background: #fff;
 }
 
 .input::placeholder,
@@ -66,99 +104,72 @@
     color: var(--color-text-muted);
 }
 
-/* Enhanced form spacing and sizing */
 .form-section {
-    @apply space-y-8 py-6;
+    @apply space-y-6 py-4;
 }
 
 .form-group {
-    @apply space-y-4;
+    @apply space-y-2;
 }
 
 .form-grid {
-    @apply grid gap-8;
+    @apply grid gap-6;
 }
 
-/* Button enhancements for better UX */
 .btn {
-    @apply py-4 px-6 text-lg font-medium;
+    @apply px-4 py-3 text-sm font-semibold;
+    min-height: 3rem;
+    border-radius: 0.875rem;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: none;
 }
 
 .btn-lg {
-    @apply py-5 px-8 text-xl;
+    @apply px-5 py-3 text-base;
 }
 
-/* ========================================
-   CSS Variables - Warm Earth Palette
-   ======================================== */
 :root {
-    /* Warm Earth Base Colors */
-    --color-bg: #F5F1EB;
-    --color-surface: #FFFFFF;
-    --color-surface-raised: #FAFAF9;
-
-    /* Stronger text colors - warm browns */
-    --color-text: #2D2A26;
-    --color-text-secondary: #8B775B;
-    --color-text-muted: #A8A097;
-
-    /* Visible tan borders */
-    --color-border: #D4C8B8;
-    --color-border-light: #E8E0D5;
-
-    /* Primary - Warm Teal */
-    --color-primary: #0D9488;
-    --color-primary-hover: #0F766E;
-    --color-primary-light: #CCFBF1;
-
-    /* Accent (same as primary) */
-    --color-accent: #0D9488;
-    --color-accent-hover: #0F766E;
-    --color-accent-light: #CCFBF1;
-
-    /* Edit - Warm Brown */
-    --color-edit: #8B775B;
-    --color-edit-hover: #6B5B45;
-
-    /* Filter - Dark Brown */
-    --color-filter: #2D2A26;
-    --color-filter-hover: #1F1D1A;
-
-    /* Generate - Indigo */
-    --color-generate: #6366F1;
-    --color-generate-hover: #4F46E5;
-
-    /* Success/Export - Green */
-    --color-success: #059669;
-    --color-success-hover: #047857;
-    --color-success-light: #D1FAE5;
-
-    /* Danger - Red */
-    --color-danger: #DC2626;
-    --color-danger-hover: #B91C1C;
-    --color-danger-light: #FEE2E2;
-
-    /* Dark brown navigation bar */
-    --color-nav-bg: #2D2A26;
-    --color-nav-text: #F5F1EB;
-    --color-nav-text-muted: #C5BDB3;
-    --color-nav-active: #4A4640;
-    --color-nav-hover: #3D3A36;
-
-    /* Typography - Inter for headings, Source Sans 3 for body */
-    --font-display: 'Inter', sans-serif;
-    --font-body: 'Source Sans 3', sans-serif;
-
-    /* Transitions */
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-surface-raised: #f8fbff;
+    --color-text: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+    --color-border: #e2e8f0;
+    --color-border-light: #edf2f7;
+    --color-primary: #3b82f6;
+    --color-primary-hover: #2563eb;
+    --color-primary-light: #dbeafe;
+    --color-accent: #3b82f6;
+    --color-accent-hover: #2563eb;
+    --color-accent-light: #eff6ff;
+    --color-edit: #f97316;
+    --color-edit-hover: #ea580c;
+    --color-filter: #0f172a;
+    --color-filter-hover: #020617;
+    --color-generate: #2563eb;
+    --color-generate-hover: #1d4ed8;
+    --color-success: #0f766e;
+    --color-success-hover: #115e59;
+    --color-success-light: #ccfbf1;
+    --color-danger: #dc2626;
+    --color-danger-hover: #b91c1c;
+    --color-danger-light: #fee2e2;
+    --color-nav-bg: rgba(255, 255, 255, 0.88);
+    --color-nav-text: #0f172a;
+    --color-nav-text-muted: #64748b;
+    --color-nav-active: #eff6ff;
+    --color-nav-hover: #f8fafc;
+    --font-display: 'Instrument Sans', sans-serif;
+    --font-body: 'Instrument Sans', sans-serif;
     --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
     --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-
-    /* Legacy aliases for backwards compatibility */
-    --text: #2D2A26;
-    --text-secondary: #8B775B;
-    --text-muted: #A8A097;
-    --border: #D4C8B8;
-    --bg: #F5F1EB;
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --bg: #f8fafc;
 }
 
 * {
@@ -231,81 +242,107 @@ body {
 .stagger-5 { animation-delay: 0.75s; }
 .stagger-6 { animation-delay: 0.9s; }
 
-/* ========================================
-   Button Styles
-   ======================================== */
 .btn-primary {
-    background: var(--color-accent);
-    color: white;
-    transition: background-color 0.2s var(--ease-smooth);
-    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    transition: border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth), transform 0.2s var(--ease-smooth);
     font-weight: 600;
 }
 
 .btn-primary:hover {
-    background: var(--color-accent-hover);
+    background: transparent;
+    color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
 }
 
 .btn-primary:active {
-    background: var(--color-accent-hover);
+    background: transparent;
 }
 
 .btn-secondary {
-    border: 2px solid var(--color-border);
-    color: var(--color-text);
-    background: var(--color-surface);
-    transition: all 0.3s var(--ease-smooth);
-    font-weight: 600;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    background: transparent;
+    transition: border-color 0.2s var(--ease-smooth), background-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth);
+    font-weight: 500;
 }
 
 .btn-secondary:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(13, 148, 136, 0.15);
+    border-color: var(--color-border-light);
+    color: var(--color-text);
+    background: var(--color-surface-raised);
 }
 
-.btn-secondary:active {
-    transform: translateY(0);
+.btn-ghost {
+    border: 1px solid transparent;
+    color: var(--color-text-secondary);
+    background: transparent;
+    transition: border-color 0.2s var(--ease-smooth), background-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth);
 }
 
-/* Edit Button - Warm Brown */
+.btn-ghost:hover {
+    border-color: var(--color-border-light);
+    color: var(--color-text);
+    background: var(--color-surface-raised);
+}
+
+.btn-error {
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
+    background: transparent;
+    transition: border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth), transform 0.2s var(--ease-smooth);
+    font-weight: 600;
+}
+
+.btn-error:hover {
+    border-color: var(--color-danger-hover);
+    color: var(--color-danger-hover);
+    background: transparent;
+}
+
 .btn-edit {
-    background: var(--color-edit);
-    color: white;
-    transition: background-color 0.2s var(--ease-smooth);
-    border: none;
+    background: transparent;
+    color: var(--color-edit);
+    border: 1px solid var(--color-edit);
+    transition: border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth), transform 0.2s var(--ease-smooth);
     font-weight: 600;
 }
 
 .btn-edit:hover {
-    background: var(--color-edit-hover);
+    background: transparent;
+    color: var(--color-edit-hover);
+    border-color: var(--color-edit-hover);
 }
 
-/* Filter Button - Dark Brown */
-.btn-filter {
-    background: var(--color-filter);
-    color: var(--color-bg);
-    transition: background-color 0.2s var(--ease-smooth);
-    border: none;
+.btn-cancel {
+    background: transparent;
+    color: var(--color-filter);
+    border: 1px solid var(--color-filter);
+    transition: border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth), transform 0.2s var(--ease-smooth);
     font-weight: 600;
 }
 
-.btn-filter:hover {
-    background: var(--color-filter-hover);
+.btn-cancel:hover {
+    background: transparent;
+    color: var(--color-filter-hover);
+    border-color: var(--color-filter-hover);
 }
 
-/* Generate Button - Indigo */
+.btn-filter,
 .btn-generate {
-    background: var(--color-generate);
-    color: white;
-    transition: background-color 0.2s var(--ease-smooth);
-    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    transition: border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth), transform 0.2s var(--ease-smooth);
     font-weight: 600;
 }
 
+.btn-filter:hover,
 .btn-generate:hover {
-    background: var(--color-generate-hover);
+    background: transparent;
+    color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
 }
 
 /* Action Buttons */

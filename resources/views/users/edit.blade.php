@@ -49,7 +49,7 @@
 
             <div class="flex items-center gap-4">
                 <x-form.button.primary type="submit">{{ __('Save') }}</x-form.button.primary>
-                <a href="{{ route('users.index') }}" class="btn btn-ghost">{{ __('Cancel') }}</a>
+                <a href="{{ route('users.index') }}" class="btn btn-cancel">{{ __('Cancel') }}</a>
             </div>
         </form>
     </section>

@@ -79,7 +79,7 @@
 
                     <div class="w-full">
                         <div class="grid grid-cols-2 gap-4">
-                            <label for="continue" role="button" class="btn btn-block">{{ __('Cancel') }}</label>
+                            <label for="continue" role="button" class="btn btn-block btn-cancel">{{ __('Cancel') }}</label>
 
                             <button type="submit" class="btn btn-block btn-primary">{{ __('Confirm') }}</button>
                         </div>
