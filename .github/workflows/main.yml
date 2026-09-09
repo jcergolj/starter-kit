@@ -4,6 +4,8 @@ on:
 jobs:
   code-formatter:
     name: "code formatter"
+    permissions:
+      contents: write
     uses: jcergolj/reusable-github-actions/.github/workflows/code-formatter.yml@master
     with:
       pint-blade: true
