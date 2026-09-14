@@ -40,7 +40,9 @@ final readonly class TenantDatabaseService
         $databasePaths = glob(($this->databaseRoot ?? database_path('db')).'/*.sqlite');
 
         return $databasePaths === false ? [] : array_map(
-            static fn (string $path): string => basename($path, '.sqlite'),
+            static function (string $path): string {
+                return basename($path, '.sqlite');
+            },
             $databasePaths,
         );
     }
@@ -73,7 +75,7 @@ final readonly class TenantDatabaseService
         try {
             DB::purge('tenant');
             DB::reconnect('tenant');
-        } catch (Throwable $exception) {
+        } catch (Throwable) {
             DB::purge('tenant');
 
             throw new DatabaseNotFound;
