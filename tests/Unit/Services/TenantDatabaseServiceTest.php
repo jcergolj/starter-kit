@@ -188,6 +188,7 @@ class TenantDatabaseServiceTest extends TestCase
         Config::set('app.domain', 'example.com');
 
         $this->assertTrue($this->service->isTrustedHost(Request::create('http://example.com')));
+
         $this->assertTrue($this->service->isTrustedHost(Request::create('http://tenant.example.com')));
     }
 
