@@ -75,10 +75,6 @@ return [
             'replace_placeholders' => true,
         ],
 
-        'bugsnag' => [
-            'driver' => 'bugsnag',
-        ],
-
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
