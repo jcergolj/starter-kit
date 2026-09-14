@@ -11,9 +11,12 @@ use App\Exceptions\TenantDatabaseAlreadyExists;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 final readonly class TenantDatabaseService
 {
+    public function __construct(private ?string $databaseRoot = null) {}
+
     public function extractSubdomain(Request $request): ?string
     {
         $host = $request->getHost();
@@ -28,7 +31,20 @@ final readonly class TenantDatabaseService
 
     public function getDatabasePath(string $subdomain): string
     {
-        return database_path("db/{$subdomain}.sqlite");
+        return ($this->databaseRoot ?? database_path('db'))."/{$subdomain}.sqlite";
+    }
+
+    /** @return list<string> */
+    public function getTenantSubdomains(): array
+    {
+        $databasePaths = glob(($this->databaseRoot ?? database_path('db')).'/*.sqlite');
+
+        return $databasePaths === false ? [] : array_map(
+            static function (string $path): string {
+                return basename($path, '.sqlite');
+            },
+            $databasePaths,
+        );
     }
 
     public function databaseExists(string $subdomain): bool
@@ -56,8 +72,14 @@ final readonly class TenantDatabaseService
         Config::set('database.connections.tenant.database', $databasePath);
         Config::set('database.default', 'tenant');
 
-        DB::purge('tenant');
-        DB::reconnect('tenant');
+        try {
+            DB::purge('tenant');
+            DB::reconnect('tenant');
+        } catch (Throwable) {
+            DB::purge('tenant');
+
+            throw new DatabaseNotFound;
+        }
     }
 
     public function createTenantDatabase(string $subdomain): void

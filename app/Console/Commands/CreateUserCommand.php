@@ -29,10 +29,7 @@ class CreateUserCommand extends Command
     {
         $newTenantSubdomain = null;
 
-        $databases = glob(database_path('db/*.sqlite'));
-        $subdomains = $databases ? array_map(function (string $path) {
-            return basename($path, '.sqlite');
-        }, $databases) : [];
+        $subdomains = $tenantDatabaseService->getTenantSubdomains();
 
         $options = [__('Current database')];
 

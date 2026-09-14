@@ -18,19 +18,26 @@ class TenantDatabaseServiceTest extends TestCase
 {
     public TenantDatabaseService $service;
 
+    private string $databaseRoot;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->service = new TenantDatabaseService;
+        $this->databaseRoot = sys_get_temp_dir().'/starter-kit-tenant-tests-'.bin2hex(random_bytes(8));
+        mkdir($this->databaseRoot, 0755, true);
+
+        $this->service = new TenantDatabaseService($this->databaseRoot);
     }
 
     protected function tearDown(): void
     {
-        $testDbPath = database_path('db/testtenant.sqlite');
-        if (file_exists($testDbPath)) {
-            unlink($testDbPath);
+        foreach (glob($this->databaseRoot.'/*') ?: [] as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
         }
+        rmdir($this->databaseRoot);
 
         parent::tearDown();
     }
@@ -80,16 +87,13 @@ class TenantDatabaseServiceTest extends TestCase
     {
         $result = $this->service->getDatabasePath('mytenant');
 
-        $this->assertSame(database_path('db/mytenant.sqlite'), $result);
+        $this->assertSame($this->databaseRoot.'/mytenant.sqlite', $result);
     }
 
     #[Test]
     public function database_exists_returns_true_when_file_exists(): void
     {
-        $dbPath = database_path('db/testtenant.sqlite');
-        if (! is_dir(dirname($dbPath))) {
-            mkdir(dirname($dbPath), 0755, true);
-        }
+        $dbPath = $this->databaseRoot.'/testtenant.sqlite';
         touch($dbPath);
 
         $result = $this->service->databaseExists('testtenant');
@@ -103,6 +107,18 @@ class TenantDatabaseServiceTest extends TestCase
         $result = $this->service->databaseExists('nonexistent');
 
         $this->assertFalse($result);
+    }
+
+    #[Test]
+    public function get_tenant_subdomains_returns_only_sqlite_files_in_the_test_root(): void
+    {
+        touch($this->databaseRoot.'/first-tenant.sqlite');
+        touch($this->databaseRoot.'/second-tenant.sqlite');
+        touch($this->databaseRoot.'/not-a-database.txt');
+
+        $result = $this->service->getTenantSubdomains();
+
+        $this->assertSame(['first-tenant', 'second-tenant'], $result);
     }
 
     #[Test]
