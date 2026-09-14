@@ -17,9 +17,11 @@ class LoggingTest extends TestCase
         $exampleEnvironment = parse_ini_file(base_path('.env.example'));
 
         $this->assertIsArray($exampleEnvironment);
+
         $stackChannels = explode(',', (string) $exampleEnvironment['LOG_STACK']);
 
         $this->assertSame(['single'], $stackChannels);
+
         $this->assertArrayNotHasKey('bugsnag', config('logging.channels'));
 
         config()->set('logging.channels.stack.channels', $stackChannels);
