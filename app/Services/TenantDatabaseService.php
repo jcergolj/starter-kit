@@ -110,4 +110,22 @@ final readonly class TenantDatabaseService
     {
         return $request->getHost() === Config::get('app.domain');
     }
+
+    public function isTrustedHost(Request $request): bool
+    {
+        $host = $request->getHost();
+        $domain = (string) Config::get('app.domain');
+
+        if ($host === $domain) {
+            return true;
+        }
+
+        $subdomain = str_ends_with($host, ".{$domain}")
+            ? substr($host, 0, -strlen(".{$domain}"))
+            : '';
+
+        return $subdomain !== ''
+            && ! str_contains($subdomain, '.')
+            && preg_match('/^[a-z0-9_-]+$/', $subdomain) === 1;
+    }
 }
