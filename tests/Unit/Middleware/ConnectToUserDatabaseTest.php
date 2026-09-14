@@ -21,16 +21,31 @@ class ConnectToUserDatabaseTest extends TestCase
 {
     public ConnectToUserDatabase $middleware;
 
+    private string $databaseRoot;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $tenantDb = app(TenantDatabaseService::class);
+        $this->databaseRoot = sys_get_temp_dir().'/starter-kit-middleware-tests-'.bin2hex(random_bytes(8));
+        mkdir($this->databaseRoot, 0755, true);
+
+        $tenantDb = new TenantDatabaseService($this->databaseRoot);
         $urlBuilder = app(SubdomainUrlBuilder::class);
         $this->middleware = new ConnectToUserDatabase(
             $tenantDb,
             $urlBuilder
         );
+    }
+
+    protected function tearDown(): void
+    {
+        foreach (glob($this->databaseRoot.'/*') ?: [] as $path) {
+            is_file($path) ? unlink($path) : rmdir($path);
+        }
+        rmdir($this->databaseRoot);
+
+        parent::tearDown();
     }
 
     #[Test]
@@ -88,9 +103,15 @@ class ConnectToUserDatabaseTest extends TestCase
     {
         Config::set('app.url', 'http://example.com');
 
-        // Skip this test - empty sqlite file is actually valid for SQLite
-        // The middleware will successfully connect to an empty file
-        $this->assertTrue(true);
+        mkdir($this->databaseRoot.'/unwritable.example.sqlite');
+
+        $request = Request::create('http://unwritable.example.com/dashboard');
+
+        $response = $this->middleware->handle($request, function ($req) {
+            return new Response('OK');
+        });
+
+        $this->assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
     }
 
     #[Test]
@@ -101,10 +122,7 @@ class ConnectToUserDatabaseTest extends TestCase
         $user = new User(['username' => 'differentuser']);
 
         // Create the tenant database file
-        $dbPath = database_path('db/wronguser.sqlite');
-        if (! is_dir(dirname($dbPath))) {
-            mkdir(dirname($dbPath), 0755, true);
-        }
+        $dbPath = $this->databaseRoot.'/wronguser.sqlite';
         touch($dbPath);
 
         try {
@@ -126,9 +144,7 @@ class ConnectToUserDatabaseTest extends TestCase
 
             $this->assertTrue($exceptionThrown, 'Expected HttpException was not thrown');
         } finally {
-            if (file_exists($dbPath)) {
-                unlink($dbPath);
-            }
+            unlink($dbPath);
         }
     }
 
@@ -140,10 +156,7 @@ class ConnectToUserDatabaseTest extends TestCase
         $user = new User(['username' => 'tenantowner']);
 
         // Create the tenant database file
-        $dbPath = database_path('db/tenantowner.sqlite');
-        if (! is_dir(dirname($dbPath))) {
-            mkdir(dirname($dbPath), 0755, true);
-        }
+        $dbPath = $this->databaseRoot.'/tenantowner.sqlite';
         touch($dbPath);
 
         try {
@@ -162,9 +175,7 @@ class ConnectToUserDatabaseTest extends TestCase
             $this->assertTrue($nextCalled);
             $this->assertSame(200, $response->getStatusCode());
         } finally {
-            if (file_exists($dbPath)) {
-                unlink($dbPath);
-            }
+            unlink($dbPath);
         }
     }
 
@@ -174,10 +185,7 @@ class ConnectToUserDatabaseTest extends TestCase
         Config::set('app.url', 'http://example.com');
 
         // Create the tenant database file
-        $dbPath = database_path('db/guesttenant.sqlite');
-        if (! is_dir(dirname($dbPath))) {
-            mkdir(dirname($dbPath), 0755, true);
-        }
+        $dbPath = $this->databaseRoot.'/guesttenant.sqlite';
         touch($dbPath);
 
         try {
@@ -193,9 +201,7 @@ class ConnectToUserDatabaseTest extends TestCase
             $this->assertTrue($nextCalled);
             $this->assertSame(200, $response->getStatusCode());
         } finally {
-            if (file_exists($dbPath)) {
-                unlink($dbPath);
-            }
+            unlink($dbPath);
         }
     }
 }

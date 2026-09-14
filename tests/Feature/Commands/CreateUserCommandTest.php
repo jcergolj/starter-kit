@@ -8,6 +8,7 @@ use App\Enums\RoleEnum;
 use App\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Services\TenantDatabaseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -17,6 +18,29 @@ use Tests\TestCase;
 class CreateUserCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    private string $databaseRoot;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->databaseRoot = sys_get_temp_dir().'/starter-kit-command-tests-'.bin2hex(random_bytes(8));
+        mkdir($this->databaseRoot, 0755, true);
+        $this->app->instance(TenantDatabaseService::class, new TenantDatabaseService($this->databaseRoot));
+    }
+
+    protected function tearDown(): void
+    {
+        foreach (glob($this->databaseRoot.'/*') ?: [] as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+        rmdir($this->databaseRoot);
+
+        parent::tearDown();
+    }
 
     #[Test]
     public function it_creates_regular_user_directly_on_current_database(): void
@@ -349,19 +373,7 @@ class CreateUserCommandTest extends TestCase
     #[Test]
     public function it_creates_user_on_existing_tenant_database(): void
     {
-        $dbPath = database_path('db');
-
-        if (! is_dir($dbPath)) {
-            mkdir($dbPath, 0755, true);
-        }
-
-        $existingFiles = glob(database_path('db/*.sqlite'));
-
-        foreach ($existingFiles as $file) {
-            @unlink($file);
-        }
-
-        touch(database_path('db/existing-tenant.sqlite'));
+        touch($this->databaseRoot.'/existing-tenant.sqlite');
 
         $this->artisan('app:create-user')
             ->expectsChoice(__('Where should the user be added?'), 'existing-tenant', [
@@ -387,7 +399,7 @@ class CreateUserCommandTest extends TestCase
         $user = User::where('email', 'existing@example.com')->first();
         $this->assertSame('Existing Tenant User', $user->name);
 
-        @unlink(database_path('db/existing-tenant.sqlite'));
+        $this->assertFileExists(database_path('db/.gitkeep'));
     }
 
     #[Test]
