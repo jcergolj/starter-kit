@@ -95,6 +95,18 @@ class TwoFactorControllerTest extends TestCase
     }
 
     #[Test]
+    public function enabling_two_factor_authentication_requires_password_confirmation(): void
+    {
+        $user = User::factory()->create()->fresh();
+
+        $this->actingAs($user)
+            ->put(route('settings.two-factor.update'))
+            ->assertRedirect(route('password.confirm'));
+
+        $this->assertNull($user->fresh()->two_factor_secret);
+    }
+
+    #[Test]
     public function can_disable_two_factor_authentication(): void
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
@@ -116,5 +128,17 @@ class TwoFactorControllerTest extends TestCase
         $this->assertNull($user->two_factor_confirmed_at);
 
         $this->assertNull($user->two_factor_recovery_codes);
+    }
+
+    #[Test]
+    public function disabling_two_factor_authentication_requires_password_confirmation(): void
+    {
+        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+
+        $this->actingAs($user)
+            ->delete(route('settings.two-factor.destroy'))
+            ->assertRedirect(route('password.confirm'));
+
+        $this->assertNotNull($user->fresh()->two_factor_secret);
     }
 }
