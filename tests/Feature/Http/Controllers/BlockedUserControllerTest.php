@@ -113,6 +113,7 @@ class BlockedUserControllerTest extends TestCase
         $response = $this->actingAs($superadmin)->post(route('blocked-users.store', $user));
 
         $response->assertRedirect(route('users.index'));
+
         $this->assertNotNull($user->fresh()->blocked_at);
     }
 

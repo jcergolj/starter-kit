@@ -353,6 +353,7 @@ class UserControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('users.index'));
+
         $this->assertSame('Updated Name', $user->fresh()->name);
     }
 

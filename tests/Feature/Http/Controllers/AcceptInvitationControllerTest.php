@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Sleep;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -398,7 +399,7 @@ class AcceptInvitationControllerTest extends TestCase
                     DB::purge('sqlite');
 
                     while (! file_exists($barrierPath)) {
-                        usleep(1000);
+                        Sleep::usleep(1000);
                     }
 
                     try {
@@ -437,11 +438,17 @@ class AcceptInvitationControllerTest extends TestCase
             }
 
             $results = array_map(
-                fn (string $path): array => json_decode(file_get_contents($path), true, flags: JSON_THROW_ON_ERROR),
+                function (string $path): array {
+                    return json_decode(file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+                },
                 $resultPaths,
             );
-            $successful = array_filter($results, fn (array $result): bool => ($result['session_status'] ?? null) === __('Invitation accepted. You can now log in.'));
-            $invalid = array_filter($results, fn (array $result): bool => ($result['session_status'] ?? null) === __('This invitation is no longer valid.'));
+            $successful = array_filter($results, function (array $result): bool {
+                return ($result['session_status'] ?? null) === __('Invitation accepted. You can now log in.');
+            });
+            $invalid = array_filter($results, function (array $result): bool {
+                return ($result['session_status'] ?? null) === __('This invitation is no longer valid.');
+            });
 
             $this->assertCount(1, $successful, json_encode($results, JSON_THROW_ON_ERROR));
             $this->assertCount(1, $invalid, json_encode($results, JSON_THROW_ON_ERROR));
