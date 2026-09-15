@@ -52,6 +52,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                {{ $pendingInvitations->links() }}
             </x-page-card>
         @endif
     </section>

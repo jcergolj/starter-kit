@@ -63,6 +63,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                {{ $users->links() }}
             </x-page-card>
         @endif
     </section>
