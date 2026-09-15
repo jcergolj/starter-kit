@@ -64,4 +64,26 @@ class AuthenticatedSessionControllerTest extends TestCase
 
         $this->assertGuest();
     }
+
+    #[Test]
+    public function blocked_users_can_logout(): void
+    {
+        $user = User::factory()->blocked()->create();
+
+        $this->actingAs($user)
+            ->post(route('logout'))
+            ->assertRedirect('/');
+
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function blocked_users_cannot_access_the_dashboard(): void
+    {
+        $user = User::factory()->blocked()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertForbidden();
+    }
 }
