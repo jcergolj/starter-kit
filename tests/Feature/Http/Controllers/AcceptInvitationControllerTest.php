@@ -202,6 +202,7 @@ class AcceptInvitationControllerTest extends TestCase
         $user = User::sole();
 
         $this->assertSame('real@example.com', $user->email);
+
         $this->assertSame(RoleEnum::User, $user->role);
 
         $this->assertDatabaseMissing('users', ['email' => 'spoofed@example.com']);
@@ -220,7 +221,9 @@ class AcceptInvitationControllerTest extends TestCase
         ]);
 
         $response->assertNotFound();
+
         $this->assertDatabaseEmpty('users');
+
         $this->assertDatabaseEmpty('invitations');
     }
 
