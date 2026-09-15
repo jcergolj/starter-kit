@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
 class TenantSessionIsolationTest extends TestCase
@@ -72,7 +73,7 @@ class TenantSessionIsolationTest extends TestCase
 
         $sessionCookie = $response->getCookie(config('session.cookie'));
 
-        $this->assertNotNull($sessionCookie);
+        $this->assertInstanceOf(Cookie::class, $sessionCookie);
 
         $this->app['auth']->forgetGuards();
 
@@ -96,7 +97,7 @@ class TenantSessionIsolationTest extends TestCase
 
         $sessionCookie = $response->getCookie(config('session.cookie'));
 
-        $this->assertNotNull($sessionCookie);
+        $this->assertInstanceOf(Cookie::class, $sessionCookie);
 
         $this->app['auth']->forgetGuards();
 
@@ -119,7 +120,7 @@ class TenantSessionIsolationTest extends TestCase
 
         $sessionCookie = $response->getCookie(config('session.cookie'));
 
-        $this->assertNotNull($sessionCookie);
+        $this->assertInstanceOf(Cookie::class, $sessionCookie);
 
         $this->app['auth']->forgetGuards();
 
@@ -145,8 +146,9 @@ class TenantSessionIsolationTest extends TestCase
         $sessionCookie = $response->getCookie(config('session.cookie'));
         $rememberCookie = $response->getCookie(app('auth')->guard()->getRecallerName());
 
-        $this->assertNotNull($sessionCookie);
-        $this->assertNotNull($rememberCookie);
+        $this->assertInstanceOf(Cookie::class, $sessionCookie);
+
+        $this->assertInstanceOf(Cookie::class, $rememberCookie);
 
         $this->app['auth']->forgetGuards();
 
