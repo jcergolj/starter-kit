@@ -192,6 +192,21 @@ class ProfileControllerTest extends TestCase
     }
 
     #[Test]
+    public function profile_email_is_normalized(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->put(route('settings.profile.update'), [
+                'name' => 'Test User',
+                'email' => '  Test@Example.COM ',
+            ])
+            ->assertValid();
+
+        $this->assertSame('test@example.com', $user->fresh()->email);
+    }
+
+    #[Test]
     public function email_verification_status_is_unchanged_when_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

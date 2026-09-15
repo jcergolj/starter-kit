@@ -33,6 +33,14 @@ class InvitationTest extends TestCase
     }
 
     #[Test]
+    public function create_for_normalizes_the_email_address(): void
+    {
+        $invitation = Invitation::createFor('  Mixed.Case@Example.COM ');
+
+        $this->assertSame('mixed.case@example.com', $invitation->email);
+    }
+
+    #[Test]
     public function create_for_reissues_an_expired_invitation_in_place(): void
     {
         $invitation = Invitation::factory()->expired()->create();

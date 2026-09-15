@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Invitation extends Model
 {
@@ -16,6 +18,8 @@ class Invitation extends Model
 
     public static function createFor(string $email, RoleEnum $role = RoleEnum::User, string $lang = 'en'): self
     {
+        $email = Str::of($email)->trim()->lower()->toString();
+
         $attributes = [
             'email' => $email,
             'role' => $role,
@@ -36,6 +40,13 @@ class Invitation extends Model
         $invitation->update($attributes);
 
         return $invitation;
+    }
+
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value): string => Str::of($value)->trim()->lower()->toString(),
+        );
     }
 
     public function isPending(): bool

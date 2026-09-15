@@ -54,6 +54,16 @@ class SendInvitationRequestTest extends TestCase
     }
 
     #[Test]
+    public function email_uniqueness_is_case_insensitive(): void
+    {
+        Invitation::factory()->create(['email' => 'taken@example.com']);
+
+        $this->createFormRequest(SendInvitationRequest::class)
+            ->validate(['email' => ' TAKEN@EXAMPLE.COM '])
+            ->assertFails(['email' => 'unique']);
+    }
+
+    #[Test]
     public function accepted_invitation_email_can_be_reinvited(): void
     {
         Invitation::factory()->accepted()->create(['email' => 'accepted@example.com']);

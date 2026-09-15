@@ -57,6 +57,13 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value): string => Str::of($value)->trim()->lower()->toString(),
+        );
+    }
+
     protected function casts(): array
     {
         return [

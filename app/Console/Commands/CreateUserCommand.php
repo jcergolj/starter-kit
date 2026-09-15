@@ -15,6 +15,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 use function Laravel\Prompts\password;
@@ -114,6 +115,8 @@ class CreateUserCommand extends Command
             ],
         );
 
+        $email = Str::of($email)->trim()->lower()->toString();
+
         $languages = array_map(
             function (string $path) {
                 return basename($path, '.json');
@@ -156,6 +159,8 @@ class CreateUserCommand extends Command
             required: true,
             validate: ['email' => 'required|email|unique:users,email'],
         );
+
+        $email = Str::of($email)->trim()->lower()->toString();
 
         $password = password(
             label: __('Password'),
