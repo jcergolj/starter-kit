@@ -16,9 +16,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton('TenantDatabaseService', function ($app) {
-            return new TenantDatabaseService;
-        });
+        $this->app->scoped(TenantDatabaseService::class);
+        $this->app->alias(TenantDatabaseService::class, 'TenantDatabaseService');
     }
 
     public function boot(): void

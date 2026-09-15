@@ -16,10 +16,17 @@ use Throwable;
 
 final readonly class TenantDatabaseService
 {
+    private string $applicationDefaultConnection;
+
+    private string $applicationTenantDatabase;
+
     public function __construct(
         private ?string $databaseRoot = null,
         private ?string $templatePath = null,
-    ) {}
+    ) {
+        $this->applicationDefaultConnection = (string) config('database.default');
+        $this->applicationTenantDatabase = (string) config('database.connections.tenant.database');
+    }
 
     public function extractSubdomain(Request $request): ?string
     {
@@ -84,6 +91,14 @@ final readonly class TenantDatabaseService
 
             throw new DatabaseNotFound;
         }
+    }
+
+    public function resetToApplicationDatabase(): void
+    {
+        Config::set('database.default', $this->applicationDefaultConnection);
+        Config::set('database.connections.tenant.database', $this->applicationTenantDatabase);
+
+        DB::purge('tenant');
     }
 
     public function createTenantDatabase(string $subdomain): void

@@ -79,7 +79,7 @@ class PasswordResetHostTest extends TestCase
             'email' => $user->email,
         ])->assertRedirect()->assertSessionHas('status', __(Password::RESET_LINK_SENT));
 
-        $this->assertSame($connection, config('database.default'));
+        $this->assertSame('sqlite', config('database.default'));
 
         Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user, $host): bool {
             $url = $notification->toMail($user)->actionUrl;
