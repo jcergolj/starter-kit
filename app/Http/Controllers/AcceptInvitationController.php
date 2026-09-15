@@ -65,7 +65,10 @@ class AcceptInvitationController extends Controller
                 return true;
             });
         } catch (QueryException $exception) {
-            throw_if($exception->getCode() !== '23000', $exception);
+            $isExpectedConflict = in_array((string) $exception->getCode(), ['5', '23000'], true)
+                || str_contains($exception->getMessage(), 'database is locked');
+
+            throw_if(! $isExpectedConflict, $exception);
 
             return $this->invalidInvitationResponse();
         }

@@ -10,6 +10,9 @@ use App\Http\Requests\AcceptInvitationRequest;
 use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -354,5 +357,108 @@ class AcceptInvitationControllerTest extends TestCase
         $this->assertSame(1, User::count());
 
         $this->assertSame(1, Invitation::count());
+    }
+
+    #[Test]
+    public function concurrent_acceptance_has_one_winner_and_one_loser(): void
+    {
+        $databasePath = tempnam(storage_path('framework/testing'), 'invitation-');
+        $barrierPath = $databasePath.'.ready';
+        $resultPaths = [$databasePath.'.one', $databasePath.'.two'];
+        $originalDatabase = config('database.connections.sqlite.database');
+        $originalDefaultConnection = config('database.default');
+
+        try {
+            config([
+                'database.default' => 'sqlite',
+                'database.connections.sqlite.database' => $databasePath,
+            ]);
+            DB::purge('sqlite');
+            Artisan::call('migrate:fresh', ['--database' => 'sqlite', '--force' => true]);
+
+            $invitation = Invitation::factory()->create([
+                'email' => 'concurrent@example.com',
+            ]);
+            $payload = [
+                'name' => 'Concurrent User',
+                'username' => 'concurrent',
+                'password' => 'Secret123!',
+                'password_confirmation' => 'Secret123!',
+            ];
+            $children = [];
+
+            foreach ($resultPaths as $resultPath) {
+                $pid = pcntl_fork();
+
+                if ($pid === -1) {
+                    self::fail('Unable to fork the concurrent acceptance test worker.');
+                }
+
+                if ($pid === 0) {
+                    DB::purge('sqlite');
+
+                    while (! file_exists($barrierPath)) {
+                        usleep(1000);
+                    }
+
+                    try {
+                        $request = Request::create(
+                            route('accept.invitations.store', $invitation->token),
+                            'POST',
+                            $payload,
+                        );
+                        $response = app()->handle($request);
+
+                        file_put_contents($resultPath, json_encode([
+                            'status' => $response->getStatusCode(),
+                            'location' => $response->headers->get('Location'),
+                            'session_status' => method_exists($response, 'getSession')
+                                ? $response->getSession()->get('status')
+                                : null,
+                        ], JSON_THROW_ON_ERROR));
+                    } catch (\Throwable $exception) {
+                        file_put_contents($resultPath, json_encode([
+                            'exception' => $exception::class,
+                            'message' => $exception->getMessage(),
+                        ], JSON_THROW_ON_ERROR));
+                    }
+
+                    exit(0);
+                }
+
+                $children[] = $pid;
+            }
+
+            touch($barrierPath);
+
+            foreach ($children as $child) {
+                pcntl_waitpid($child, $status);
+                $this->assertSame(0, pcntl_wexitstatus($status));
+            }
+
+            $results = array_map(
+                fn (string $path): array => json_decode(file_get_contents($path), true, flags: JSON_THROW_ON_ERROR),
+                $resultPaths,
+            );
+            $successful = array_filter($results, fn (array $result): bool => ($result['session_status'] ?? null) === __('Invitation accepted. You can now log in.'));
+            $invalid = array_filter($results, fn (array $result): bool => ($result['session_status'] ?? null) === __('This invitation is no longer valid.'));
+
+            $this->assertCount(1, $successful, json_encode($results, JSON_THROW_ON_ERROR));
+            $this->assertCount(1, $invalid, json_encode($results, JSON_THROW_ON_ERROR));
+            $this->assertDatabaseCount('users', 1);
+            $this->assertNotNull($invitation->fresh()->accepted_at);
+        } finally {
+            config([
+                'database.default' => $originalDefaultConnection,
+                'database.connections.sqlite.database' => $originalDatabase,
+            ]);
+            DB::purge('sqlite');
+
+            foreach ([$databasePath, $barrierPath, ...$resultPaths] as $path) {
+                if (is_file($path)) {
+                    unlink($path);
+                }
+            }
+        }
     }
 }
