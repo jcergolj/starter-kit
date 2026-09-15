@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $email
+ */
 class Invitation extends Model
 {
     /** @use HasFactory<\Database\Factories\InvitationFactory> */

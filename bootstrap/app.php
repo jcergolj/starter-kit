@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\ConnectToUserDatabase;
+use App\Http\Middleware\EnsureTenantSessionMatchesHost;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsNotBlocked;
 use App\Http\Middleware\SetLocaleMiddleware;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocaleMiddleware::class,
             EnsureUserIsNotBlocked::class,
+            EnsureTenantSessionMatchesHost::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

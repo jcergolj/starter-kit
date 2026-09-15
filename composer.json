@@ -101,8 +101,7 @@
             "@env-prune",
             "@phpstan",
             "@rector",
-            "@pint", 
-            "@test"
+            "@pint"
         ]
     },
     "extra": {
