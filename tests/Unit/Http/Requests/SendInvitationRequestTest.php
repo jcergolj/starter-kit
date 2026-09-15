@@ -64,6 +64,16 @@ class SendInvitationRequestTest extends TestCase
     }
 
     #[Test]
+    public function expired_invitation_email_can_be_reinvited(): void
+    {
+        Invitation::factory()->expired()->create(['email' => 'expired@example.com']);
+
+        $this->createFormRequest(SendInvitationRequest::class)
+            ->validate(['email' => 'expired@example.com'])
+            ->assertPasses();
+    }
+
+    #[Test]
     public function email_must_be_unique_among_existing_users(): void
     {
         User::factory()->create(['email' => 'user@example.com']);
