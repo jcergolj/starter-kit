@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
-use Symfony\Component\HttpFoundation\Response;
 
 class BlockedUserController extends Controller
 {
     public function store(User $user): RedirectResponse
     {
-        abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
+        Gate::authorize('manage', $user);
 
         $user->update(['blocked_at' => now()]);
 
@@ -22,7 +22,7 @@ class BlockedUserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-        abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
+        Gate::authorize('manage', $user);
 
         $user->update(['blocked_at' => null]);
 

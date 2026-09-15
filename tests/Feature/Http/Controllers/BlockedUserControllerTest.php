@@ -105,6 +105,29 @@ class BlockedUserControllerTest extends TestCase
     }
 
     #[Test]
+    public function superadmin_can_block_a_regular_user(): void
+    {
+        $superadmin = User::factory()->superadmin()->create();
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($superadmin)->post(route('blocked-users.store', $user));
+
+        $response->assertRedirect(route('users.index'));
+        $this->assertNotNull($user->fresh()->blocked_at);
+    }
+
+    #[Test]
+    public function superadmin_cannot_block_an_administrator(): void
+    {
+        $superadmin = User::factory()->superadmin()->create();
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($superadmin)->post(route('blocked-users.store', $admin));
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
     public function non_admin_gets_403(): void
     {
         $user = User::factory()->create();

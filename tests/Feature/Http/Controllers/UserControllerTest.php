@@ -316,11 +316,57 @@ class UserControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_cannot_update_another_administrator(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $otherAdmin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->put(route('users.update', $otherAdmin), [
+            'name' => 'New Name',
+            'username' => 'newname',
+            'email' => 'new@example.com',
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
     public function admin_cannot_delete_themselves(): void
     {
         $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->delete(route('users.destroy', $admin));
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    public function superadmin_can_update_a_regular_user(): void
+    {
+        $superadmin = User::factory()->superadmin()->create();
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($superadmin)->put(route('users.update', $user), [
+            'name' => 'Updated Name',
+            'username' => 'updateduser',
+            'email' => 'updated@example.com',
+        ]);
+
+        $response->assertRedirect(route('users.index'));
+        $this->assertSame('Updated Name', $user->fresh()->name);
+    }
+
+    #[Test]
+    public function superadmin_cannot_update_an_administrator(): void
+    {
+        $superadmin = User::factory()->superadmin()->create();
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($superadmin)->put(route('users.update', $admin), [
+            'name' => 'New Name',
+            'username' => 'newname',
+            'email' => 'new@example.com',
+        ]);
 
         $response->assertForbidden();
     }
