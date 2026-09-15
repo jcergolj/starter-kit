@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureUserIsNotBlocked;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,6 +43,31 @@ class EnsureUserIsNotBlockedTest extends TestCase
     {
         $user = User::factory()->create();
         $request = Request::create('/dashboard');
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
+
+        $nextCalled = false;
+        $middleware = new EnsureUserIsNotBlocked;
+        $response = $middleware->handle($request, function () use (&$nextCalled) {
+            $nextCalled = true;
+
+            return new Response('OK');
+        });
+
+        $this->assertTrue($nextCalled);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function logout_route_passes_through_for_blocked_user(): void
+    {
+        $user = User::factory()->blocked()->create();
+        $request = Request::create('/logout');
+        $request->setRouteResolver(function () {
+            return (new Route('POST', 'logout', []))->name('logout');
+        });
         $request->setUserResolver(function () use ($user) {
             return $user;
         });
