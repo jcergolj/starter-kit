@@ -34,6 +34,7 @@ class CreateUserCommand extends Command
     public function handle(TenantDatabaseService $tenantDatabaseService): int
     {
         $newTenantSubdomain = null;
+        $tenantSubdomain = null;
 
         $subdomains = $tenantDatabaseService->getTenantSubdomains();
 
@@ -55,6 +56,8 @@ class CreateUserCommand extends Command
                 required: true,
             );
 
+            $tenantSubdomain = $newTenantSubdomain;
+
             try {
                 $tenantDatabaseService->createTenantDatabase($newTenantSubdomain);
             } catch (InvalidSubdomainFormat|TemplateDatabaseNotFound|TenantDatabaseAlreadyExists|TenantDatabaseProvisioningFailed $exception) {
@@ -67,6 +70,7 @@ class CreateUserCommand extends Command
         }
 
         if ($where !== __('Current database') && $where !== __('New tenant database')) {
+            $tenantSubdomain = $where;
             $tenantDatabaseService->connectToTenant($where);
         }
 
@@ -94,13 +98,13 @@ class CreateUserCommand extends Command
         );
 
         if ($how === __('Send invitation')) {
-            return $this->sendInvitation($role);
+            return $this->sendInvitation($role, $tenantSubdomain);
         }
 
         return $this->createDirectly($role, $newTenantSubdomain);
     }
 
-    private function sendInvitation(RoleEnum $role): int
+    private function sendInvitation(RoleEnum $role, ?string $tenantSubdomain = null): int
     {
         $email = text(
             label: __('Email'),
@@ -136,7 +140,7 @@ class CreateUserCommand extends Command
 
         App::setLocale($lang);
 
-        Mail::to($invitation->email)->send(new InvitationMail($invitation));
+        Mail::to($invitation->email)->send(new InvitationMail($invitation, $tenantSubdomain));
 
         $this->components->info(__('Invitation sent successfully.'));
 
