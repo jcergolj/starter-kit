@@ -30,6 +30,10 @@ add('shared_files', [
     'database/database.sqlite',
 ]);
 
+add('shared_dirs', [
+    'database/db',
+]);
+
 desc('Build frontend assets');
 task('deploy:assets', function () {
     run('cd {{release_path}} && {{bin/php}} artisan tailwindcss:download --force');
