@@ -66,7 +66,7 @@ class MigrateTenantSchemasCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info(sprintf('Migrated template and %d tenant database(s).', count($tenantPaths)));
+        $this->components->info(sprintf('Migrated template and %d tenant database(s).', count($tenantPaths)));
 
         return self::SUCCESS;
     }
@@ -93,8 +93,6 @@ class MigrateTenantSchemasCommand extends Command
             '--no-interaction' => true,
         ]);
 
-        if ($exitCode !== self::SUCCESS) {
-            throw new \RuntimeException('The migration command returned a failure status.');
-        }
+        throw_if($exitCode !== self::SUCCESS, \RuntimeException::class, 'The migration command returned a failure status.');
     }
 }

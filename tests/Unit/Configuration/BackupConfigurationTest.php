@@ -42,9 +42,13 @@ class BackupConfigurationTest extends TestCase
         $deployment = file_get_contents(base_path('deploy.php'));
 
         $this->assertIsString($deployment);
+
         $this->assertStringContainsString("task('artisan:tenant-migrate'", $deployment);
+
         $this->assertStringContainsString('artisan tenants:migrate', $deployment);
+
         $this->assertStringContainsString("after('artisan:migrate', 'artisan:tenant-migrate');", $deployment);
+
         $this->assertStringContainsString("after('artisan:tenant-migrate', 'deploy:cache');", $deployment);
     }
 }

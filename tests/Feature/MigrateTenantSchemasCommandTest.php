@@ -80,6 +80,7 @@ class MigrateTenantSchemasCommandTest extends TestCase
             ->expectsOutputToContain('1 migration target(s) failed.');
 
         $connection = new PDO('sqlite:'.$healthyTenant);
+
         $this->assertSame(1, (int) $connection->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'users'")->fetchColumn());
     }
 
