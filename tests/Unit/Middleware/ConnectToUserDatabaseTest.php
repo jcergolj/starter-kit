@@ -10,6 +10,7 @@ use App\Services\SubdomainUrlBuilder;
 use App\Services\TenantDatabaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +32,14 @@ class ConnectToUserDatabaseTest extends TestCase
 
         $this->databaseRoot = sys_get_temp_dir().'/starter-kit-middleware-tests-'.bin2hex(random_bytes(8));
         mkdir($this->databaseRoot, 0755, true);
+
+        Config::set([
+            'app.single_db_per_app' => false,
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.database' => $this->databaseRoot.'/application.sqlite',
+            'database.connections.tenant.database' => $this->databaseRoot.'/application-tenant.sqlite',
+        ]);
+        touch($this->databaseRoot.'/application.sqlite');
 
         $tenantDb = new TenantDatabaseService($this->databaseRoot);
         $urlBuilder = app(SubdomainUrlBuilder::class);
@@ -207,5 +216,85 @@ class ConnectToUserDatabaseTest extends TestCase
         } finally {
             unlink($dbPath);
         }
+    }
+
+    #[Test]
+    public function restores_the_application_connection_between_sequential_tenant_requests(): void
+    {
+        $this->prepareTenantDatabase('first', 'First tenant');
+        $this->prepareTenantDatabase('second', 'Second tenant');
+
+        $firstRequest = Request::create('http://first.example.com/dashboard');
+        $this->middleware->handle($firstRequest, function (): Response {
+            $this->assertSame('tenant', Config::get('database.default'));
+            $this->assertSame(
+                $this->databaseRoot.'/first.sqlite',
+                Config::get('database.connections.tenant.database'),
+            );
+            $this->assertSame('First tenant', DB::table('tenant_records')->value('name'));
+
+            return new Response('OK');
+        });
+
+        $this->assertSame('sqlite', Config::get('database.default'));
+        $this->assertSame(
+            $this->databaseRoot.'/application-tenant.sqlite',
+            Config::get('database.connections.tenant.database'),
+        );
+
+        $secondRequest = Request::create('http://second.example.com/dashboard');
+        $this->middleware->handle($secondRequest, function (): Response {
+            $this->assertSame('tenant', Config::get('database.default'));
+            $this->assertSame(
+                $this->databaseRoot.'/second.sqlite',
+                Config::get('database.connections.tenant.database'),
+            );
+            $this->assertSame('Second tenant', DB::table('tenant_records')->value('name'));
+
+            return new Response('OK');
+        });
+
+        $this->assertSame('sqlite', Config::get('database.default'));
+    }
+
+    #[Test]
+    public function restores_the_application_connection_when_the_request_fails(): void
+    {
+        touch($this->databaseRoot.'/failing.sqlite');
+
+        $exceptionThrown = false;
+
+        try {
+            $this->middleware->handle(
+                Request::create('http://failing.example.com/dashboard'),
+                function (): Response {
+                    throw new \RuntimeException('Request failed.');
+                },
+            );
+        } catch (\RuntimeException $exception) {
+            $exceptionThrown = true;
+            $this->assertSame('Request failed.', $exception->getMessage());
+        }
+
+        $this->assertTrue($exceptionThrown);
+        $this->assertSame('sqlite', Config::get('database.default'));
+        $this->assertSame(
+            $this->databaseRoot.'/application-tenant.sqlite',
+            Config::get('database.connections.tenant.database'),
+        );
+    }
+
+    private function prepareTenantDatabase(string $subdomain, string $name): void
+    {
+        $path = $this->databaseRoot."/{$subdomain}.sqlite";
+        touch($path);
+
+        Config::set('database.connections.tenant.database', $path);
+        DB::purge('tenant');
+        DB::connection('tenant')->statement('create table tenant_records (name varchar(255))');
+        DB::connection('tenant')->table('tenant_records')->insert(['name' => $name]);
+
+        Config::set('database.connections.tenant.database', $this->databaseRoot.'/application-tenant.sqlite');
+        DB::purge('tenant');
     }
 }
