@@ -6,9 +6,9 @@ use App\Enums\RoleEnum;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
-use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
@@ -23,14 +23,14 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
-        abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
+        Gate::authorize('manage', $user);
 
         return view('users.edit', ['user' => $user]);
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
+        Gate::authorize('manage', $user);
 
         $attributes = $request->validated();
         $emailChanged = $attributes['email'] !== $user->email;
@@ -52,7 +52,7 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-        abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
+        Gate::authorize('manage', $user);
 
         $user->delete();
 
