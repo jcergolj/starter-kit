@@ -8,6 +8,7 @@ use App\Http\Controllers\Settings\ConfirmedTwoFactorController;
 use App\Models\User;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
 use Laravel\Fortify\Features;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -94,6 +95,20 @@ class ConfirmedTwoFactorControllerTest extends TestCase
         $this->assertNotNull($user->two_factor_confirmed_at);
 
         $this->assertNotNull($user->two_factor_recovery_codes);
+    }
+
+    #[Test]
+    public function confirming_two_factor_authentication_requires_password_confirmation(): void
+    {
+        $user = User::factory()->create()->fresh();
+
+        app(EnableTwoFactorAuthentication::class)($user);
+
+        $this->actingAs($user)
+            ->put(route('settings.confirmed-two-factor.update'), ['code' => '123456'])
+            ->assertRedirect(route('password.confirm'));
+
+        $this->assertNull($user->fresh()->two_factor_confirmed_at);
     }
 
     #[Test]

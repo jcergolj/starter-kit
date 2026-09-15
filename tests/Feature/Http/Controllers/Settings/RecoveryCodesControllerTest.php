@@ -80,4 +80,18 @@ class RecoveryCodesControllerTest extends TestCase
 
         $this->assertNotEquals($originalRecoveryCodes, $user->two_factor_recovery_codes);
     }
+
+    #[Test]
+    public function regenerating_recovery_codes_requires_password_confirmation(): void
+    {
+        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+
+        $originalRecoveryCodes = $user->two_factor_recovery_codes;
+
+        $this->actingAs($user)
+            ->put(route('settings.recovery-codes.update'))
+            ->assertRedirect(route('password.confirm'));
+
+        $this->assertSame($originalRecoveryCodes, $user->fresh()->two_factor_recovery_codes);
+    }
 }
