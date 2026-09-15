@@ -281,4 +281,74 @@ class AcceptInvitationControllerTest extends TestCase
 
         $this->assertDatabaseEmpty('users');
     }
+
+    #[Test]
+    public function store_fails_without_consuming_invitation_when_email_already_exists(): void
+    {
+        $invitation = Invitation::factory()->create(['email' => 'existing@example.com']);
+        User::factory()->create(['email' => $invitation->email]);
+
+        $response = $this->post(route('accept.invitations.store', $invitation->token), [
+            'name' => 'Jane Doe',
+            'username' => 'janedoe',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+        ]);
+
+        $response->assertRedirect(route('login'))
+            ->assertSessionHas('status', __('This invitation is no longer valid.'));
+
+        $this->assertSame(1, User::where('email', $invitation->email)->count());
+        $this->assertNull($invitation->fresh()->accepted_at);
+    }
+
+    #[Test]
+    public function store_rolls_back_invitation_claim_when_user_creation_fails(): void
+    {
+        $invitation = Invitation::factory()->create();
+        $dispatcher = User::getEventDispatcher();
+
+        User::creating(function (): void {
+            throw new \RuntimeException('User creation failed.');
+        });
+
+        try {
+            $response = $this->post(route('accept.invitations.store', $invitation->token), [
+                'name' => 'Jane Doe',
+                'username' => 'janedoe',
+                'password' => 'Secret123!',
+                'password_confirmation' => 'Secret123!',
+            ]);
+        } finally {
+            User::setEventDispatcher($dispatcher);
+        }
+
+        $response->assertServerError();
+        $this->assertDatabaseEmpty('users');
+        $this->assertNull($invitation->fresh()->accepted_at);
+    }
+
+    #[Test]
+    public function store_replay_does_not_create_a_second_user(): void
+    {
+        $invitation = Invitation::factory()->create();
+        $payload = [
+            'name' => 'Jane Doe',
+            'username' => 'janedoe',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+        ];
+
+        $this->post(route('accept.invitations.store', $invitation->token), $payload);
+        $response = $this->post(route('accept.invitations.store', $invitation->token), [
+            ...$payload,
+            'username' => 'janetwo',
+        ]);
+
+        $response->assertRedirect(route('login'))
+            ->assertSessionHas('status', __('This invitation is no longer valid.'));
+
+        $this->assertSame(1, User::count());
+        $this->assertSame(1, Invitation::count());
+    }
 }
