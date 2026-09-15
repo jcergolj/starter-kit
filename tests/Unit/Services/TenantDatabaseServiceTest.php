@@ -35,12 +35,7 @@ class TenantDatabaseServiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        $paths = array_merge(
-            glob($this->databaseRoot.'/*') ?: [],
-            glob($this->databaseRoot.'/.tenant-*') ?: [],
-        );
-
-        foreach ($paths as $path) {
+        foreach (glob($this->databaseRoot.'/*') ?: [] as $path) {
             if (is_file($path)) {
                 unlink($path);
             }

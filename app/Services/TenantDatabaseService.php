@@ -102,16 +102,6 @@ final readonly class TenantDatabaseService
 
         throw_if(! is_file($templatePath) || ! is_readable($templatePath), TemplateDatabaseNotFound::class);
 
-        $lock = @fopen($databaseDirectory.'/.tenant-database.lock', 'c');
-
-        if ($lock === false || ! flock($lock, LOCK_EX)) {
-            if (is_resource($lock)) {
-                fclose($lock);
-            }
-
-            throw new TenantDatabaseProvisioningFailed('Unable to lock the tenant database directory.');
-        }
-
         $temporaryPath = null;
 
         try {
@@ -128,9 +118,6 @@ final readonly class TenantDatabaseService
             if ($temporaryPath !== null && file_exists($temporaryPath)) {
                 unlink($temporaryPath);
             }
-
-            flock($lock, LOCK_UN);
-            fclose($lock);
         }
     }
 
