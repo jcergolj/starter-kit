@@ -8,6 +8,7 @@ use App\Exceptions\DatabaseNotFound;
 use App\Exceptions\InvalidSubdomainFormat;
 use App\Exceptions\TemplateDatabaseNotFound;
 use App\Exceptions\TenantDatabaseAlreadyExists;
+use App\Exceptions\TenantDatabaseProvisioningFailed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +20,10 @@ final readonly class TenantDatabaseService
 
     private string $applicationTenantDatabase;
 
-    public function __construct(private ?string $databaseRoot = null)
-    {
+    public function __construct(
+        private ?string $databaseRoot = null,
+        private ?string $templatePath = null,
+    ) {
         $this->applicationDefaultConnection = (string) config('database.default');
         $this->applicationTenantDatabase = (string) config('database.connections.tenant.database');
     }
@@ -62,7 +65,7 @@ final readonly class TenantDatabaseService
 
     public function validateSubdomain(string $subdomain): void
     {
-        throw_unless(preg_match('/^[a-z0-9_-]+$/', $subdomain), InvalidSubdomainFormat::class, $subdomain);
+        throw_unless($this->isValidSubdomain($subdomain), InvalidSubdomainFormat::class, $subdomain);
     }
 
     public function connectToTenant(string $subdomain): void
@@ -107,14 +110,30 @@ final readonly class TenantDatabaseService
         }
 
         $databasePath = $this->getDatabasePath($subdomain);
+        $databaseDirectory = dirname($databasePath);
+        $templatePath = $this->templatePath ?? database_path('template.sqlite');
 
-        throw_if(file_exists($databasePath), TenantDatabaseAlreadyExists::class, $subdomain);
+        throw_if(! is_dir($databaseDirectory) || ! is_writable($databaseDirectory), TenantDatabaseProvisioningFailed::class, 'Tenant database directory is not writable.');
 
-        $templatePath = database_path('template.sqlite');
+        throw_if(! is_file($templatePath) || ! is_readable($templatePath), TemplateDatabaseNotFound::class);
 
-        throw_unless(file_exists($templatePath), TemplateDatabaseNotFound::class);
+        $temporaryPath = null;
 
-        copy($templatePath, $databasePath);
+        try {
+            throw_if(file_exists($databasePath), TenantDatabaseAlreadyExists::class, $subdomain);
+
+            $temporaryPath = @tempnam($databaseDirectory, '.tenant-database-');
+
+            throw_if($temporaryPath === false || ! @copy($templatePath, $temporaryPath), TenantDatabaseProvisioningFailed::class, 'Unable to copy the tenant database template.');
+
+            throw_unless(@rename($temporaryPath, $databasePath), TenantDatabaseProvisioningFailed::class, 'Unable to publish the tenant database.');
+
+            $temporaryPath = null;
+        } finally {
+            if ($temporaryPath !== null && file_exists($temporaryPath)) {
+                unlink($temporaryPath);
+            }
+        }
     }
 
     private function isTestingWithInMemoryDatabase(): bool
@@ -142,6 +161,12 @@ final readonly class TenantDatabaseService
 
         return $subdomain !== ''
             && ! str_contains($subdomain, '.')
-            && preg_match('/^[a-z0-9_-]+$/', $subdomain) === 1;
+            && $this->isValidSubdomain($subdomain);
+    }
+
+    private function isValidSubdomain(string $subdomain): bool
+    {
+        return strlen($subdomain) <= 63
+            && preg_match('/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/D', $subdomain) === 1;
     }
 }

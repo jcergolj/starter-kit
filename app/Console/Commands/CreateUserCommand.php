@@ -6,6 +6,9 @@ namespace App\Console\Commands;
 
 use App\Enums\RoleEnum;
 use App\Exceptions\InvalidSubdomainFormat;
+use App\Exceptions\TemplateDatabaseNotFound;
+use App\Exceptions\TenantDatabaseAlreadyExists;
+use App\Exceptions\TenantDatabaseProvisioningFailed;
 use App\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\User;
@@ -54,8 +57,8 @@ class CreateUserCommand extends Command
 
             try {
                 $tenantDatabaseService->createTenantDatabase($newTenantSubdomain);
-            } catch (InvalidSubdomainFormat) {
-                $this->error(__('Invalid subdomain format.'));
+            } catch (InvalidSubdomainFormat|TemplateDatabaseNotFound|TenantDatabaseAlreadyExists|TenantDatabaseProvisioningFailed $exception) {
+                $this->error($exception->getMessage());
 
                 return self::FAILURE;
             }

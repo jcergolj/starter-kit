@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Exceptions\InvalidSubdomainFormat;
+use App\Exceptions\TemplateDatabaseNotFound;
+use App\Exceptions\TenantDatabaseAlreadyExists;
+use App\Exceptions\TenantDatabaseProvisioningFailed;
 use App\Services\TenantDatabaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -134,9 +137,9 @@ class TenantDatabaseServiceTest extends TestCase
     {
         yield 'lowercase letters' => ['tenant'];
         yield 'numbers' => ['tenant123'];
-        yield 'underscore' => ['tenant_name'];
         yield 'hyphen' => ['tenant-name'];
-        yield 'mixed' => ['tenant_123-name'];
+        yield 'mixed' => ['tenant-123-name'];
+        yield 'maximum length' => [str_repeat('a', 63)];
     }
 
     #[Test]
@@ -158,6 +161,10 @@ class TenantDatabaseServiceTest extends TestCase
         yield 'dots' => ['tenant.name'];
         yield 'empty string' => [''];
         yield 'slashes' => ['tenant/name'];
+        yield 'underscore' => ['tenant_name'];
+        yield 'leading hyphen' => ['-tenant'];
+        yield 'trailing hyphen' => ['tenant-'];
+        yield 'too long' => [str_repeat('a', 64)];
     }
 
     #[Test]
@@ -245,5 +252,69 @@ class TenantDatabaseServiceTest extends TestCase
         $this->service->connectToTenant('testtenant');
 
         $this->assertTrue(true); // If no exception thrown, test passes
+    }
+
+    #[Test]
+    public function create_tenant_database_copies_the_template_to_an_isolated_path(): void
+    {
+        $templatePath = $this->databaseRoot.'/template.sqlite';
+        file_put_contents($templatePath, 'template contents');
+        $service = $this->persistentService($templatePath);
+
+        $service->createTenantDatabase('tenant');
+
+        $this->assertFileExists($this->databaseRoot.'/tenant.sqlite');
+
+        $this->assertSame('template contents', file_get_contents($this->databaseRoot.'/tenant.sqlite'));
+    }
+
+    #[Test]
+    public function create_tenant_database_requires_a_template_file(): void
+    {
+        $service = $this->persistentService($this->databaseRoot.'/missing.sqlite');
+
+        $this->expectException(TemplateDatabaseNotFound::class);
+
+        $service->createTenantDatabase('tenant');
+    }
+
+    #[Test]
+    public function create_tenant_database_requires_a_writable_database_directory(): void
+    {
+        $templatePath = $this->databaseRoot.'/template.sqlite';
+        file_put_contents($templatePath, 'template contents');
+        $service = new TenantDatabaseService($this->databaseRoot.'/missing', $templatePath);
+        Config::set('database.default', 'sqlite');
+        Config::set('database.connections.sqlite.database', $this->databaseRoot.'/application.sqlite');
+
+        $this->expectException(TenantDatabaseProvisioningFailed::class);
+
+        $service->createTenantDatabase('tenant');
+    }
+
+    #[Test]
+    public function create_tenant_database_does_not_overwrite_an_existing_file(): void
+    {
+        $templatePath = $this->databaseRoot.'/template.sqlite';
+        file_put_contents($templatePath, 'new contents');
+        file_put_contents($this->databaseRoot.'/tenant.sqlite', 'existing contents');
+        $service = $this->persistentService($templatePath);
+
+        $this->expectException(TenantDatabaseAlreadyExists::class);
+
+        try {
+            $service->createTenantDatabase('tenant');
+        } finally {
+            $this->assertSame('existing contents', file_get_contents($this->databaseRoot.'/tenant.sqlite'));
+        }
+    }
+
+    private function persistentService(string $templatePath): TenantDatabaseService
+    {
+        Config::set('database.default', 'sqlite');
+        Config::set('database.connections.sqlite.database', $this->databaseRoot.'/application.sqlite');
+        touch($this->databaseRoot.'/application.sqlite');
+
+        return new TenantDatabaseService($this->databaseRoot, $templatePath);
     }
 }
