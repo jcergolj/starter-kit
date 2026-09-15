@@ -48,7 +48,9 @@ class UserTest extends TestCase
         $serialized = $user->toArray();
 
         $this->assertArrayNotHasKey('two_factor_secret', $serialized);
+
         $this->assertArrayNotHasKey('two_factor_recovery_codes', $serialized);
+
         $this->assertArrayNotHasKey('two_factor_confirmed_at', $serialized);
     }
 
