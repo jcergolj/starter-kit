@@ -96,18 +96,19 @@ class PasswordResetHostTest extends TestCase
         });
 
         Notification::assertCount(1);
+
         $this->assertDatabaseCount('password_reset_tokens', 1, $connection);
+
         $this->assertDatabaseCount('password_reset_tokens', 0, $connection === 'tenant' ? 'sqlite' : 'tenant');
+
         Mail::assertNothingOutgoing();
     }
 
-    /** @return array<string, array{string, string}> */
-    public static function trustedHosts(): array
+    /** @return \Iterator<string, array{string, string}> */
+    public static function trustedHosts(): \Iterator
     {
-        return [
-            'main host' => ['example.com', 'sqlite'],
-            'tenant host' => ['acme.example.com', 'tenant'],
-        ];
+        yield 'main host' => ['example.com', 'sqlite'];
+        yield 'tenant host' => ['acme.example.com', 'tenant'];
     }
 
     #[Test]
@@ -124,20 +125,21 @@ class PasswordResetHostTest extends TestCase
         ])->assertStatus(400);
 
         Notification::assertNothingSent();
+
         Mail::assertNothingOutgoing();
+
         $this->assertDatabaseCount('password_reset_tokens', 0, 'sqlite');
+
         $this->assertDatabaseCount('password_reset_tokens', 0, 'tenant');
     }
 
-    /** @return array<string, array{string, bool}> */
-    public static function untrustedHosts(): array
+    /** @return \Iterator<string, array{string, bool}> */
+    public static function untrustedHosts(): \Iterator
     {
-        return [
-            'arbitrary host' => ['attacker.example.net', false],
-            'existing tenant on unrelated domain' => ['acme.attacker.example.net', false],
-            'trusted domain with malicious suffix' => ['acme.example.com.attacker.net', false],
-            'nested tenant' => ['nested.acme.example.com', false],
-            'arbitrary host in single database mode' => ['attacker.example.net', true],
-        ];
+        yield 'arbitrary host' => ['attacker.example.net', false];
+        yield 'existing tenant on unrelated domain' => ['acme.attacker.example.net', false];
+        yield 'trusted domain with malicious suffix' => ['acme.example.com.attacker.net', false];
+        yield 'nested tenant' => ['nested.acme.example.com', false];
+        yield 'arbitrary host in single database mode' => ['attacker.example.net', true];
     }
 }
