@@ -299,6 +299,7 @@ class AcceptInvitationControllerTest extends TestCase
             ->assertSessionHas('status', __('This invitation is no longer valid.'));
 
         $this->assertSame(1, User::where('email', $invitation->email)->count());
+
         $this->assertNull($invitation->fresh()->accepted_at);
     }
 
@@ -324,7 +325,9 @@ class AcceptInvitationControllerTest extends TestCase
         }
 
         $response->assertServerError();
+
         $this->assertDatabaseEmpty('users');
+
         $this->assertNull($invitation->fresh()->accepted_at);
     }
 
@@ -349,6 +352,7 @@ class AcceptInvitationControllerTest extends TestCase
             ->assertSessionHas('status', __('This invitation is no longer valid.'));
 
         $this->assertSame(1, User::count());
+
         $this->assertSame(1, Invitation::count());
     }
 }
