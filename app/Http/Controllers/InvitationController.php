@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
+use Throwable;
 
 class InvitationController extends Controller
 {
@@ -26,7 +27,16 @@ class InvitationController extends Controller
     {
         $invitation = Invitation::createFor($request->validated('email'));
 
-        Mail::to($invitation->email)->send(new InvitationMail($invitation));
+        try {
+            Mail::to($invitation->email)->send(new InvitationMail($invitation));
+        } catch (Throwable $exception) {
+            report($exception);
+            $invitation->delete();
+
+            InAppNotification::error(__('Invitation could not be sent. Please try again.'));
+
+            return to_route('invitations.create');
+        }
 
         InAppNotification::success(__('Invitation sent successfully.'));
 

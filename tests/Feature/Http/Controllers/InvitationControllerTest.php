@@ -15,6 +15,7 @@ use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 #[CoversClass(InvitationController::class)]
@@ -107,6 +108,60 @@ class InvitationControllerTest extends TestCase
         Mail::assertSent(InvitationMail::class, function ($mail) {
             return $mail->hasTo('invite@example.com');
         });
+    }
+
+    #[Test]
+    public function failed_invitation_delivery_removes_invitation_and_reports_error(): void
+    {
+        Mail::shouldReceive('to')
+            ->once()
+            ->with('failed@example.com')
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->once()
+            ->andThrow(new RuntimeException('SMTP unavailable'));
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'failed@example.com',
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+
+        InAppNotification::assertError(__('Invitation could not be sent. Please try again.'));
+
+        $this->assertDatabaseMissing('invitations', ['email' => 'failed@example.com']);
+    }
+
+    #[Test]
+    public function invitation_can_be_retried_after_delivery_failure(): void
+    {
+        $deliveryAttempts = 0;
+
+        Mail::shouldReceive('to')
+            ->twice()
+            ->with('retry@example.com')
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->twice()
+            ->andReturnUsing(function () use (&$deliveryAttempts): void {
+                throw_if($deliveryAttempts++ === 0, RuntimeException::class, 'SMTP unavailable');
+            });
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'retry@example.com',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'retry@example.com',
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+
+        InAppNotification::assertSuccess(__('Invitation sent successfully.'));
+
+        $this->assertDatabaseHas('invitations', ['email' => 'retry@example.com']);
     }
 
     #[Test]
