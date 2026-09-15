@@ -41,11 +41,17 @@ class InvitationTest extends TestCase
         $reissued = Invitation::createFor($invitation->email, RoleEnum::Admin, 'sl');
 
         $this->assertTrue($reissued->is($invitation));
+
         $this->assertNotSame($oldToken, $reissued->token);
+
         $this->assertSame(RoleEnum::Admin, $reissued->role);
+
         $this->assertSame('sl', $reissued->lang);
+
         $this->assertNull($reissued->accepted_at);
+
         $this->assertTrue($reissued->expires_at->isFuture());
+
         $this->assertSame(1, Invitation::where('email', $invitation->email)->count());
     }
 
@@ -58,7 +64,9 @@ class InvitationTest extends TestCase
         $reissued = Invitation::createFor($invitation->email);
 
         $this->assertNotSame($oldToken, $reissued->token);
+
         $this->assertNull($reissued->accepted_at);
+
         $this->assertTrue($reissued->isPending());
     }
 

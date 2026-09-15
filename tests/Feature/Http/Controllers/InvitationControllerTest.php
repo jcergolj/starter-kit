@@ -135,11 +135,15 @@ class InvitationControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('invitations.create'));
+
         $reissued = Invitation::sole();
 
         $this->assertNotSame($oldToken, $reissued->token);
+
         $this->assertTrue($reissued->isPending());
+
         $this->get(route('invitations.accept', $oldToken))->assertNotFound();
+
         Mail::assertSent(InvitationMail::class);
     }
 
@@ -155,7 +159,9 @@ class InvitationControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('invitations.create'));
+
         $this->assertTrue(Invitation::sole()->isPending());
+
         $this->assertSame(1, Invitation::count());
     }
 
