@@ -98,13 +98,9 @@ final readonly class TenantDatabaseService
         $databaseDirectory = dirname($databasePath);
         $templatePath = $this->templatePath ?? database_path('template.sqlite');
 
-        if (! is_dir($databaseDirectory) || ! is_writable($databaseDirectory)) {
-            throw new TenantDatabaseProvisioningFailed('Tenant database directory is not writable.');
-        }
+        throw_if(! is_dir($databaseDirectory) || ! is_writable($databaseDirectory), TenantDatabaseProvisioningFailed::class, 'Tenant database directory is not writable.');
 
-        if (! is_file($templatePath) || ! is_readable($templatePath)) {
-            throw new TemplateDatabaseNotFound;
-        }
+        throw_if(! is_file($templatePath) || ! is_readable($templatePath), TemplateDatabaseNotFound::class);
 
         $lock = @fopen($databaseDirectory.'/.tenant-database.lock', 'c');
 
@@ -119,19 +115,13 @@ final readonly class TenantDatabaseService
         $temporaryPath = null;
 
         try {
-            if (file_exists($databasePath)) {
-                throw new TenantDatabaseAlreadyExists($subdomain);
-            }
+            throw_if(file_exists($databasePath), TenantDatabaseAlreadyExists::class, $subdomain);
 
             $temporaryPath = @tempnam($databaseDirectory, '.tenant-database-');
 
-            if ($temporaryPath === false || ! @copy($templatePath, $temporaryPath)) {
-                throw new TenantDatabaseProvisioningFailed('Unable to copy the tenant database template.');
-            }
+            throw_if($temporaryPath === false || ! @copy($templatePath, $temporaryPath), TenantDatabaseProvisioningFailed::class, 'Unable to copy the tenant database template.');
 
-            if (! @rename($temporaryPath, $databasePath)) {
-                throw new TenantDatabaseProvisioningFailed('Unable to publish the tenant database.');
-            }
+            throw_unless(@rename($temporaryPath, $databasePath), TenantDatabaseProvisioningFailed::class, 'Unable to publish the tenant database.');
 
             $temporaryPath = null;
         } finally {

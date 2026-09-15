@@ -269,6 +269,7 @@ class TenantDatabaseServiceTest extends TestCase
         $service->createTenantDatabase('tenant');
 
         $this->assertFileExists($this->databaseRoot.'/tenant.sqlite');
+
         $this->assertSame('template contents', file_get_contents($this->databaseRoot.'/tenant.sqlite'));
     }
 
