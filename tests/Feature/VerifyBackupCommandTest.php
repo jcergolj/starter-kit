@@ -83,6 +83,21 @@ class VerifyBackupCommandTest extends TestCase
             ->expectsOutputToContain('Restored database failed integrity check: acme.sqlite');
     }
 
+    #[Test]
+    public function it_does_not_accept_a_tenant_database_from_an_unrelated_archive_path(): void
+    {
+        $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
+        $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
+        $archive = $this->createArchive($mainDatabase, $tenantDatabase, false, 'database/archive-copy/acme.sqlite');
+
+        $this->artisan('backup:verify', [
+            'archive' => $archive,
+            '--main-database' => $mainDatabase,
+            '--tenant-root' => dirname($tenantDatabase),
+        ])->assertFailed()
+            ->expectsOutputToContain('Backup is missing database: acme.sqlite');
+    }
+
     private function createDatabase(string $filename, string $value, bool $inTenantDirectory = false): string
     {
         $path = $this->fixtureDirectory.'/'.($inTenantDirectory ? 'db/' : '').$filename;
@@ -94,8 +109,12 @@ class VerifyBackupCommandTest extends TestCase
         return $path;
     }
 
-    private function createArchive(string $mainDatabase, ?string $tenantDatabase = null, bool $corruptTenant = false): string
-    {
+    private function createArchive(
+        string $mainDatabase,
+        ?string $tenantDatabase = null,
+        bool $corruptTenant = false,
+        string $tenantArchivePath = 'database/db/acme.sqlite',
+    ): string {
         $archivePath = $this->fixtureDirectory.'/backup.zip';
         $archive = new ZipArchive;
         $archive->open($archivePath, ZipArchive::CREATE);
@@ -103,9 +122,9 @@ class VerifyBackupCommandTest extends TestCase
 
         if ($tenantDatabase !== null) {
             if ($corruptTenant) {
-                $archive->addFromString('database/db/'.basename($tenantDatabase), 'not a sqlite database');
+                $archive->addFromString($tenantArchivePath, 'not a sqlite database');
             } else {
-                $archive->addFile($tenantDatabase, 'database/db/'.basename($tenantDatabase));
+                $archive->addFile($tenantDatabase, $tenantArchivePath);
             }
         }
 

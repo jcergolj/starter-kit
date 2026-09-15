@@ -40,7 +40,7 @@ class VerifyBackupCommand extends Command
         mkdir($temporaryDirectory, 0700, true);
 
         try {
-            $databaseEntries = $this->getDatabaseEntries($archive, [$mainDatabase, ...$tenantDatabases]);
+            $databaseEntries = $this->getDatabaseEntries($archive, $mainDatabase, $tenantDatabases);
             $this->restoreAndCheckDatabases($archive, $temporaryDirectory, $databaseEntries);
             $this->info(sprintf('Backup verified: %d SQLite database(s) restored successfully.', count($databaseEntries)));
 
@@ -55,8 +55,8 @@ class VerifyBackupCommand extends Command
         }
     }
 
-    /** @param list<string> $databases */
-    private function getDatabaseEntries(ZipArchive $archive, array $databases): array
+    /** @param list<string> $tenantDatabases */
+    private function getDatabaseEntries(ZipArchive $archive, string $mainDatabase, array $tenantDatabases): array
     {
         $entries = [];
 
@@ -70,8 +70,19 @@ class VerifyBackupCommand extends Command
 
         $databaseEntries = [];
 
-        foreach ($databases as $database) {
-            $entry = $this->findDatabaseEntry($entries, $database);
+        foreach ([$mainDatabase => 'database/'.basename($mainDatabase)] as $database => $expectedPath) {
+            $entry = $this->findDatabaseEntry($entries, $expectedPath);
+
+            if ($entry === null) {
+                throw new RuntimeException('Backup is missing database: '.basename($database));
+            }
+
+            $databaseEntries[$database] = $entry;
+        }
+
+        foreach ($tenantDatabases as $database) {
+            $expectedPath = 'database/db/'.basename($database);
+            $entry = $this->findDatabaseEntry($entries, $expectedPath);
 
             if ($entry === null) {
                 throw new RuntimeException('Backup is missing database: '.basename($database));
@@ -98,17 +109,21 @@ class VerifyBackupCommand extends Command
     }
 
     /** @param list<string> $entries */
-    private function findDatabaseEntry(array $entries, string $database): ?string
+    private function findDatabaseEntry(array $entries, string $expectedPath): ?string
     {
-        $expectedName = basename($database);
+        $matches = [];
 
         foreach ($entries as $entry) {
-            if ($entry === $expectedName || str_ends_with($entry, '/'.$expectedName)) {
-                return $entry;
+            if ($entry === $expectedPath || str_ends_with($entry, '/'.$expectedPath)) {
+                $matches[] = $entry;
             }
         }
 
-        return null;
+        if (count($matches) > 1) {
+            throw new RuntimeException('Backup contains multiple entries for database: '.basename($expectedPath));
+        }
+
+        return $matches[0] ?? null;
     }
 
     private function isHealthySqliteDatabase(string $database): bool
