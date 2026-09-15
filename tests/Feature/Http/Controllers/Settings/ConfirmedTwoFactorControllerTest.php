@@ -47,6 +47,34 @@ class ConfirmedTwoFactorControllerTest extends TestCase
     }
 
     #[Test]
+    public function setup_page_redirects_when_two_factor_is_not_pending(): void
+    {
+        $user = User::factory()->create()->fresh();
+
+        $this->actingAs($user)
+            ->withoutMiddleware(RequirePassword::class)
+            ->get(route('settings.confirmed-two-factor.edit'))
+            ->assertRedirect(route('settings.two-factor.edit'));
+    }
+
+    #[Test]
+    public function confirmation_codes_must_be_six_numeric_digits(): void
+    {
+        $user = User::factory()->create()->fresh();
+
+        $this->actingAs($user)
+            ->withoutMiddleware(RequirePassword::class)
+            ->put(route('settings.two-factor.update'));
+
+        foreach (['12345', '1234567', '12a456', ['123456']] as $code) {
+            $this->actingAs($user)
+                ->withoutMiddleware(RequirePassword::class)
+                ->put(route('settings.confirmed-two-factor.update'), ['code' => $code])
+                ->assertInvalid('code');
+        }
+    }
+
+    #[Test]
     public function two_factor_authentication_can_be_confirmed(): void
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
@@ -74,14 +102,18 @@ class ConfirmedTwoFactorControllerTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
+            ->withoutMiddleware(RequirePassword::class)
             ->put(route('settings.two-factor.update'));
 
         $user->refresh();
 
+        $validCode = app(Google2FA::class)->getCurrentOtp(decrypt($user->two_factor_secret));
+        $invalidCode = str_pad((string) (((int) $validCode + 1) % 1_000_000), 6, '0', STR_PAD_LEFT);
+
         $this->actingAs($user)
             ->withoutMiddleware(RequirePassword::class)
             ->put(route('settings.confirmed-two-factor.update'), [
-                'code' => '000000',
+                'code' => $invalidCode,
             ])
             ->assertInvalid(['code']);
 

@@ -63,9 +63,25 @@ class TwoFactorControllerTest extends TestCase
     }
 
     #[Test]
+    public function pending_two_factor_setup_shows_only_the_continue_control(): void
+    {
+        $user = User::factory()->create()->fresh();
+
+        $this->actingAs($user)
+            ->withoutMiddleware(RequirePassword::class)
+            ->put(route('settings.two-factor.update'));
+
+        $this->get(route('settings.two-factor.edit'))
+            ->assertOk()
+            ->assertSee('Setup pending')
+            ->assertSee('Continue setup')
+            ->assertDontSee('Enable 2FA');
+    }
+
+    #[Test]
     public function two_factor_authentication_can_be_enabled(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create()->fresh();
 
         $this->actingAs($user)
             ->withoutMiddleware(RequirePassword::class)
