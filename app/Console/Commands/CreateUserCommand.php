@@ -10,12 +10,12 @@ use App\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\User;
 use App\Services\TenantDatabaseService;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 use function Laravel\Prompts\password;
@@ -115,7 +115,7 @@ class CreateUserCommand extends Command
             ],
         );
 
-        $email = Str::of($email)->trim()->lower()->toString();
+        $email = EmailAddress::normalize($email);
 
         $languages = array_map(
             function (string $path) {
@@ -160,7 +160,7 @@ class CreateUserCommand extends Command
             validate: ['email' => 'required|email|unique:users,email'],
         );
 
-        $email = Str::of($email)->trim()->lower()->toString();
+        $email = EmailAddress::normalize($email);
 
         $password = password(
             label: __('Password'),

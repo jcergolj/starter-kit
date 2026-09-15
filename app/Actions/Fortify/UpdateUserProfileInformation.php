@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 
@@ -14,7 +14,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
     public function update(User $user, array $input): void
     {
-        $input['email'] = Str::of($input['email'] ?? '')->trim()->lower()->toString();
+        $input['email'] = EmailAddress::normalize($input['email'] ?? null);
 
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],

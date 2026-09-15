@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\DataTransferObjects\UserSettings;
 use App\Enums\RoleEnum;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -60,9 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function email(): Attribute
     {
         return Attribute::make(
-            set: function (string $value): string {
-                return Str::of($value)->trim()->lower()->toString();
-            },
+            set: fn (string $value): string => EmailAddress::normalize($value),
         );
     }
 

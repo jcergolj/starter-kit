@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Models\User;
-use Illuminate\Support\Str;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends AppFormRequest
@@ -13,7 +13,7 @@ class UpdateUserRequest extends AppFormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'email' => Str::of($this->input('email'))->trim()->lower()->toString(),
+            'email' => EmailAddress::normalize($this->input('email')),
         ]);
     }
 

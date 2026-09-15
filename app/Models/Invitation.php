@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Enums\RoleEnum;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Invitation extends Model
 {
@@ -18,7 +18,7 @@ class Invitation extends Model
 
     public static function createFor(string $email, RoleEnum $role = RoleEnum::User, string $lang = 'en'): self
     {
-        $email = Str::of($email)->trim()->lower()->toString();
+        $email = EmailAddress::normalize($email);
 
         $attributes = [
             'email' => $email,
@@ -45,9 +45,7 @@ class Invitation extends Model
     protected function email(): Attribute
     {
         return Attribute::make(
-            set: function (string $value): string {
-                return Str::of($value)->trim()->lower()->toString();
-            },
+            set: fn (string $value): string => EmailAddress::normalize($value),
         );
     }
 
