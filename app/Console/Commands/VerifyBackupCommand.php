@@ -40,39 +40,8 @@ class VerifyBackupCommand extends Command
         mkdir($temporaryDirectory, 0700, true);
 
         try {
-            $entries = [];
-
-            for ($index = 0; $index < $archive->numFiles; $index++) {
-                $entry = $archive->getNameIndex($index);
-
-                throw_if($entry === false || str_contains($entry, '../') || str_starts_with($entry, '/'), RuntimeException::class, 'Backup contains an unsafe archive path.');
-
-                $entries[] = $entry;
-            }
-
-            $requiredDatabases = [$mainDatabase, ...$tenantDatabases];
-            $databaseEntries = [];
-
-            foreach ($requiredDatabases as $database) {
-                $entry = $this->findDatabaseEntry($entries, $database);
-
-                if ($entry === null) {
-                    throw new RuntimeException('Backup is missing database: '.basename($database));
-                }
-
-                $databaseEntries[$database] = $entry;
-            }
-
-            throw_unless($archive->extractTo($temporaryDirectory), RuntimeException::class, 'Unable to extract backup archive.');
-
-            foreach ($databaseEntries as $database => $entry) {
-                $restoredDatabase = $temporaryDirectory.'/'.$entry;
-
-                if (! is_file($restoredDatabase) || ! $this->isHealthySqliteDatabase($restoredDatabase)) {
-                    throw new RuntimeException('Restored database failed integrity check: '.basename($database));
-                }
-            }
-
+            $databaseEntries = $this->getDatabaseEntries($archive, [$mainDatabase, ...$tenantDatabases]);
+            $this->restoreAndCheckDatabases($archive, $temporaryDirectory, $databaseEntries);
             $this->info(sprintf('Backup verified: %d SQLite database(s) restored successfully.', count($databaseEntries)));
 
             return self::SUCCESS;
@@ -83,6 +52,52 @@ class VerifyBackupCommand extends Command
         } finally {
             $archive->close();
             $this->removeDirectory($temporaryDirectory);
+        }
+    }
+
+    /** @param list<string> $databases */
+    private function getDatabaseEntries(ZipArchive $archive, array $databases): array
+    {
+        $entries = [];
+
+        for ($index = 0; $index < $archive->numFiles; $index++) {
+            $entry = $archive->getNameIndex($index);
+
+            if ($entry === false || str_contains($entry, '../') || str_starts_with($entry, '/')) {
+                throw new RuntimeException('Backup contains an unsafe archive path.');
+            }
+
+            $entries[] = $entry;
+        }
+
+        $databaseEntries = [];
+
+        foreach ($databases as $database) {
+            $entry = $this->findDatabaseEntry($entries, $database);
+
+            if ($entry === null) {
+                throw new RuntimeException('Backup is missing database: '.basename($database));
+            }
+
+            $databaseEntries[$database] = $entry;
+        }
+
+        return $databaseEntries;
+    }
+
+    /** @param array<string, string> $databaseEntries */
+    private function restoreAndCheckDatabases(ZipArchive $archive, string $temporaryDirectory, array $databaseEntries): void
+    {
+        if (! $archive->extractTo($temporaryDirectory)) {
+            throw new RuntimeException('Unable to extract backup archive.');
+        }
+
+        foreach ($databaseEntries as $database => $entry) {
+            $restoredDatabase = $temporaryDirectory.'/'.$entry;
+
+            if (! is_file($restoredDatabase) || ! $this->isHealthySqliteDatabase($restoredDatabase)) {
+                throw new RuntimeException('Restored database failed integrity check: '.basename($database));
+            }
         }
     }
 
