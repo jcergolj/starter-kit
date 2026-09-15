@@ -223,6 +223,7 @@ class UserControllerTest extends TestCase
         $response->assertRedirect(route('users.index'));
 
         $this->assertNull($user->fresh()->email_verified_at);
+
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 
@@ -239,6 +240,7 @@ class UserControllerTest extends TestCase
         ]);
 
         $this->assertNotNull($user->fresh()->email_verified_at);
+
         Notification::assertNothingSent();
     }
 

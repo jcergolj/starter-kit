@@ -30,8 +30,7 @@ class AcceptInvitationController extends Controller
 
         try {
             $accepted = DB::transaction(function () use ($request, $token): bool {
-                $invitation = Invitation::query()
-                    ->where('token', $token)
+                $invitation = Invitation::where('token', $token)
                     ->whereNull('accepted_at')
                     ->where('expires_at', '>', now())
                     ->first();
@@ -44,8 +43,7 @@ class AcceptInvitationController extends Controller
                     return false;
                 }
 
-                $claimed = Invitation::query()
-                    ->whereKey($invitation->id)
+                $claimed = Invitation::whereKey($invitation->id)
                     ->whereNull('accepted_at')
                     ->where('expires_at', '>', now())
                     ->update(['accepted_at' => now()]);
@@ -67,9 +65,7 @@ class AcceptInvitationController extends Controller
                 return true;
             });
         } catch (QueryException $exception) {
-            if ($exception->getCode() !== '23000') {
-                throw $exception;
-            }
+            throw_if($exception->getCode() !== '23000', $exception);
 
             return $this->invalidInvitationResponse();
         }
