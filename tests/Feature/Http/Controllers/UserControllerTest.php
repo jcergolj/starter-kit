@@ -133,6 +133,37 @@ class UserControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_user_list_is_paginated_in_stable_order(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $users = User::factory()->count(16)->create();
+
+        $firstPage = $this->actingAs($admin)->get(route('users.index'));
+        $secondPage = $this->actingAs($admin)->get(route('users.index', ['page' => 2]));
+
+        $firstPage->assertOk()
+            ->assertSeeText($users[0]->username)
+            ->assertDontSeeText($users[15]->username)
+            ->assertSee('page=2');
+
+        $secondPage->assertOk()
+            ->assertDontSeeText($users[0]->username)
+            ->assertSeeText($users[15]->username);
+    }
+
+    #[Test]
+    public function empty_user_list_renders_without_pagination_links(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get(route('users.index'));
+
+        $response->assertOk()
+            ->assertSeeText(__('No users found.'))
+            ->assertDontSee('page=');
+    }
+
+    #[Test]
     public function admin_can_view_edit_form(): void
     {
         $admin = User::factory()->admin()->create();

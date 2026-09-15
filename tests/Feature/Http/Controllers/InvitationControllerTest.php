@@ -123,6 +123,37 @@ class InvitationControllerTest extends TestCase
     }
 
     #[Test]
+    public function pending_invitation_list_is_paginated_in_stable_order(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $invitations = Invitation::factory()->count(16)->create();
+
+        $firstPage = $this->actingAs($admin)->get(route('invitations.create'));
+        $secondPage = $this->actingAs($admin)->get(route('invitations.create', ['page' => 2]));
+
+        $firstPage->assertOk()
+            ->assertSeeText($invitations[0]->email)
+            ->assertDontSeeText($invitations[15]->email)
+            ->assertSee('page=2');
+
+        $secondPage->assertOk()
+            ->assertDontSeeText($invitations[0]->email)
+            ->assertSeeText($invitations[15]->email);
+    }
+
+    #[Test]
+    public function empty_pending_invitation_list_hides_the_list_and_pagination_links(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get(route('invitations.create'));
+
+        $response->assertOk()
+            ->assertDontSeeText(__('Pending invitations'))
+            ->assertDontSee('page=');
+    }
+
+    #[Test]
     public function admin_can_revoke_pending_invitation(): void
     {
         $admin = User::factory()->admin()->create();

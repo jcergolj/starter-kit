@@ -15,7 +15,9 @@ class InvitationController extends Controller
 {
     public function create(Request $request): View
     {
-        $pendingInvitations = Invitation::pending()->get();
+        $pendingInvitations = Invitation::pending()
+            ->orderBy('id')
+            ->paginate(15);
 
         return view('invitations.create', ['pendingInvitations' => $pendingInvitations]);
     }
