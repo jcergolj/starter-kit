@@ -8,12 +8,16 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Uri;
 
 class InvitationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public readonly Invitation $invitation) {}
+    public function __construct(
+        public readonly Invitation $invitation,
+        public readonly ?string $tenantSubdomain = null,
+    ) {}
 
     public function envelope(): Envelope
     {
@@ -28,9 +32,21 @@ class InvitationMail extends Mailable
         return new Content(
             view: 'emails.invitation',
             with: [
-                'acceptUrl' => route('invitations.accept', $this->invitation->token),
+                'acceptUrl' => $this->acceptanceUrl(),
                 'expiresAt' => $this->invitation->expires_at,
             ],
         );
+    }
+
+    private function acceptanceUrl(): string
+    {
+        $path = route('invitations.accept', $this->invitation->token, false);
+        $url = Uri::of(config('app.url'))->withPath($path);
+
+        if ($this->tenantSubdomain !== null) {
+            $url = $url->withHost($this->tenantSubdomain.'.'.config('app.domain'));
+        }
+
+        return (string) $url;
     }
 }

@@ -152,6 +152,10 @@ class CreateUserCommandTest extends TestCase
     public function it_sends_invitation_for_regular_user_on_current_database(): void
     {
         Mail::fake();
+        config([
+            'app.url' => 'https://starter-kit.test:8443',
+            'app.domain' => 'starter-kit.test',
+        ]);
 
         $this->artisan('app:create-user')
             ->expectsChoice(__('Where should the user be added?'), __('Current database'), [
@@ -176,8 +180,9 @@ class CreateUserCommandTest extends TestCase
 
         $this->assertSame(RoleEnum::User, $invitation->role);
 
-        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
-            return $mail->invitation->email === 'invite@example.com';
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($invitation) {
+            return $mail->invitation->email === 'invite@example.com'
+                && str_contains($mail->render(), "https://starter-kit.test:8443/invite/{$invitation->token}");
         });
     }
 
@@ -340,6 +345,10 @@ class CreateUserCommandTest extends TestCase
     public function it_sends_invitation_on_new_tenant_database(): void
     {
         Mail::fake();
+        config([
+            'app.url' => 'https://starter-kit.test:8443',
+            'app.domain' => 'starter-kit.test',
+        ]);
 
         $this->artisan('app:create-user')
             ->expectsChoice(__('Where should the user be added?'), __('New tenant database'), [
@@ -365,8 +374,46 @@ class CreateUserCommandTest extends TestCase
 
         $this->assertSame(RoleEnum::User, $invitation->role);
 
-        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) {
-            return $mail->invitation->email === 'tenant-invite@example.com';
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($invitation) {
+            return $mail->invitation->email === 'tenant-invite@example.com'
+                && str_contains($mail->render(), "https://invite-tenant.starter-kit.test:8443/invite/{$invitation->token}");
+        });
+    }
+
+    #[Test]
+    public function it_sends_invitation_on_existing_tenant_database(): void
+    {
+        Mail::fake();
+        config([
+            'app.url' => 'https://starter-kit.test:8443',
+            'app.domain' => 'starter-kit.test',
+        ]);
+        touch($this->databaseRoot.'/existing-invite-tenant.sqlite');
+
+        $this->artisan('app:create-user')
+            ->expectsChoice(__('Where should the user be added?'), 'existing-invite-tenant', [
+                __('Current database'),
+                __('New tenant database'),
+                'existing-invite-tenant',
+            ])
+            ->expectsChoice(__('User role?'), __('User'), [
+                __('User'),
+                __('Admin'),
+                __('Superadmin'),
+            ])
+            ->expectsChoice(__('How should the user be created?'), __('Send invitation'), [
+                __('Send invitation'),
+                __('Create directly'),
+            ])
+            ->expectsQuestion(__('Email'), 'existing-tenant-invite@example.com')
+            ->expectsChoice(__('Language'), 'en', ['en', 'sl'])
+            ->assertSuccessful();
+
+        $invitation = Invitation::where('email', 'existing-tenant-invite@example.com')->first();
+        $this->assertNotNull($invitation);
+
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($invitation) {
+            return str_contains($mail->render(), "https://existing-invite-tenant.starter-kit.test:8443/invite/{$invitation->token}");
         });
     }
 
