@@ -63,9 +63,7 @@ class VerifyBackupCommand extends Command
         for ($index = 0; $index < $archive->numFiles; $index++) {
             $entry = $archive->getNameIndex($index);
 
-            if ($entry === false || str_contains($entry, '../') || str_starts_with($entry, '/')) {
-                throw new RuntimeException('Backup contains an unsafe archive path.');
-            }
+            throw_if($entry === false || str_contains($entry, '../') || str_starts_with($entry, '/'), RuntimeException::class, 'Backup contains an unsafe archive path.');
 
             $entries[] = $entry;
         }
@@ -88,9 +86,7 @@ class VerifyBackupCommand extends Command
     /** @param array<string, string> $databaseEntries */
     private function restoreAndCheckDatabases(ZipArchive $archive, string $temporaryDirectory, array $databaseEntries): void
     {
-        if (! $archive->extractTo($temporaryDirectory)) {
-            throw new RuntimeException('Unable to extract backup archive.');
-        }
+        throw_unless($archive->extractTo($temporaryDirectory), RuntimeException::class, 'Unable to extract backup archive.');
 
         foreach ($databaseEntries as $database => $entry) {
             $restoredDatabase = $temporaryDirectory.'/'.$entry;
