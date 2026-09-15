@@ -195,13 +195,33 @@ class AcceptInvitationControllerTest extends TestCase
             'username' => 'janedoe',
             'password' => 'Secret123!',
             'password_confirmation' => 'Secret123!',
+            'email' => 'spoofed@example.com',
+            'role' => RoleEnum::Admin->value,
         ]);
 
-        $user = User::first();
+        $user = User::sole();
 
         $this->assertSame('real@example.com', $user->email);
+        $this->assertSame(RoleEnum::User, $user->role);
 
         $this->assertDatabaseMissing('users', ['email' => 'spoofed@example.com']);
+    }
+
+    #[Test]
+    public function store_does_not_create_user_for_unknown_token(): void
+    {
+        $response = $this->post(route('accept.invitations.store', 'unknown-token'), [
+            'name' => 'Jane Doe',
+            'username' => 'janedoe',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+            'email' => 'spoofed@example.com',
+            'role' => RoleEnum::Admin->value,
+        ]);
+
+        $response->assertNotFound();
+        $this->assertDatabaseEmpty('users');
+        $this->assertDatabaseEmpty('invitations');
     }
 
     #[Test]
