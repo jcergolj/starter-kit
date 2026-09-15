@@ -45,8 +45,13 @@ task('deploy:cache', function () {
     run('cd {{release_path}} && {{bin/php}} artisan optimize');
 });
 
+task('artisan:tenant-migrate', function () {
+    run('cd {{release_path}} && {{bin/php}} artisan tenants:migrate');
+});
+
 after('deploy:vendors', 'deploy:assets');
-after('artisan:migrate', 'deploy:cache');
+after('artisan:migrate', 'artisan:tenant-migrate');
+after('artisan:tenant-migrate', 'deploy:cache');
 
 // If this app uses queue workers without Horizon, configure Supervisor on the
 // server for queue:work and uncomment this hook.

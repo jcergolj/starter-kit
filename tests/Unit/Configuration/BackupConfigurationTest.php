@@ -35,4 +35,20 @@ class BackupConfigurationTest extends TestCase
 
         $this->assertStringContainsString("    'database/db',", $deployment);
     }
+
+    #[Test]
+    public function deployment_migrates_tenants_before_publishing_cache(): void
+    {
+        $deployment = file_get_contents(base_path('deploy.php'));
+
+        $this->assertIsString($deployment);
+
+        $this->assertStringContainsString("task('artisan:tenant-migrate'", $deployment);
+
+        $this->assertStringContainsString('artisan tenants:migrate', $deployment);
+
+        $this->assertStringContainsString("after('artisan:migrate', 'artisan:tenant-migrate');", $deployment);
+
+        $this->assertStringContainsString("after('artisan:tenant-migrate', 'deploy:cache');", $deployment);
+    }
 }
