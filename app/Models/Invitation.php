@@ -16,13 +16,28 @@ class Invitation extends Model
 
     public static function createFor(string $email, RoleEnum $role = RoleEnum::User, string $lang = 'en'): self
     {
-        return self::create([
+        $attributes = [
             'email' => $email,
             'role' => $role,
             'lang' => $lang,
             'token' => bin2hex(random_bytes(32)),
             'expires_at' => now()->addDays(7),
-        ]);
+            'accepted_at' => null,
+        ];
+
+        $invitation = self::where('email', $email)->first();
+
+        if ($invitation === null) {
+            return self::create($attributes);
+        }
+
+        if ($invitation->isPending()) {
+            throw new \LogicException('An active invitation already exists for this email address.');
+        }
+
+        $invitation->update($attributes);
+
+        return $invitation;
     }
 
     public function isPending(): bool

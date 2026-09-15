@@ -123,6 +123,43 @@ class InvitationControllerTest extends TestCase
     }
 
     #[Test]
+    public function expired_invitation_is_reissued_with_a_new_token(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->expired()->create(['email' => 'expired@example.com']);
+        $oldToken = $invitation->token;
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => $invitation->email,
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+        $reissued = Invitation::sole();
+
+        $this->assertNotSame($oldToken, $reissued->token);
+        $this->assertTrue($reissued->isPending());
+        $this->get(route('invitations.accept', $oldToken))->assertNotFound();
+        Mail::assertSent(InvitationMail::class);
+    }
+
+    #[Test]
+    public function accepted_invitation_for_deleted_user_is_reissued(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->accepted()->create(['email' => 'deleted@example.com']);
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => $invitation->email,
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+        $this->assertTrue(Invitation::sole()->isPending());
+        $this->assertSame(1, Invitation::count());
+    }
+
+    #[Test]
     public function pending_invitation_list_is_paginated_in_stable_order(): void
     {
         $admin = User::factory()->admin()->create();

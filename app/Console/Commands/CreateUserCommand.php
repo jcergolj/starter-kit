@@ -11,9 +11,11 @@ use App\Models\Invitation;
 use App\Models\User;
 use App\Services\TenantDatabaseService;
 use Illuminate\Console\Command;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
@@ -99,7 +101,17 @@ class CreateUserCommand extends Command
         $email = text(
             label: __('Email'),
             required: true,
-            validate: ['email' => 'required|email|unique:users,email'],
+            validate: [
+                'email' => [
+                    'required',
+                    'email',
+                    Rule::unique(User::class, 'email'),
+                    Rule::unique(Invitation::class)->where(function (Builder $query): void {
+                        $query->whereNull('accepted_at')
+                            ->where('expires_at', '>', now());
+                    }),
+                ],
+            ],
         );
 
         $languages = array_map(
