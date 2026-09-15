@@ -6,7 +6,9 @@ use App\DataTransferObjects\UserSettings;
 use App\Http\Requests\AcceptInvitationRequest;
 use App\Models\Invitation;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AcceptInvitationController extends Controller
@@ -16,7 +18,7 @@ class AcceptInvitationController extends Controller
         $invitation = Invitation::where('token', $token)->firstOrFail();
 
         if (! $invitation->isPending()) {
-            return to_route('login')->with('status', __('This invitation is no longer valid.'));
+            return $this->invalidInvitationResponse();
         }
 
         return view('invitations.accept', ['invitation' => $invitation]);
@@ -24,24 +26,59 @@ class AcceptInvitationController extends Controller
 
     public function store(AcceptInvitationRequest $request, string $token): RedirectResponse
     {
-        $invitation = Invitation::where('token', $token)->firstOrFail();
+        Invitation::where('token', $token)->firstOrFail();
 
-        if (! $invitation->isPending()) {
-            return to_route('login')->with('status', __('This invitation is no longer valid.'));
+        try {
+            $accepted = DB::transaction(function () use ($request, $token): bool {
+                $invitation = Invitation::where('token', $token)
+                    ->whereNull('accepted_at')
+                    ->where('expires_at', '>', now())
+                    ->first();
+
+                if ($invitation === null) {
+                    return false;
+                }
+
+                if (User::where('email', $invitation->email)->exists()) {
+                    return false;
+                }
+
+                $claimed = Invitation::whereKey($invitation->id)
+                    ->whereNull('accepted_at')
+                    ->where('expires_at', '>', now())
+                    ->update(['accepted_at' => now()]);
+
+                if ($claimed !== 1) {
+                    return false;
+                }
+
+                User::create([
+                    'name' => $request->validated('name'),
+                    'username' => $request->validated('username'),
+                    'password' => $request->validated('password'),
+                    'email' => $invitation->email,
+                    'role' => $invitation->role,
+                    'email_verified_at' => now(),
+                    'settings' => (new UserSettings($invitation->lang))->toArray(),
+                ]);
+
+                return true;
+            });
+        } catch (QueryException $exception) {
+            throw_if($exception->getCode() !== '23000', $exception);
+
+            return $this->invalidInvitationResponse();
         }
 
-        User::create([
-            'name' => $request->validated('name'),
-            'username' => $request->validated('username'),
-            'password' => $request->validated('password'),
-            'email' => $invitation->email,
-            'role' => $invitation->role,
-            'email_verified_at' => now(),
-            'settings' => (new UserSettings($invitation->lang))->toArray(),
-        ]);
-
-        $invitation->accept();
+        if (! $accepted) {
+            return $this->invalidInvitationResponse();
+        }
 
         return to_route('login')->with('status', __('Invitation accepted. You can now log in.'));
+    }
+
+    private function invalidInvitationResponse(): RedirectResponse
+    {
+        return to_route('login')->with('status', __('This invitation is no longer valid.'));
     }
 }
