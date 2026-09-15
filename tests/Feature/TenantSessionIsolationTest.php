@@ -83,7 +83,7 @@ class TenantSessionIsolationTest extends TestCase
     }
 
     #[Test]
-    public function the_same_session_cookie_is_accepted_by_another_tenant_with_the_same_user_id(): void
+    public function the_same_session_cookie_is_rejected_by_another_tenant_with_the_same_user_id(): void
     {
         $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
         $this->createTenantDatabase('tenant-b', 'tenant-b@example.com');
@@ -103,7 +103,7 @@ class TenantSessionIsolationTest extends TestCase
 
         $this->withCookie(config('session.cookie'), $sessionCookie->getValue())
             ->get('http://tenant-b.example.com/dashboard')
-            ->assertOk();
+            ->assertForbidden();
     }
 
     #[Test]
@@ -130,7 +130,7 @@ class TenantSessionIsolationTest extends TestCase
     }
 
     #[Test]
-    public function remember_me_session_is_also_accepted_by_another_tenant(): void
+    public function remember_me_session_is_also_rejected_by_another_tenant(): void
     {
         $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
         $this->createTenantDatabase('tenant-b', 'tenant-b@example.com');
@@ -155,7 +155,7 @@ class TenantSessionIsolationTest extends TestCase
         $this->withCookie(config('session.cookie'), $sessionCookie->getValue())
             ->withCookie($rememberCookie->getName(), $rememberCookie->getValue())
             ->get('http://tenant-b.example.com/dashboard')
-            ->assertOk();
+            ->assertForbidden();
     }
 
     private function createTenantDatabase(string $subdomain, string $email): void
