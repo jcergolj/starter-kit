@@ -33,13 +33,13 @@ export default class extends Controller {
         pasteEvent.preventDefault();
 
         const clipboardData = (pasteEvent.clipboardData || window.clipboardData).getData('text');
-        const extractedDigits = clipboardData.split('').slice(0, this.inputTargets.length);
+        const extractedDigits = clipboardData.replace(/[^0-9]/g, '').split('').slice(0, this.inputTargets.length);
+
+        this.inputTargets.forEach(input => input.value = '');
 
         extractedDigits.forEach((digitValue, digitIndex) => {
             const inputElement = this.inputTargets[digitIndex];
-            if (inputElement && this.#isValidDigitKey(digitValue)) {
-                inputElement.value = digitValue;
-            }
+            inputElement.value = digitValue;
         });
 
         const nextFocusIndex = Math.min(extractedDigits.length, this.inputTargets.length - 1);
@@ -48,8 +48,9 @@ export default class extends Controller {
         this.#updateHiddenInputValue();
     }
 
-    sanitizeInput({ target }) {
+    handleInput({ target }) {
         target.value = target.value.replace(/[^0-9]/g, '').slice(0, 1);
+        this.#updateHiddenInputValue();
     }
 
     clearAllInputs() {
@@ -59,8 +60,7 @@ export default class extends Controller {
     }
 
     #isValidDigitKey(keyValue) {
-        const parsedNumber = parseInt(keyValue);
-        return !isNaN(parsedNumber) && parsedNumber >= 0 && parsedNumber <= 9;
+        return /^[0-9]$/.test(keyValue);
     }
 
     #processDigitInput(inputElement, keyboardEvent) {
@@ -73,7 +73,7 @@ export default class extends Controller {
         inputElement.value = keyboardEvent.key;
         nextInputElement?.focus();
 
-        this.#scheduleInputUpdate();
+        this.#updateHiddenInputValue();
     }
 
     #processBackspaceInput(inputElement, keyboardEvent) {
@@ -89,13 +89,7 @@ export default class extends Controller {
             previousInputElement.focus();
         }
 
-        this.#scheduleInputUpdate();
-    }
-
-    #scheduleInputUpdate() {
-        setTimeout(() => {
-            this.#updateHiddenInputValue();
-        }, 100);
+        this.#updateHiddenInputValue();
     }
 
     #generateCompleteCode() {

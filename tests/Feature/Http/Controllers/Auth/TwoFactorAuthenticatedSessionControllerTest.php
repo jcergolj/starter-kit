@@ -37,6 +37,22 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
     }
 
     #[Test]
+    public function otp_inputs_synchronize_on_input_events(): void
+    {
+        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+
+        Session::put([
+            'login.id' => $user->id,
+            'login.remember' => false,
+        ]);
+
+        $response = $this->get('/two-factor-challenge');
+
+        $response->assertSee('input->otp#handleInput', false)
+            ->assertDontSee('input->otp#sanitizeInput', false);
+    }
+
+    #[Test]
     public function user_with_two_factor_authentication_enabled_is_redirected_to_challenge_on_login(): void
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
