@@ -32,7 +32,18 @@ class UserController extends Controller
     {
         abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
 
-        $user->update($request->validated());
+        $attributes = $request->validated();
+        $emailChanged = $attributes['email'] !== $user->email;
+
+        if ($emailChanged) {
+            $attributes['email_verified_at'] = null;
+        }
+
+        $user->update($attributes);
+
+        if ($emailChanged) {
+            $user->sendEmailVerificationNotification();
+        }
 
         InAppNotification::success(__('User updated.'));
 
