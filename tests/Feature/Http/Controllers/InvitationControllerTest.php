@@ -135,6 +135,7 @@ class InvitationControllerTest extends TestCase
             ->assertSeeText($invitations[0]->email)
             ->assertDontSeeText($invitations[15]->email)
             ->assertSee('page=2');
+
         $secondPage->assertOk()
             ->assertDontSeeText($invitations[0]->email)
             ->assertSeeText($invitations[15]->email);

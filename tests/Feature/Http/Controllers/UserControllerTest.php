@@ -145,6 +145,7 @@ class UserControllerTest extends TestCase
             ->assertSeeText($users[0]->username)
             ->assertDontSeeText($users[15]->username)
             ->assertSee('page=2');
+
         $secondPage->assertOk()
             ->assertDontSeeText($users[0]->username)
             ->assertSeeText($users[15]->username);

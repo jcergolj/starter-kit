@@ -14,8 +14,7 @@ class UserController extends Controller
 {
     public function index(): View
     {
-        $users = User::query()
-            ->where('role', RoleEnum::User)
+        $users = User::where('role', RoleEnum::User)
             ->orderBy('id')
             ->paginate(15);
 
