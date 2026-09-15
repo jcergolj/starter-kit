@@ -237,6 +237,7 @@ class ConnectToUserDatabaseTest extends TestCase
         });
 
         $this->assertSame('sqlite', Config::get('database.default'));
+
         $this->assertSame(
             $this->databaseRoot.'/application-tenant.sqlite',
             Config::get('database.connections.tenant.database'),
@@ -277,7 +278,9 @@ class ConnectToUserDatabaseTest extends TestCase
         }
 
         $this->assertTrue($exceptionThrown);
+
         $this->assertSame('sqlite', Config::get('database.default'));
+
         $this->assertSame(
             $this->databaseRoot.'/application-tenant.sqlite',
             Config::get('database.connections.tenant.database'),
