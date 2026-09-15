@@ -6,10 +6,18 @@ namespace App\Http\Requests\Settings;
 
 use App\Http\Requests\AppFormRequest;
 use App\Models\User;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Validation\Rule;
 
 class UpdateProfileRequest extends AppFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'email' => EmailAddress::normalize($this->input('email')),
+        ]);
+    }
+
     public function rules(): array
     {
         return [

@@ -209,6 +209,21 @@ class UserControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_user_email_is_normalized(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        $this->actingAs($admin)->put(route('users.update', $user), [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => '  Updated@Example.COM ',
+        ]);
+
+        $this->assertSame('updated@example.com', $user->fresh()->email);
+    }
+
+    #[Test]
     public function admin_email_change_resets_verification_and_sends_notification(): void
     {
         $admin = User::factory()->admin()->create();

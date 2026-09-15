@@ -10,6 +10,7 @@ use App\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\User;
 use App\Services\TenantDatabaseService;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\App;
@@ -114,6 +115,8 @@ class CreateUserCommand extends Command
             ],
         );
 
+        $email = EmailAddress::normalize($email);
+
         $languages = array_map(
             function (string $path) {
                 return basename($path, '.json');
@@ -156,6 +159,8 @@ class CreateUserCommand extends Command
             required: true,
             validate: ['email' => 'required|email|unique:users,email'],
         );
+
+        $email = EmailAddress::normalize($email);
 
         $password = password(
             label: __('Password'),

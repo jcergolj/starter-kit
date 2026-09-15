@@ -5,10 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\ValueObjects\EmailAddress;
 use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends AppFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'email' => EmailAddress::normalize($this->input('email')),
+        ]);
+    }
+
     public function rules(): array
     {
         return [

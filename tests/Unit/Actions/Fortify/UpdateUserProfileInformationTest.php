@@ -49,6 +49,22 @@ class UpdateUserProfileInformationTest extends TestCase
     }
 
     #[Test]
+    public function normalizes_email_addresses_when_updating_profile_information(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'johndoe',
+            'email' => 'john@example.com',
+        ]);
+
+        $this->action->update($user, [
+            'name' => 'Jane Doe',
+            'email' => '  JANE@EXAMPLE.COM ',
+        ]);
+
+        $this->assertSame('jane@example.com', $user->fresh()->email);
+    }
+
+    #[Test]
     public function throws_validation_error_when_name_is_missing(): void
     {
         $user = User::factory()->create([

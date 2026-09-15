@@ -110,6 +110,19 @@ class InvitationControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_invite_email_is_normalized(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => '  Invite@Example.COM ',
+        ]);
+
+        $this->assertSame('invite@example.com', Invitation::sole()->email);
+    }
+
+    #[Test]
     public function duplicate_pending_email_fails_validation(): void
     {
         $admin = User::factory()->admin()->create();

@@ -61,7 +61,7 @@ class CreateUserCommandTest extends TestCase
             ])
             ->expectsQuestion(__('Name'), 'John Doe')
             ->expectsQuestion(__('Username'), 'johndoe')
-            ->expectsQuestion(__('Email'), 'john@example.com')
+            ->expectsQuestion(__('Email'), 'John@Example.COM')
             ->expectsQuestion(__('Password'), 'password')
             ->assertSuccessful();
 
