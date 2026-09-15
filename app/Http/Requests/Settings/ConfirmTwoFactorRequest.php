@@ -11,7 +11,7 @@ class ConfirmTwoFactorRequest extends AppFormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'min:6'],
+            'code' => ['required', 'string', 'size:6', 'regex:/^\d{6}$/'],
         ];
     }
 }

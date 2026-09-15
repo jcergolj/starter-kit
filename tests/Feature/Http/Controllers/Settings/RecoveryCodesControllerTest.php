@@ -44,6 +44,17 @@ class RecoveryCodesControllerTest extends TestCase
     }
 
     #[Test]
+    public function recovery_codes_page_redirects_when_two_factor_is_not_confirmed(): void
+    {
+        $user = User::factory()->create()->fresh();
+
+        $this->actingAs($user)
+            ->withoutMiddleware(RequirePassword::class)
+            ->get(route('settings.recovery-codes.edit'))
+            ->assertRedirect(route('settings.two-factor.edit'));
+    }
+
+    #[Test]
     public function can_view_recovery_codes(): void
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();

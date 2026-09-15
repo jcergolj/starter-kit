@@ -55,6 +55,18 @@
                         </button>
                     </form>
                 </div>
+            @elseif ($user->two_factor_secret !== null)
+                <div class="relative flex flex-col items-start justify-start space-y-4 rounded-xl">
+                    <div class="badge badge-soft badge-warning">{{ __('Setup pending') }}</div>
+
+                    <p class="text-base-content dark:text-base-content/70 -translate-y-1 text-sm">
+                        {{ __('Finish setting up two-factor authentication to protect your account.') }}
+                    </p>
+
+                    <a href="{{ route('settings.confirmed-two-factor.edit') }}" class="btn btn-primary">
+                        {{ __('Continue setup') }}
+                    </a>
+                </div>
             @else
                 <x-turbo::frame
                     id="two-factor-enable"

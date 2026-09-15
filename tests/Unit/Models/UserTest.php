@@ -42,6 +42,19 @@ class UserTest extends TestCase
     }
 
     #[Test]
+    public function two_factor_credentials_are_hidden_from_serialization(): void
+    {
+        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+        $serialized = $user->toArray();
+
+        $this->assertArrayNotHasKey('two_factor_secret', $serialized);
+
+        $this->assertArrayNotHasKey('two_factor_recovery_codes', $serialized);
+
+        $this->assertArrayNotHasKey('two_factor_confirmed_at', $serialized);
+    }
+
+    #[Test]
     public function is_admin_returns_true_when_role_is_admin(): void
     {
         $user = User::factory()->admin()->create();
