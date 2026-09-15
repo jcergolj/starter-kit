@@ -183,6 +183,33 @@ class TenantDatabaseServiceTest extends TestCase
     }
 
     #[Test]
+    public function is_trusted_host_accepts_the_main_domain_and_one_tenant_label(): void
+    {
+        Config::set('app.domain', 'example.com');
+
+        $this->assertTrue($this->service->isTrustedHost(Request::create('http://example.com')));
+
+        $this->assertTrue($this->service->isTrustedHost(Request::create('http://tenant.example.com')));
+    }
+
+    #[Test]
+    #[DataProvider('untrustedHostProvider')]
+    public function is_trusted_host_rejects_hosts_outside_the_configured_domain(string $host): void
+    {
+        Config::set('app.domain', 'example.com');
+
+        $this->assertFalse($this->service->isTrustedHost(Request::create("http://{$host}")));
+    }
+
+    public static function untrustedHostProvider(): \Iterator
+    {
+        yield 'unrelated domain' => ['tenant.example.net'];
+        yield 'nested tenant' => ['nested.tenant.example.com'];
+        yield 'lookalike suffix' => ['tenant-example.com'];
+        yield 'domain suffix confusion' => ['example.com.evil.test'];
+    }
+
+    #[Test]
     public function create_tenant_database_throws_exception_for_invalid_subdomain(): void
     {
         $this->expectException(InvalidSubdomainFormat::class);

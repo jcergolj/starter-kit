@@ -27,6 +27,8 @@ class ConnectToUserDatabaseTest extends TestCase
     {
         parent::setUp();
 
+        Config::set('app.domain', 'example.com');
+
         $this->databaseRoot = sys_get_temp_dir().'/starter-kit-middleware-tests-'.bin2hex(random_bytes(8));
         mkdir($this->databaseRoot, 0755, true);
 
@@ -70,6 +72,8 @@ class ConnectToUserDatabaseTest extends TestCase
     #[Test]
     public function passes_through_for_localhost(): void
     {
+        Config::set('app.domain', 'localhost');
+
         $request = Request::create('http://localhost/dashboard');
         $nextCalled = false;
 

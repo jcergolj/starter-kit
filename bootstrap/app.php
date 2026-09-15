@@ -17,6 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustHosts(
+            at: static function (): array {
+                $domain = preg_quote((string) config('app.domain'), '/');
+
+                return [
+                    "^{$domain}$",
+                    "^[a-z0-9_-]+\\.{$domain}$",
+                ];
+            },
+            subdomains: false,
+        );
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);

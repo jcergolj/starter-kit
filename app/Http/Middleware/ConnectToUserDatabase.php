@@ -20,6 +20,8 @@ final readonly class ConnectToUserDatabase
 
     public function handle(Request $request, Closure $next): Response
     {
+        abort_unless($this->tenantDb->isTrustedHost($request), Response::HTTP_BAD_REQUEST, 'Untrusted host.');
+
         if (config('app.single_db_per_app')) {
             return $next($request);
         }
