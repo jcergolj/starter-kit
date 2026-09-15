@@ -17,6 +17,14 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
+    protected $fillable = [
+        'name',
+        'username',
+        'email',
+        'password',
+        'settings',
+    ];
+
     protected $hidden = [
         'password',
         'remember_token',

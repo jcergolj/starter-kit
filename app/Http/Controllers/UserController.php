@@ -36,7 +36,7 @@ class UserController extends Controller
         $emailChanged = $attributes['email'] !== $user->email;
 
         if ($emailChanged) {
-            $attributes['email_verified_at'] = null;
+            $user->forceFill(['email_verified_at' => null])->save();
         }
 
         $user->update($attributes);

@@ -7,6 +7,7 @@ namespace Tests\Unit\Models;
 use App\DataTransferObjects\UserSettings;
 use App\Enums\RoleEnum;
 use App\Models\User;
+use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -39,6 +40,20 @@ class UserTest extends TestCase
         $this->assertInstanceOf(UserSettings::class, $user->settings);
 
         $this->assertSame('en', $user->settings->lang);
+    }
+
+    #[Test]
+    public function privileged_attributes_are_not_mass_assignable(): void
+    {
+        $user = User::factory()->create();
+
+        $this->expectException(MassAssignmentException::class);
+
+        $user->fill([
+            'role' => RoleEnum::Admin,
+            'blocked_at' => now(),
+            'email_verified_at' => null,
+        ]);
     }
 
     #[Test]

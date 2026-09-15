@@ -163,14 +163,15 @@ class CreateUserCommand extends Command
             validate: ['password' => 'required|min:8'],
         );
 
-        User::create([
+        $user = new User;
+        $user->forceFill([
             'name' => $name,
             'username' => $username,
             'email' => $email,
             'password' => Hash::make($password),
             'role' => $role,
             'email_verified_at' => now(),
-        ]);
+        ])->save();
 
         $this->components->info(__('User created successfully.'));
 

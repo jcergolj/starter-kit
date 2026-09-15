@@ -9,8 +9,6 @@ class ModelServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        Model::unguard();
-
         Model::preventSilentlyDiscardingAttributes();
 
         Model::preventLazyLoading(! $this->app->isProduction());

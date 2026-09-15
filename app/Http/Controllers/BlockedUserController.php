@@ -13,7 +13,7 @@ class BlockedUserController extends Controller
     {
         abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
 
-        $user->update(['blocked_at' => now()]);
+        $user->forceFill(['blocked_at' => now()])->save();
 
         InAppNotification::success(__('User blocked.'));
 
@@ -24,7 +24,7 @@ class BlockedUserController extends Controller
     {
         abort_if($user->isAdmin(), Response::HTTP_FORBIDDEN);
 
-        $user->update(['blocked_at' => null]);
+        $user->forceFill(['blocked_at' => null])->save();
 
         InAppNotification::success(__('User unblocked.'));
 

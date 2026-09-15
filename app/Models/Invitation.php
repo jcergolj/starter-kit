@@ -12,7 +12,14 @@ class Invitation extends Model
     /** @use HasFactory<\Database\Factories\InvitationFactory> */
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'email',
+        'role',
+        'lang',
+        'token',
+        'expires_at',
+        'accepted_at',
+    ];
 
     public static function createFor(string $email, RoleEnum $role = RoleEnum::User, string $lang = 'en'): self
     {

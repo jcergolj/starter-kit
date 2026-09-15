@@ -52,7 +52,8 @@ class AcceptInvitationController extends Controller
                     return false;
                 }
 
-                User::create([
+                $user = new User;
+                $user->forceFill([
                     'name' => $request->validated('name'),
                     'username' => $request->validated('username'),
                     'password' => $request->validated('password'),
@@ -60,7 +61,7 @@ class AcceptInvitationController extends Controller
                     'role' => $invitation->role,
                     'email_verified_at' => now(),
                     'settings' => (new UserSettings($invitation->lang))->toArray(),
-                ]);
+                ])->save();
 
                 return true;
             });
