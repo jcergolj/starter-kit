@@ -81,6 +81,7 @@ class EnsureUserIsNotBlockedTest extends TestCase
         });
 
         $this->assertTrue($nextCalled);
+
         $this->assertSame(200, $response->getStatusCode());
     }
 
