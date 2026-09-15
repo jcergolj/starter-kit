@@ -8,7 +8,9 @@ use App\Enums\RoleEnum;
 use App\Http\Controllers\UserController;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -26,6 +28,7 @@ class UserControllerTest extends TestCase
         parent::setUp();
 
         InAppNotification::fake();
+        Notification::fake();
     }
 
     #[Test]
@@ -203,6 +206,40 @@ class UserControllerTest extends TestCase
         $this->assertSame('updateduser', $updatedUser->username);
 
         $this->assertSame('updated@example.com', $updatedUser->email);
+    }
+
+    #[Test]
+    public function admin_email_change_resets_verification_and_sends_notification(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $response = $this->actingAs($admin)->put(route('users.update', $user), [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => 'new@example.com',
+        ]);
+
+        $response->assertRedirect(route('users.index'));
+
+        $this->assertNull($user->fresh()->email_verified_at);
+        Notification::assertSentTo($user, VerifyEmail::class);
+    }
+
+    #[Test]
+    public function admin_unchanged_email_preserves_verification_and_sends_no_notification(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($admin)->put(route('users.update', $user), [
+            'name' => 'Updated Name',
+            'username' => $user->username,
+            'email' => $user->email,
+        ]);
+
+        $this->assertNotNull($user->fresh()->email_verified_at);
+        Notification::assertNothingSent();
     }
 
     #[Test]
