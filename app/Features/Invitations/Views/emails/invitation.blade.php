@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
 </head>
 <body>
     <p>{{ __('You have been invited to join. Click the link below to complete your registration:') }}</p>
