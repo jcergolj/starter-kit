@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Exceptions\InvalidSubdomainFormat;
-use App\Exceptions\TemplateDatabaseNotFound;
-use App\Exceptions\TenantDatabaseAlreadyExists;
-use App\Exceptions\TenantDatabaseProvisioningFailed;
+use App\Features\TenantDatabase\Exceptions\InvalidSubdomainFormat;
+use App\Features\TenantDatabase\Exceptions\TemplateDatabaseNotFound;
+use App\Features\TenantDatabase\Exceptions\TenantDatabaseAlreadyExists;
+use App\Features\TenantDatabase\Exceptions\TenantDatabaseProvisioningFailed;
 use App\Services\TenantDatabaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Exceptions;
+namespace App\Features\TenantDatabase\Exceptions;
 
-use Exception;
+use App\Exceptions\AppException;
 
-class TemplateDatabaseNotFound extends Exception
+class TemplateDatabaseNotFound extends AppException
 {
     public function __construct()
     {

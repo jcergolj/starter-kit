@@ -10,10 +10,11 @@ app/Features/
 ├── Dashboard/
 ├── Invitations/
 ├── Settings/
+├── TenantDatabase/
 └── UserManagement/
 ```
 
-Feature-owned controllers, requests, actions, jobs, mail, notifications, routes, and views live inside the corresponding feature directory. Shared models, enums, DTOs, policies, rules, value objects, middleware, providers, and console commands remain in their conventional `app` directories.
+Feature-owned controllers, requests, actions, jobs, mail, notifications, exceptions, routes, and views live inside the corresponding feature directory. Shared models, enums, DTOs, policies, rules, value objects, middleware, providers, services, and console commands remain in their conventional `app` directories. For example, tenant-database exceptions live in `app/Features/TenantDatabase/Exceptions`, while the shared `AppException` base class remains in `app/Exceptions`.
 
 Feature routes belong in `app/Features/<FeatureName>/Routes/web.php`. Register each route file explicitly in the `then` callback of `bootstrap/app.php` using a `Route::middleware('web')->group(base_path(...))` call. Keep the registration order intentional because it can affect route precedence.
 

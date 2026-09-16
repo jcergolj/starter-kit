@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Exceptions;
+namespace App\Features\TenantDatabase\Exceptions;
+
+use App\Exceptions\AppException;
 
 class DatabaseNotFound extends AppException
 {

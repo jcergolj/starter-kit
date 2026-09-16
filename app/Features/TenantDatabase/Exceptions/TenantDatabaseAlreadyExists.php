@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Exceptions;
+namespace App\Features\TenantDatabase\Exceptions;
 
-use Exception;
+use App\Exceptions\AppException;
 
-class TenantDatabaseAlreadyExists extends Exception
+class TenantDatabaseAlreadyExists extends AppException
 {
     public function __construct(string $subdomain)
     {

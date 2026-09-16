@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Exceptions\DatabaseNotFound;
+use App\Features\TenantDatabase\Exceptions\DatabaseNotFound;
 use App\Services\SubdomainUrlBuilder;
 use App\Services\TenantDatabaseService;
 use Closure;

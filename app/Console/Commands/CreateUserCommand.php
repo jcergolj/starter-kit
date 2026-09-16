@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\RoleEnum;
-use App\Exceptions\InvalidSubdomainFormat;
-use App\Exceptions\TemplateDatabaseNotFound;
-use App\Exceptions\TenantDatabaseAlreadyExists;
-use App\Exceptions\TenantDatabaseProvisioningFailed;
 use App\Features\Invitations\Mail\InvitationMail;
+use App\Features\TenantDatabase\Exceptions\InvalidSubdomainFormat;
+use App\Features\TenantDatabase\Exceptions\TemplateDatabaseNotFound;
+use App\Features\TenantDatabase\Exceptions\TenantDatabaseAlreadyExists;
+use App\Features\TenantDatabase\Exceptions\TenantDatabaseProvisioningFailed;
 use App\Models\Invitation;
 use App\Models\User;
 use App\Services\TenantDatabaseService;
