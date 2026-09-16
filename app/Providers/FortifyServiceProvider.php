@@ -2,9 +2,7 @@
 
 namespace App\Providers;
 
-use App\Actions\Fortify\ResetUserPassword;
-use App\Actions\Fortify\UpdateUserPassword;
-use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Features\Authentication\Actions\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -30,22 +28,22 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureFortifyViews(): void
     {
         Fortify::twoFactorChallengeView(function () {
-            return view('auth.two-factor-challenge');
+            return view('authentication::auth.two-factor-challenge');
         });
         Fortify::confirmPasswordView(function () {
-            return view('auth.confirm-password');
+            return view('authentication::auth.confirm-password');
         });
         Fortify::loginView(function () {
-            return view('auth.login');
+            return view('authentication::auth.login');
         });
         Fortify::verifyEmailView(function () {
-            return view('auth.verify-email');
+            return view('authentication::auth.verify-email');
         });
         Fortify::resetPasswordView(function () {
-            return view('auth.reset-password');
+            return view('authentication::auth.reset-password');
         });
         Fortify::requestPasswordResetLinkView(function () {
-            return view('auth.forgot-password');
+            return view('authentication::auth.forgot-password');
         });
     }
 
@@ -64,8 +62,6 @@ class FortifyServiceProvider extends ServiceProvider
 
     private function configureFotifyActions(): void
     {
-        Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
-        Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
     }

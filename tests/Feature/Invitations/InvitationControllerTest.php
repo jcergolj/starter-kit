@@ -1,0 +1,290 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Invitations;
+
+use App\Features\Invitations\Controllers\InvitationController;
+use App\Features\Invitations\Mail\InvitationMail;
+use App\Features\Invitations\Requests\SendInvitationRequest;
+use App\Models\Invitation;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Jcergolj\FormRequestAssertions\TestableFormRequest;
+use Jcergolj\InAppNotifications\Facades\InAppNotification;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
+use Tests\TestCase;
+
+#[CoversClass(InvitationController::class)]
+class InvitationControllerTest extends TestCase
+{
+    use RefreshDatabase;
+    use TestableFormRequest;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        InAppNotification::fake();
+    }
+
+    #[Test]
+    public function create_has_auth_verified_and_admin_middleware(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get(route('invitations.create'));
+
+        $response->assertMiddlewareIsApplied('auth');
+
+        $response->assertMiddlewareIsApplied('verified');
+
+        $response->assertMiddlewareIsApplied('admin');
+    }
+
+    #[Test]
+    public function store_has_form_request(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post(route('invitations.store'));
+
+        $this->assertContainsFormRequest(SendInvitationRequest::class);
+    }
+
+    #[Test]
+    public function admin_can_view_invite_form(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get(route('invitations.create'));
+
+        $response->assertOk()
+            ->assertViewIs('invitations::invitations.create')
+            ->assertViewHasForm('id="create-invitation"', 'POST', route('invitations.store'))
+            ->assertFormHasCSRF()
+            ->assertFormHasEmailInput('email')
+            ->assertFormHasSubmitButton();
+    }
+
+    #[Test]
+    public function non_admin_gets_403(): void
+    {
+        $nonAdmin = User::factory()->create();
+
+        $response = $this->actingAs($nonAdmin)->get(route('invitations.create'));
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    public function guest_is_redirected_to_login(): void
+    {
+        $response = $this->get(route('invitations.create'));
+
+        $response->assertRedirect(route('login'));
+    }
+
+    #[Test]
+    public function admin_can_send_invite_email(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'invite@example.com',
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+
+        InAppNotification::assertSuccess(__('Invitation sent successfully.'));
+
+        $invitation = Invitation::first();
+        $this->assertSame('invite@example.com', $invitation->email);
+
+        Mail::assertSent(InvitationMail::class, function ($mail) {
+            return $mail->hasTo('invite@example.com');
+        });
+    }
+
+    #[Test]
+    public function failed_invitation_delivery_removes_invitation_and_reports_error(): void
+    {
+        Mail::shouldReceive('to')
+            ->once()
+            ->with('failed@example.com')
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->once()
+            ->andThrow(new RuntimeException('SMTP unavailable'));
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'failed@example.com',
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+
+        InAppNotification::assertError(__('Invitation could not be sent. Please try again.'));
+
+        $this->assertDatabaseMissing('invitations', ['email' => 'failed@example.com']);
+    }
+
+    #[Test]
+    public function invitation_can_be_retried_after_delivery_failure(): void
+    {
+        $deliveryAttempts = 0;
+
+        Mail::shouldReceive('to')
+            ->twice()
+            ->with('retry@example.com')
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->twice()
+            ->andReturnUsing(function () use (&$deliveryAttempts): void {
+                throw_if($deliveryAttempts++ === 0, RuntimeException::class, 'SMTP unavailable');
+            });
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'retry@example.com',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'retry@example.com',
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+
+        InAppNotification::assertSuccess(__('Invitation sent successfully.'));
+
+        $this->assertDatabaseHas('invitations', ['email' => 'retry@example.com']);
+    }
+
+    #[Test]
+    public function admin_invite_email_is_normalized(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => '  Invite@Example.COM ',
+        ]);
+
+        $this->assertSame('invite@example.com', Invitation::sole()->email);
+    }
+
+    #[Test]
+    public function duplicate_pending_email_fails_validation(): void
+    {
+        $admin = User::factory()->admin()->create();
+        Invitation::factory()->create(['email' => 'pending@example.com']);
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => 'pending@example.com',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+    }
+
+    #[Test]
+    public function expired_invitation_is_reissued_with_a_new_token(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->expired()->create(['email' => 'expired@example.com']);
+        $oldToken = $invitation->token;
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => $invitation->email,
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+
+        $reissued = Invitation::sole();
+
+        $this->assertNotSame($oldToken, $reissued->token);
+
+        $this->assertTrue($reissued->isPending());
+
+        $this->get(route('invitations.accept', $oldToken))->assertNotFound();
+
+        Mail::assertSent(InvitationMail::class);
+    }
+
+    #[Test]
+    public function accepted_invitation_for_deleted_user_is_reissued(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->accepted()->create(['email' => 'deleted@example.com']);
+
+        $response = $this->actingAs($admin)->post(route('invitations.store'), [
+            'email' => $invitation->email,
+        ]);
+
+        $response->assertRedirect(route('invitations.create'));
+
+        $this->assertTrue(Invitation::sole()->isPending());
+
+        $this->assertSame(1, Invitation::count());
+    }
+
+    #[Test]
+    public function pending_invitation_list_is_paginated_in_stable_order(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $invitations = Invitation::factory()->count(16)->create();
+
+        $firstPage = $this->actingAs($admin)->get(route('invitations.create'));
+        $secondPage = $this->actingAs($admin)->get(route('invitations.create', ['page' => 2]));
+
+        $firstPage->assertOk()
+            ->assertSeeText($invitations[0]->email)
+            ->assertDontSeeText($invitations[15]->email)
+            ->assertSee('page=2');
+
+        $secondPage->assertOk()
+            ->assertDontSeeText($invitations[0]->email)
+            ->assertSeeText($invitations[15]->email);
+    }
+
+    #[Test]
+    public function empty_pending_invitation_list_hides_the_list_and_pagination_links(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get(route('invitations.create'));
+
+        $response->assertOk()
+            ->assertDontSeeText(__('Pending invitations'))
+            ->assertDontSee('page=');
+    }
+
+    #[Test]
+    public function admin_can_revoke_pending_invitation(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->create();
+
+        $response = $this->actingAs($admin)->delete(route('invitations.destroy', $invitation));
+
+        $response->assertRedirect(route('invitations.create'));
+
+        InAppNotification::assertSuccess(__('Invitation revoked.'));
+    }
+
+    #[Test]
+    public function revoked_invitation_is_deleted_from_db(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->create();
+
+        $this->actingAs($admin)->delete(route('invitations.destroy', $invitation));
+
+        $this->assertDatabaseMissing('invitations', ['id' => $invitation->id]);
+    }
+}

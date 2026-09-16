@@ -96,12 +96,14 @@
         "pint": "./vendor/bin/pint --parallel",
         "phpmd": "./vendor/bin/phpmd analyze app --format text --ruleset phpmd.xml",
         "rector": "vendor/bin/rector",
+        "test": "@php artisan test",
         "analyse": [
             "@env-sync",
             "@env-prune",
             "@phpstan",
             "@rector",
-            "@pint"
+            "@pint",
+            "@test"
         ]
     },
     "extra": {

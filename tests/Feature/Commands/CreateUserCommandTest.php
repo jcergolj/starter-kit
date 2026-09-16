@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Commands;
 
 use App\Enums\RoleEnum;
-use App\Mail\InvitationMail;
+use App\Features\Invitations\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\User;
 use App\Services\TenantDatabaseService;

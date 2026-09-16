@@ -1,5 +1,26 @@
 # Starter Kit
 
+## Feature Structure
+
+Application behavior is organized by feature under `app/Features`:
+
+```text
+app/Features/
+├── Authentication/
+├── Dashboard/
+├── Invitations/
+├── Settings/
+└── UserManagement/
+```
+
+Feature-owned controllers, requests, actions, jobs, mail, notifications, routes, and views live inside the corresponding feature directory. Shared models, enums, DTOs, policies, rules, value objects, middleware, providers, and console commands remain in their conventional `app` directories.
+
+Feature routes belong in `app/Features/<FeatureName>/Routes/web.php`. Register each route file explicitly in the `then` callback of `bootstrap/app.php` using a `Route::middleware('web')->group(base_path(...))` call. Keep the registration order intentional because it can affect route precedence.
+
+Feature views belong in `app/Features/<FeatureName>/Views`. Add the feature view directory to `app/Providers/FeatureServiceProvider.php`, then reference views with the registered namespace, for example `dashboard::dashboard` or `settings::settings.menu`. Add new feature view paths to the Tailwind `@source` directives in `resources/css/app.css` when needed.
+
+Feature tests belong under the matching `tests/Feature/<FeatureName>` directory. Tests for shared models and value objects remain under the conventional Unit directories.
+
 ## Theme Customization
 
 This application uses:

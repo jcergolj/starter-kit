@@ -2,6 +2,7 @@
 @import './turbo-loading.css';
 
 @source "../views";
+@source "../../app/Features";
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @plugin "./tailwind/daisyui.js" {

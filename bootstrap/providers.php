@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Providers\AppServiceProvider;
+use App\Providers\FeatureServiceProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\ModelServiceProvider;
@@ -13,6 +14,7 @@ use Bugsnag\BugsnagLaravel\BugsnagServiceProvider;
 return [
     AppServiceProvider::class,
     FortifyServiceProvider::class,
+    FeatureServiceProvider::class,
     HorizonServiceProvider::class,
     BugsnagServiceProvider::class,
     ModelServiceProvider::class,
