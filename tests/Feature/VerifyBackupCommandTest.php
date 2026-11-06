@@ -55,6 +55,24 @@ class VerifyBackupCommandTest extends TestCase
     }
 
     #[Test]
+    public function it_fails_when_the_main_database_dump_cannot_be_restored(): void
+    {
+        $archivePath = $this->fixtureDirectory.'/backup.zip';
+
+        $archive = new ZipArchive;
+        $archive->open($archivePath, ZipArchive::CREATE);
+        $archive->addFromString('db-dumps/sqlite-sqlite-database.sql', 'not a sql dump');
+        $archive->close();
+
+        $this->artisan('backup:verify', [
+            'archive' => $archivePath,
+            '--main-database' => $this->fixtureDirectory.'/main.sqlite',
+            '--tenant-root' => $this->fixtureDirectory.'/db',
+        ])->assertFailed()
+            ->expectsOutputToContain('Unable to restore main database dump.');
+    }
+
+    #[Test]
     public function it_fails_when_a_tenant_database_is_missing_from_the_backup(): void
     {
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');

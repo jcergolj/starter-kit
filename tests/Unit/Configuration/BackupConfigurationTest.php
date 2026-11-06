@@ -10,14 +10,12 @@ use Tests\TestCase;
 class BackupConfigurationTest extends TestCase
 {
     #[Test]
-    public function backup_includes_the_persistent_tenant_directory_and_follows_shared_links(): void
+    public function backup_uses_snapshots_instead_of_including_live_database_files(): void
     {
         $configuration = require base_path('config/backup.php');
         $files = $configuration['backup']['source']['files'];
 
-        $this->assertContains(database_path(), $files['include']);
-
-        $this->assertContains(database_path('db'), $files['include']);
+        $this->assertSame([], $files['include']);
 
         $this->assertTrue($files['follow_links']);
 

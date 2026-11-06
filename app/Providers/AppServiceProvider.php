@@ -3,12 +3,15 @@
 namespace App\Providers;
 
 use App\Enums\RoleEnum;
+use App\Features\TenantDatabase\Listeners\SnapshotTenantDatabases;
 use App\Services\TenantDatabaseService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Opcodes\LogViewer\Facades\LogViewer;
+use Spatie\Backup\Events\BackupManifestWasCreated;
 use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
 use Symfony\Component\Mailer\Transport\Dsn;
 
@@ -22,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Event::listen(BackupManifestWasCreated::class, SnapshotTenantDatabases::class);
+
         Mail::extend('brevo', function () {
             return (new BrevoTransportFactory)->create(
                 new Dsn(

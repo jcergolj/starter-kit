@@ -25,12 +25,10 @@ return [
         'source' => [
             'files' => [
                 /*
-                 * The list of directories and files that will be included in the backup.
+                 * Tenant snapshots are added by SnapshotTenantDatabases. Never include
+                 * live SQLite files or their WAL/journal files here.
                  */
-                'include' => [
-                    database_path(),
-                    database_path('db'),
-                ],
+                'include' => [],
 
                 /*
                  * These directories and files will be excluded from the backup.

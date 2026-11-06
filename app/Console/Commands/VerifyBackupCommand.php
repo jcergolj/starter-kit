@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Illuminate\Console\Attributes\Signature;
@@ -88,6 +90,8 @@ class VerifyBackupCommand extends Command
         foreach ([$mainDatabase => 'database/'.basename($mainDatabase)] as $database => $expectedPath) {
             $entry = $this->findDatabaseEntry($entries, $expectedPath);
 
+            $entry ??= $this->findDatabaseEntry($entries, 'db-dumps/sqlite-sqlite-database.sql');
+
             if ($entry === null) {
                 throw new RuntimeException('Backup is missing database: '.basename($database));
             }
@@ -120,6 +124,21 @@ class VerifyBackupCommand extends Command
 
         foreach ($databaseEntries as $database => $entry) {
             $restoredDatabase = $temporaryDirectory.'/'.$entry;
+
+            if (str_ends_with($entry, '.sql')) {
+                $restoredDatabase = $temporaryDirectory.'/restored-main.sqlite';
+
+                try {
+                    $dump = file_get_contents($temporaryDirectory.'/'.$entry);
+
+                    throw_if($dump === false, RuntimeException::class, __('Unable to read main database dump.'));
+
+                    $connection = new \PDO('sqlite:'.$restoredDatabase);
+                    $connection->exec($dump);
+                } catch (\PDOException $exception) {
+                    throw new RuntimeException(__('Unable to restore main database dump.'), 0, $exception);
+                }
+            }
 
             if (! is_file($restoredDatabase) || ! $this->isHealthySqliteDatabase($restoredDatabase)) {
                 throw new RuntimeException('Restored database failed integrity check: '.basename($database));
