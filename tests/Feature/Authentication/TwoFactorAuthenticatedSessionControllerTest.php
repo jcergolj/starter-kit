@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
 use Laravel\Fortify\Fortify;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
@@ -110,8 +111,12 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
     }
 
     #[Test]
-    public function two_fa_is_rate_limited(): void
+    #[TestWith([false])]
+    #[TestWith([true])]
+    public function two_fa_is_rate_limited(bool $singleDatabase): void
     {
+        config(['app.single_db_per_app' => $singleDatabase]);
+
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
         // Set up session as if user just entered credentials
@@ -133,8 +138,12 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
     }
 
     #[Test]
-    public function can_login_with_recovery_codes(): void
+    #[TestWith([false])]
+    #[TestWith([true])]
+    public function can_login_with_recovery_codes(bool $singleDatabase): void
     {
+        config(['app.single_db_per_app' => $singleDatabase]);
+
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
         // Set up session as if user just entered credentials

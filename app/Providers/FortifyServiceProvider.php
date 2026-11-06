@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Features\Authentication\Actions\ResetUserPassword;
@@ -55,8 +57,10 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
-        RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
+        RateLimiter::for('two-factor', function (Request $request): Limit {
+            $databaseIdentity = config('app.single_db_per_app') ? 'single' : $request->session()->get('tenant_host');
+
+            return Limit::perMinute(5)->by($databaseIdentity.'|'.$request->session()->get('login.id'));
         });
     }
 

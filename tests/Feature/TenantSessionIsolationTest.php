@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
@@ -54,6 +56,7 @@ class TenantSessionIsolationTest extends TestCase
             'role' => RoleEnum::Admin->value,
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
+            'two_factor_recovery_codes' => encrypt(json_encode(['valid-recovery-code'])),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -245,6 +248,56 @@ class TenantSessionIsolationTest extends TestCase
             ->assertForbidden();
     }
 
+    #[Test]
+    #[TestWith(['tenant-a.example.com', 'tenant-b.example.com'])]
+    #[TestWith(['example.com', 'tenant-a.example.com'])]
+    #[TestWith(['tenant-a.example.com', 'example.com'])]
+    public function database_hosts_with_matching_user_ids_have_separate_two_factor_limits(
+        string $firstHost,
+        string $secondHost,
+    ): void {
+        $this->freezeTime();
+        $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
+        $this->createTenantDatabase('tenant-b', 'tenant-b@example.com');
+
+        foreach (range(1, 5) as $_) {
+            $this->submitRecoveryCode($firstHost)->assertUnprocessable()->assertInvalid('recovery_code');
+        }
+
+        $this->submitRecoveryCode($firstHost)->assertTooManyRequests();
+
+        $this->submitRecoveryCode($secondHost)->assertUnprocessable()->assertInvalid('recovery_code');
+
+        $this->submitRecoveryCode($secondHost, 'valid-recovery-code')->assertNoContent();
+
+        $this->submitRecoveryCode($firstHost)->assertTooManyRequests();
+    }
+
+    private function submitRecoveryCode(string $host, string $code = 'invalid-recovery-code'): TestResponse
+    {
+        $this->app['auth']->forgetGuards();
+        $this->app['session.store']->flush();
+
+        return $this->withSession([
+            'tenant_host' => $host,
+            'login.id' => 1,
+            'login.remember' => false,
+        ])->postJson("http://{$host}/two-factor-challenge", ['recovery_code' => $code]);
+    }
+
+    #[Test]
+    public function single_database_hosts_share_the_same_account_limit(): void
+    {
+        config(['app.single_db_per_app' => true]);
+        $this->freezeTime();
+
+        foreach (range(1, 5) as $_) {
+            $this->submitRecoveryCode('example.com')->assertUnprocessable()->assertInvalid('recovery_code');
+        }
+
+        $this->submitRecoveryCode('tenant-a.example.com')->assertTooManyRequests();
+    }
+
     private function createTenantDatabase(string $subdomain, string $email): void
     {
         $path = $this->databaseRoot."/{$subdomain}.sqlite";
@@ -263,6 +316,7 @@ class TenantSessionIsolationTest extends TestCase
             'role' => RoleEnum::User->value,
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
+            'two_factor_recovery_codes' => encrypt(json_encode(['valid-recovery-code'])),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -282,6 +336,9 @@ class TenantSessionIsolationTest extends TestCase
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->timestamp('blocked_at')->nullable();
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
