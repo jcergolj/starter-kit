@@ -9,12 +9,15 @@ use App\Features\Invitations\Mail\InvitationMail;
 use App\Features\Invitations\Requests\SendInvitationRequest;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Services\TenantDatabaseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use Jcergolj\InAppNotifications\Facades\InAppNotification;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -24,11 +27,30 @@ class InvitationControllerTest extends TestCase
     use RefreshDatabase;
     use TestableFormRequest;
 
+    private ?string $databaseRoot = null;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         InAppNotification::fake();
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->databaseRoot !== null) {
+            DB::purge('tenant');
+            DB::purge('application');
+
+            foreach (glob($this->databaseRoot.'/*') ?: [] as $path) {
+                unlink($path);
+            }
+
+            rmdir($this->databaseRoot);
+            config(['database.default' => 'sqlite']);
+        }
+
+        parent::tearDown();
     }
 
     #[Test]
@@ -107,6 +129,105 @@ class InvitationControllerTest extends TestCase
 
         Mail::assertSent(InvitationMail::class, function ($mail) {
             return $mail->hasTo('invite@example.com');
+        });
+    }
+
+    #[Test]
+    public function tenant_invitation_email_link_can_be_followed_and_accepted(): void
+    {
+        $this->databaseRoot = sys_get_temp_dir().'/invitation-tests-'.bin2hex(random_bytes(8));
+        mkdir($this->databaseRoot, 0700);
+
+        config([
+            'app.domain' => 'example.com',
+            'app.url' => 'https://example.com:8443',
+            'app.single_db_per_app' => false,
+            'database.connections.application' => array_replace(config('database.connections.sqlite'), [
+                'database' => $this->databaseRoot.'/application.sqlite',
+            ]),
+            'database.connections.tenant.database' => $this->databaseRoot.'/acme.sqlite',
+            'database.default' => 'application',
+        ]);
+        touch($this->databaseRoot.'/application.sqlite');
+        touch($this->databaseRoot.'/acme.sqlite');
+
+        $this->artisan('migrate', ['--database' => 'application', '--no-interaction' => true])->assertSuccessful();
+
+        $this->artisan('migrate', ['--database' => 'tenant', '--no-interaction' => true])->assertSuccessful();
+
+        $tenantDatabase = new TenantDatabaseService($this->databaseRoot);
+        $this->app->instance(TenantDatabaseService::class, $tenantDatabase);
+        $tenantDatabase->connectToTenant('acme');
+
+        $admin = User::factory()->admin()->create(['username' => 'acme']);
+        $tenantDatabase->resetToApplicationDatabase();
+        Mail::fake();
+
+        $this->actingAs($admin)->post('https://acme.example.com:8443/invitations', [
+            'email' => 'invite@example.com',
+        ])->assertRedirect();
+
+        $invitation = Invitation::on('tenant')->sole();
+
+        $url = 'https://acme.example.com:8443/invite/'.$invitation->token;
+
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($url): bool {
+            $mail->assertSeeInHtml('href="'.$url.'"', false);
+
+            return true;
+        });
+
+        $this->app['auth']->forgetGuards();
+        $this->flushSession();
+
+        $this->get($url)->assertOk()->assertSee('invite@example.com');
+
+        $this->post($url, [
+            'name' => 'Invited User',
+            'username' => 'invited-user',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+        ])->assertRedirect('https://acme.example.com:8443/login')
+            ->assertSessionHas('status', __('Invitation accepted. You can now log in.'));
+
+        $acceptedInvitation = Invitation::on('tenant')->findOrFail($invitation->id);
+
+        $this->assertNotNull($acceptedInvitation->accepted_at);
+
+        $user = User::on('tenant')->where('email', 'invite@example.com')->firstOrFail();
+
+        $this->assertSame('Invited User', $user->name);
+
+        $this->assertDatabaseEmpty('invitations', 'application');
+
+        $this->assertDatabaseEmpty('users', 'application');
+    }
+
+    #[Test]
+    #[TestWith([false, 'example.com'])]
+    #[TestWith([true, 'example.com'])]
+    #[TestWith([true, 'acme.example.com'])]
+    public function application_database_invitations_keep_root_domain_links(bool $singleDatabase, string $host): void
+    {
+        config([
+            'app.domain' => 'example.com',
+            'app.url' => 'https://example.com:8443',
+            'app.single_db_per_app' => $singleDatabase,
+        ]);
+        Mail::fake();
+
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post('https://'.$host.':8443/invitations', [
+            'email' => 'invite@example.com',
+        ])->assertRedirect();
+
+        $invitation = Invitation::sole();
+
+        Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($invitation): bool {
+            $mail->assertSeeInHtml('href="https://example.com:8443/invite/'.$invitation->token.'"', false);
+
+            return true;
         });
     }
 

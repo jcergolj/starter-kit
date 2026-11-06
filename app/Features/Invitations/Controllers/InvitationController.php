@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Features\Invitations\Controllers;
 
 use App\Features\Invitations\Mail\InvitationMail;
 use App\Features\Invitations\Requests\SendInvitationRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Invitation;
+use App\Services\TenantDatabaseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -15,6 +18,8 @@ use Throwable;
 
 class InvitationController extends Controller
 {
+    public function __construct(private readonly TenantDatabaseService $tenantDatabase) {}
+
     public function create(Request $request): View
     {
         $pendingInvitations = Invitation::pending()
@@ -28,8 +33,12 @@ class InvitationController extends Controller
     {
         $invitation = Invitation::createFor($request->validated('email'));
 
+        $tenantSubdomain = config('app.single_db_per_app') || $this->tenantDatabase->isMainDomain($request)
+            ? null
+            : $this->tenantDatabase->extractSubdomain($request);
+
         try {
-            Mail::to($invitation->email)->send(new InvitationMail($invitation));
+            Mail::to($invitation->email)->send(new InvitationMail($invitation, $tenantSubdomain));
         } catch (Throwable $exception) {
             report($exception);
             $invitation->delete();
