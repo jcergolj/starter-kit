@@ -52,6 +52,8 @@ composer install --no-dev --optimize-autoloader --no-interaction
 # Migrate
 step "Running migrations..."
 php artisan migrate --force
+step "Migrating tenant databases and provisioning template..."
+php artisan tenants:migrate --no-interaction
 
 # Assets
 step "Building assets..."

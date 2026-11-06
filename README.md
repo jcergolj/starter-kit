@@ -196,7 +196,7 @@ bash scripts/deploy.sh
 bash /var/www/starter-kit/scripts/deploy.sh /var/www/starter-kit
 ```
 
-**This script discards tracked local changes** with a hard reset to `origin/master`. It enters maintenance mode, fetches `master`, installs production Composer dependencies, migrates the main database, builds Tailwind and importmap, rebuilds Laravel caches, terminates Horizon, and brings the app online. Its error trap attempts to bring the app online on failure; it does not roll back code or migrations. Unlike the Deployer tasks, it does not run tenant migrations. It does not fix permissions, reload PHP-FPM, or manage release directories/`current`.
+**This script discards tracked local changes** with a hard reset to `origin/master`. It enters maintenance mode, fetches `master`, installs production Composer dependencies, migrates the main database, then runs `tenants:migrate` to apply forward migrations to existing tenant databases and update the schema-only provisioning template before building Tailwind and importmap and rebuilding Laravel caches. It then terminates Horizon and brings the app online. A tenant migration failure reports the failed target and stops deployment before assets and caches are built. Its error trap attempts to bring the app online on failure; it does not roll back code or migrations. It does not fix permissions, reload PHP-FPM, or manage release directories/`current`.
 
 If you wish to commit from github actions do this
 Settings -> Action -> General -> Workflow permissions and choose read and write permissions
