@@ -17,6 +17,19 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
+    public function a_pending_two_factor_session_without_a_host_binding_is_rejected(): void
+    {
+        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+
+        Session::put([
+            'login.id' => $user->id,
+            'login.remember' => false,
+        ]);
+
+        $this->get('/two-factor-challenge')->assertForbidden();
+    }
+
+    #[Test]
     public function two_factor_challenge_screen_can_be_rendered(): void
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
