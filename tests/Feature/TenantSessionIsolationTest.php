@@ -46,6 +46,18 @@ class TenantSessionIsolationTest extends TestCase
         touch($this->databaseRoot.'/application.sqlite');
         $this->createUsersTable('sqlite');
 
+        DB::connection('sqlite')->table('users')->insert([
+            'id' => 1,
+            'username' => 'root-admin',
+            'name' => 'Root administrator',
+            'email' => 'root@example.com',
+            'role' => RoleEnum::Admin->value,
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $this->app->instance(TenantDatabaseService::class, new TenantDatabaseService($this->databaseRoot));
     }
 
@@ -131,7 +143,76 @@ class TenantSessionIsolationTest extends TestCase
 
         $this->withCookie(config('session.cookie'), $sessionCookie->getValue())
             ->get('http://example.com/dashboard')
-            ->assertRedirect(route('login'));
+            ->assertForbidden();
+    }
+
+    #[Test]
+    public function a_root_session_is_rejected_by_a_tenant_with_the_same_user_id(): void
+    {
+        $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
+
+        $response = $this->post('http://example.com/login', [
+            'email' => 'root@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+
+        $sessionCookie = $response->getCookie(config('session.cookie'));
+
+        $this->assertInstanceOf(Cookie::class, $sessionCookie);
+
+        $this->app['auth']->forgetGuards();
+
+        $this->withCookie(config('session.cookie'), $sessionCookie->getValue())
+            ->get('http://tenant-a.example.com/dashboard')
+            ->assertForbidden();
+    }
+
+    #[Test]
+    public function a_persisted_root_session_can_be_reused_on_the_root_host(): void
+    {
+        $response = $this->post('http://example.com/login', [
+            'email' => 'root@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+
+        $sessionCookie = $response->getCookie(config('session.cookie'));
+
+        $this->assertInstanceOf(Cookie::class, $sessionCookie);
+
+        $this->app['auth']->forgetGuards();
+
+        $this->withCookie(config('session.cookie'), $sessionCookie->getValue())
+            ->get('http://example.com/dashboard')
+            ->assertOk();
+    }
+
+    #[Test]
+    public function an_old_authenticated_session_without_a_host_binding_is_rejected(): void
+    {
+        $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
+
+        $response = $this->post('http://tenant-a.example.com/login', [
+            'email' => 'tenant-a@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+
+        $sessionCookie = $response->getCookie(config('session.cookie'));
+
+        $this->assertInstanceOf(Cookie::class, $sessionCookie);
+
+        $this->app['session.store']->forget('tenant_host');
+        $this->app['session.store']->save();
+        $this->app['auth']->forgetGuards();
+
+        $this->withCookie(config('session.cookie'), $sessionCookie->getValue())
+            ->get('http://example.com/dashboard')
+            ->assertForbidden();
     }
 
     #[Test]
@@ -175,6 +256,7 @@ class TenantSessionIsolationTest extends TestCase
         $this->createUsersTable('tenant');
 
         DB::connection('tenant')->table('users')->insert([
+            'id' => 1,
             'username' => $subdomain,
             'name' => ucfirst($subdomain),
             'email' => $email,

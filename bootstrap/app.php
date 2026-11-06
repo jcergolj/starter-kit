@@ -10,6 +10,7 @@ use App\Http\Middleware\SetLocaleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -44,10 +45,11 @@ return Application::configure(basePath: dirname(__DIR__))
             ConnectToUserDatabase::class,
         ]);
         $middleware->web(append: [
+            EnsureTenantSessionMatchesHost::class,
             SetLocaleMiddleware::class,
             EnsureUserIsNotBlocked::class,
-            EnsureTenantSessionMatchesHost::class,
         ]);
+        $middleware->appendToPriorityList(StartSession::class, EnsureTenantSessionMatchesHost::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->dontTruncateRequestExceptions();

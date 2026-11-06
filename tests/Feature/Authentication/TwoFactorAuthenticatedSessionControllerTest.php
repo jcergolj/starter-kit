@@ -22,6 +22,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
         Session::put([
+            'tenant_host' => config('app.domain'),
             'login.id' => $user->id,
             'login.remember' => false,
         ]);
@@ -42,6 +43,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
         Session::put([
+            'tenant_host' => config('app.domain'),
             'login.id' => $user->id,
             'login.remember' => false,
         ]);
@@ -74,6 +76,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
 
         // Set up session as if user just entered credentials
         Session::put([
+            'tenant_host' => config('app.domain'),
             'login.id' => $user->id,
             'login.remember' => false,
         ]);
@@ -100,6 +103,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
 
         // Set up session as if user just entered credentials
         Session::put([
+            'tenant_host' => config('app.domain'),
             'login.id' => $user->id,
             'login.remember' => false,
         ]);
@@ -122,6 +126,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
 
         // Set up session as if user just entered credentials
         Session::put([
+            'tenant_host' => config('app.domain'),
             'login.id' => $user->id,
             'login.remember' => false,
         ]);
