@@ -94,109 +94,51 @@ php artisan tailwindcss:watch --no-tty
 
 ## Deployment
 
-Use **Deployer with `deploy.php`** for both the first release and subsequent releases. `scripts/server-bootstrap.sh` prepares the server; it does not deploy application code.
+Use **Metator** (`jcergolj/metator-for-laravel`) to generate deployment scaffolding and provision infrastructure, then **Deployer** to release the application. The legacy checked-in shell scripts have been removed.
 
 ### Prerequisites
 
-- Local project checkout, SSH/SCP access to the server, and a Deployer installation available as `vendor/bin/dep`. Deployer is not included in this project's Composer dependencies; arrange that tooling before deploying.
-- Ubuntu server with sudo access, PHP 8.5 CLI and a running PHP-FPM service/socket, Composer, Caddy, Git, curl, and OpenSSH tools. Install the PHP extensions required by the application beforehand; bootstrap only installs the selected database driver.
-- An editor on the server (`nano` by default, or set `EDITOR`).
-- Caddy-readable certificate and private key at `/etc/caddy/certs/cloudflare-wildcard.crt` and `/etc/caddy/certs/cloudflare-wildcard.key`. Bootstrap requires these existing files; it does not issue certificates.
-- DNS pointing to the server, configured manually. Decline Cloudflare automation during bootstrap: its current record-creation path calls an undefined `step` helper and aborts. The optional prompts require `jq`, an API token with zone-read and DNS-edit access, and the zone name (not a Zone ID), but do not rely on them to create a record until that script bug is fixed.
-- For MySQL, an existing database and credentials; bootstrap does not create a MySQL server, database, or user.
-- Your local public SSH key for login as `deployer`, and permission to grant the server's GitHub key read access to the repository.
+- Local project checkout with development Composer dependencies installed, including Metator, and Deployer available as `vendor/bin/dep`. Deployer is not included in this project's Composer dependencies; arrange that tooling separately.
+- An already secured Ubuntu 24.04 server, noninteractive SSH access with administrative `sudo`, and the application's PHP 8.5 runtime requirements.
+- Repository access and permission to register the server's read-only GitHub deploy key when provisioning requests it.
+- The installed [Metator instructions](vendor/jcergolj/metator-for-laravel/README.md) for the selected database, DNS, certificates, and worker options.
 
-### 1. Bootstrap the server (`scripts/server-bootstrap.sh`)
+### 1. Generate the Metator configuration
 
-Copy the entire `scripts` directory from your local checkout so its `lib` and `steps` dependencies are available. Replace `your-user` and `SERVER_IP` with your existing sudo-capable server login:
+From the local project root, run:
 
 ```bash
-# On your local computer, from the project root
-scp -r scripts your-user@SERVER_IP:~/
-ssh your-user@SERVER_IP
-
-# On the server
-bash ~/scripts/server-bootstrap.sh
+php artisan metator:install
 ```
 
-The interactive script asks for:
+The installer asks for the site ID, repository, deployment branch, SSH host and user, domain, PHP version, database, Redis, scheduler, workers, and deployment steps. Select PHP 8.5 and the intended deployment branch; the checked-in recipe uses `master`.
 
-- GitHub repository as `owner/repository` (for example, `jcergolj/starter-kit`), not an SSH URL.
-- Application folder under `/var/www` (defaults to `/var/www/{repository-name}`) and domain. The application name is derived from the folder name.
-- Optional Cloudflare DNS setup (default no; keep this answer for the supported workflow), then API token and zone name if selected. The public IPv4 address is auto-detected, not prompted for.
-- SQLite (default) or MySQL; MySQL prompts for host, port, database, username, and password.
-- Scheduler (default yes), queued jobs (default no), and, if jobs are selected, whether to use Horizon (default no).
-- SSH login setup for `deployer` (default yes), then your local public key if selected.
+It generates `metator.<name>.php`, bootstrap scaffolding, and a Deployer recipe. Existing output files are skipped without `--force`. Back up and compare the existing `deploy.php` before deliberately regenerating it: preserve this application's shared `database/database.sqlite` and `database/db` paths, tenant migration task, and its ordering after main migrations and before caches. Do not overwrite those customizations blindly.
 
-After a configuration summary, each setup step offers Continue, Skip, or Quit. Only skip a step when its requirements are already satisfied. Bootstrap:
+### 2. Prepare and provision the server
 
-1. Creates the `deployer` user if needed, adds it to `www-data`, and optionally configures your login key.
-2. Leaves DNS unchanged when Cloudflare automation is declined. The optional automation leaves existing A records unchanged, but its missing-record creation path currently aborts as noted above.
-3. Creates a reusable server GitHub key and the `github-deployer` SSH alias. When prompted, grant the displayed public key repository read access in GitHub before continuing; bootstrap verifies that access.
-4. Creates `/var/www/{APP_NAME}/shared/.env`, opens it for editing, and writes the selected database settings afterward. Populate it with the production settings from `.env.example`, including a valid `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, and required service credentials. It starts empty, not as a copy of `.env.example`.
-5. Installs the selected PHP database driver and prepares the shared SQLite file when selected, then sets shared-file permissions.
-6. Writes `/etc/caddy/sites-enabled/{APP_NAME}.caddy`, validates Caddy, and reloads it. The web root is `/var/www/{APP_NAME}/current/public`.
-7. Optionally writes the `www-data` scheduler cron entry and a Supervisor worker configuration. Supervisor is installed for queued jobs; Redis is installed only when Horizon is selected.
-
-**Bootstrap does not clone a release, install application dependencies, run migrations or asset builds, or create `current`.** The site and scheduler cannot serve/run the application until the first Deployer deployment. On a fresh site, the worker configuration is written but not loaded into Supervisor yet.
-
-### 2. Configure and run the first Deployer deployment
-
-On your local computer, review the actual configuration file, **`deploy.php`** (the bootstrap output also calls it `deployer.php`). Set:
-
-- `repository` to the SSH alias URL printed by bootstrap, for example `git@github-deployer:jcergolj/starter-kit.git`.
-- The `production` hostname to the server IP, `remoteUser` to `deployer`, and `deployPath` to the selected application folder.
-- `branch` to the intended deployment branch. The checked-in configuration uses **`master`**, not `main`.
-- The appropriate commented post-symlink worker restart hook for `queue:work` or Horizon if workers are enabled. The PHP-FPM reload hook is also optional and disabled by default. Scheduler needs no deployment hook because cron uses `current`.
-
-The checked-in shared paths include `database/database.sqlite` and `database/db`; review these against your selected database configuration. Ensure the shared production `.env` is complete and the `deployer` user can connect from your computer before deploying:
+Run locally, replacing `metator.production.php` with the configuration filename generated for your site:
 
 ```bash
-# On your local computer
-ssh deployer@SERVER_IP
-# Exit the remote shell before running Deployer
-exit
-
-# From your local project root
-vendor/bin/dep deploy production
+php artisan metator:prepare-server --config=metator.production.php
+php artisan metator:provision --config=metator.production.php
 ```
 
-Deployer uses the Laravel recipe to create a release, install dependencies, link shared files/storage, migrate the database, and publish the release through the `current` symlink. The project's tasks also download/build Tailwind, optimize importmap, run tenant migrations, and build Laravel caches. The first successful deployment creates `current`; later deployments switch it to the new release. Bootstrap alone never creates that symlink.
+Review the generated configuration and Metator's instructions for secrets and production environment settings. Provisioning prepares infrastructure; it does not deploy application code or create the first release's `current` symlink.
 
-If workers were selected, load their configuration **after the first successful deployment**, on the server:
+### 3. First release and subsequent deployments
 
-```bash
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl status
-```
+Review `deploy.php` for the correct repository, host, user, deployment path, branch, shared database paths, and selected worker hooks. The checked-in host is a placeholder and worker hooks are disabled by default; configure them before deployment. Ensure the shared production `.env` is complete.
 
-The program is named `{APP_NAME}-worker`. Logs are in `/var/www/{APP_NAME}/shared/storage/logs/queue-worker.log` or `horizon.log`, depending on the selected worker. Subsequent worker restarts depend on the hook you enabled in `deploy.php`; they are not enabled by default.
-
-### 3. Subsequent releases (Deployer)
-
-Push the intended changes to the configured branch, then run the same command from your local project root:
+Push the intended changes to the configured branch, then run locally for both the first release and every subsequent release:
 
 ```bash
 vendor/bin/dep deploy production
 ```
 
-Do not use the shell deployment script inside a Deployer-managed release or its `current` symlink.
+Deployer creates a release, installs dependencies, links shared files and storage, builds assets, and migrates the main database. The application's `tenants:migrate` task applies forward migrations to existing tenant databases and updates the schema-only provisioning template before building caches. A tenant migration failure reports the failed target and stops deployment. The first successful deployment creates `current`; later deployments switch that symlink to the new release.
 
-### Retained shell deployment (`scripts/deploy.sh`)
-
-This is a separate, legacy **in-place update** mechanism for an already initialized standalone Git checkout on the server. It is not first-time setup and is not part of the bootstrap/Deployer workflow above. It requires an existing production `.env`, database, storage links, Composer, application PHP extensions, a running PHP-FPM service, Git access to `origin`, and sudo access as `www-data` for its unconditional Horizon termination command. Use it only for an existing Horizon-based installation prepared for this workflow.
-
-```bash
-# On the server, from the existing standalone checkout
-cd /var/www/starter-kit
-bash scripts/deploy.sh
-
-# Alternatively, invoke the script by its actual path and pass the checkout path
-bash /var/www/starter-kit/scripts/deploy.sh /var/www/starter-kit
-```
-
-**This script discards tracked local changes** with a hard reset to `origin/master`. It enters maintenance mode, fetches `master`, installs production Composer dependencies, migrates the main database, then runs `tenants:migrate` to apply forward migrations to existing tenant databases and update the schema-only provisioning template before building Tailwind and importmap and rebuilding Laravel caches. It then terminates Horizon and brings the app online. A tenant migration failure reports the failed target and stops deployment before assets and caches are built. Its error trap attempts to bring the app online on failure; it does not roll back code or migrations. It does not fix permissions, reload PHP-FPM, or manage release directories/`current`.
+Use Metator's generated instructions for any selected worker activation steps. Keep application-specific tenant migration hooks when updating the generated recipe. Do not use an in-place shell deployment alongside Deployer.
 
 If you wish to commit from github actions do this
 Settings -> Action -> General -> Workflow permissions and choose read and write permissions

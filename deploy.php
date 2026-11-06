@@ -21,7 +21,7 @@ host('production')
     ->setDeployPath('/var/www/starter-kit');
 
 /*
- * Server services are configured by scripts/server-bootstrap.sh:
+ * Server services are provisioned with Metator:
  * - scheduler cron: php artisan schedule:run every minute
  * - Supervisor: either queue:work or Horizon
  */
