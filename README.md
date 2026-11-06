@@ -94,116 +94,109 @@ php artisan tailwindcss:watch --no-tty
 
 ## Deployment
 
+Use **Deployer with `deploy.php`** for both the first release and subsequent releases. `scripts/server-bootstrap.sh` prepares the server; it does not deploy application code.
+
 ### Prerequisites
 
-- Ubuntu server
-- PHP 8.5 FPM
-- Composer
-- Caddy
-- Git
-- curl
-- Cloudflare account with API token (DNS edit permission) and Zone ID
-- `redis-server` and `supervisor` (optional, for queue workers)
+- Local project checkout, SSH/SCP access to the server, and a Deployer installation available as `vendor/bin/dep`. Deployer is not included in this project's Composer dependencies; arrange that tooling before deploying.
+- Ubuntu server with sudo access, PHP 8.5 CLI and a running PHP-FPM service/socket, Composer, Caddy, Git, curl, and OpenSSH tools. Install the PHP extensions required by the application beforehand; bootstrap only installs the selected database driver.
+- An editor on the server (`nano` by default, or set `EDITOR`).
+- Caddy-readable certificate and private key at `/etc/caddy/certs/cloudflare-wildcard.crt` and `/etc/caddy/certs/cloudflare-wildcard.key`. Bootstrap requires these existing files; it does not issue certificates.
+- DNS pointing to the server, configured manually. Decline Cloudflare automation during bootstrap: its current record-creation path calls an undefined `step` helper and aborts. The optional prompts require `jq`, an API token with zone-read and DNS-edit access, and the zone name (not a Zone ID), but do not rely on them to create a record until that script bug is fixed.
+- For MySQL, an existing database and credentials; bootstrap does not create a MySQL server, database, or user.
+- Your local public SSH key for login as `deployer`, and permission to grant the server's GitHub key read access to the repository.
 
-### Cloning the repository to the server
+### 1. Bootstrap the server (`scripts/server-bootstrap.sh`)
 
-Generate a deploy key on the server and add it to the GitHub repository so `git clone` and `git pull` work without a password prompt.
+Copy the entire `scripts` directory from your local checkout so its `lib` and `steps` dependencies are available. Replace `your-user` and `SERVER_IP` with your existing sudo-capable server login:
 
 ```bash
-# On the server — generate an SSH key (press Enter to accept defaults, no passphrase)
-ssh-keygen -t ed25519 -C "deploy@server"
+# On your local computer, from the project root
+scp -r scripts your-user@SERVER_IP:~/
+ssh your-user@SERVER_IP
 
-# Copy the public key
-cat ~/.ssh/id_ed25519.pub
+# On the server
+bash ~/scripts/server-bootstrap.sh
 ```
 
-Add the key to the GitHub repository: **Settings -> Deploy keys -> Add deploy key**, paste the public key, and save.
+The interactive script asks for:
 
-Then clone with the SSH URL:
+- GitHub repository as `owner/repository` (for example, `jcergolj/starter-kit`), not an SSH URL.
+- Application folder under `/var/www` (defaults to `/var/www/{repository-name}`) and domain. The application name is derived from the folder name.
+- Optional Cloudflare DNS setup (default no; keep this answer for the supported workflow), then API token and zone name if selected. The public IPv4 address is auto-detected, not prompted for.
+- SQLite (default) or MySQL; MySQL prompts for host, port, database, username, and password.
+- Scheduler (default yes), queued jobs (default no), and, if jobs are selected, whether to use Horizon (default no).
+- SSH login setup for `deployer` (default yes), then your local public key if selected.
+
+After a configuration summary, each setup step offers Continue, Skip, or Quit. Only skip a step when its requirements are already satisfied. Bootstrap:
+
+1. Creates the `deployer` user if needed, adds it to `www-data`, and optionally configures your login key.
+2. Leaves DNS unchanged when Cloudflare automation is declined. The optional automation leaves existing A records unchanged, but its missing-record creation path currently aborts as noted above.
+3. Creates a reusable server GitHub key and the `github-deployer` SSH alias. When prompted, grant the displayed public key repository read access in GitHub before continuing; bootstrap verifies that access.
+4. Creates `/var/www/{APP_NAME}/shared/.env`, opens it for editing, and writes the selected database settings afterward. Populate it with the production settings from `.env.example`, including a valid `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, and required service credentials. It starts empty, not as a copy of `.env.example`.
+5. Installs the selected PHP database driver and prepares the shared SQLite file when selected, then sets shared-file permissions.
+6. Writes `/etc/caddy/sites-enabled/{APP_NAME}.caddy`, validates Caddy, and reloads it. The web root is `/var/www/{APP_NAME}/current/public`.
+7. Optionally writes the `www-data` scheduler cron entry and a Supervisor worker configuration. Supervisor is installed for queued jobs; Redis is installed only when Horizon is selected.
+
+**Bootstrap does not clone a release, install application dependencies, run migrations or asset builds, or create `current`.** The site and scheduler cannot serve/run the application until the first Deployer deployment. On a fresh site, the worker configuration is written but not loaded into Supervisor yet.
+
+### 2. Configure and run the first Deployer deployment
+
+On your local computer, review the actual configuration file, **`deploy.php`** (the bootstrap output also calls it `deployer.php`). Set:
+
+- `repository` to the SSH alias URL printed by bootstrap, for example `git@github-deployer:jcergolj/starter-kit.git`.
+- The `production` hostname to the server IP, `remoteUser` to `deployer`, and `deployPath` to the selected application folder.
+- `branch` to the intended deployment branch. The checked-in configuration uses **`master`**, not `main`.
+- The appropriate commented post-symlink worker restart hook for `queue:work` or Horizon if workers are enabled. The PHP-FPM reload hook is also optional and disabled by default. Scheduler needs no deployment hook because cron uses `current`.
+
+The checked-in shared paths include `database/database.sqlite` and `database/db`; review these against your selected database configuration. Ensure the shared production `.env` is complete and the `deployer` user can connect from your computer before deploying:
 
 ```bash
-sudo mkdir -p /var/www/starter-kit
-sudo chown $(whoami):$(whoami) /var/www/starter-kit
-git clone git@github.com:jcergolj/starter-kit.git /var/www/starter-kit
+# On your local computer
+ssh deployer@SERVER_IP
+# Exit the remote shell before running Deployer
+exit
+
+# From your local project root
+vendor/bin/dep deploy production
 ```
 
-Use the same SSH URL format in `setup.sh` when prompted for `GITHUB_REPO`.
+Deployer uses the Laravel recipe to create a release, install dependencies, link shared files/storage, migrate the database, and publish the release through the `current` symlink. The project's tasks also download/build Tailwind, optimize importmap, run tenant migrations, and build Laravel caches. The first successful deployment creates `current`; later deployments switch it to the new release. Bootstrap alone never creates that symlink.
 
-### Instasll sshpass
+If workers were selected, load their configuration **after the first successful deployment**, on the server:
+
 ```bash
-  sudo apt install sshpass
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl status
 ```
 
-### First-time setup (`setup.sh`)
+The program is named `{APP_NAME}-worker`. Logs are in `/var/www/{APP_NAME}/shared/storage/logs/queue-worker.log` or `horizon.log`, depending on the selected worker. Subsequent worker restarts depend on the hook you enabled in `deploy.php`; they are not enabled by default.
 
-Interactive script that provisions a fresh server for the application. Run it once per new site.
+### 3. Subsequent releases (Deployer)
+
+Push the intended changes to the configured branch, then run the same command from your local project root:
 
 ```bash
-bash scripts/setup.sh
+vendor/bin/dep deploy production
 ```
 
-You will be prompted for:
-- **APP_NAME** — directory name and Caddy log identifier (e.g. `ba`)
-- **DOMAIN** — the site domain (e.g. `ba.example.com`)
-- **GITHUB_REPO** — repository URL to clone
-- **CLOUDFLARE_API_TOKEN** — token with DNS edit permission
-- **CLOUDFLARE_ZONE_ID** — from the Cloudflare dashboard
-- **SERVER_IP** — auto-detected via `ifconfig.me`, confirm or override
+Do not use the shell deployment script inside a Deployer-managed release or its `current` symlink.
 
-The script then:
-1. Installs PHP extensions (sqlite3, gd, exif) and restarts PHP-FPM
-2. Creates a proxied Cloudflare DNS A record
-3. Clones the repository to `/var/www/{APP_NAME}`
-4. Appends a site block to `/etc/caddy/Caddyfile` and reloads Caddy
-5. Runs Laravel setup (composer install, key generate, migrations, storage link, Tailwind build, importmap optimize)
-6. Sets ownership to `www-data` and fixes permissions on storage, cache, and database directories
-7. Builds Laravel caches (config, routes, views, events)
-8. Offers to open `.env` for editing
+### Retained shell deployment (`scripts/deploy.sh`)
 
-### Queue worker with Supervisor (optional)
-
-During `setup.sh`, you will be asked whether to install Supervisor for running Laravel queue workers with Redis. If you choose yes, the script will:
-
-1. Install `supervisor` and `redis-server`
-2. Create a Supervisor config at `/etc/supervisor/conf.d/{APP_NAME}-worker.conf`
-3. Start the queue worker process
-
-To manage the worker after setup:
+This is a separate, legacy **in-place update** mechanism for an already initialized standalone Git checkout on the server. It is not first-time setup and is not part of the bootstrap/Deployer workflow above. It requires an existing production `.env`, database, storage links, Composer, application PHP extensions, a running PHP-FPM service, Git access to `origin`, and sudo access as `www-data` for its unconditional Horizon termination command. Use it only for an existing Horizon-based installation prepared for this workflow.
 
 ```bash
-# Check status
-sudo supervisorctl status {APP_NAME}-worker:*
-
-# Restart after code changes (deploy.sh handles this automatically)
-sudo supervisorctl restart {APP_NAME}-worker:*
-
-# View logs
-tail -f /var/www/{APP_NAME}/storage/logs/worker.log
-```
-
-### Subsequent deploys (`deploy.sh`)
-
-Non-interactive script for deploying updates. Run from the project directory or pass the path as an argument.
-
-```bash
-# From the project directory
+# On the server, from the existing standalone checkout
 cd /var/www/starter-kit
-bash deploy.sh
+bash scripts/deploy.sh
 
-# Or pass the path
-bash deploy.sh /var/www/starter-kit
+# Alternatively, invoke the script by its actual path and pass the checkout path
+bash /var/www/starter-kit/scripts/deploy.sh /var/www/starter-kit
 ```
 
-The script:
-1. Puts the application into maintenance mode
-2. Pulls latest changes from `main`
-3. Installs Composer dependencies (no dev)
-4. Runs database migrations
-5. Builds Tailwind CSS and optimizes importmap
-6. Rebuilds Laravel caches (config, routes, views, events)
-7. Fixes file permissions
-8. Reloads PHP-FPM
-9. Brings the application back online
+**This script discards tracked local changes** with a hard reset to `origin/master`. It enters maintenance mode, fetches `master`, installs production Composer dependencies, migrates the main database, builds Tailwind and importmap, rebuilds Laravel caches, terminates Horizon, and brings the app online. Its error trap attempts to bring the app online on failure; it does not roll back code or migrations. Unlike the Deployer tasks, it does not run tenant migrations. It does not fix permissions, reload PHP-FPM, or manage release directories/`current`.
 
 If you wish to commit from github actions do this
 Settings -> Action -> General -> Workflow permissions and choose read and write permissions
