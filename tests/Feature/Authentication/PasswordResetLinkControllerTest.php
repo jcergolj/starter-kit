@@ -51,7 +51,7 @@ class PasswordResetLinkControllerTest extends TestCase
 
         $this->post('http://attacker.example.net'.route('password.request', [], false), [
             'email' => $user->email,
-        ])->assertStatus(400);
+        ])->assertBadRequest();
 
         Notification::assertNothingSent();
     }
@@ -80,8 +80,7 @@ class PasswordResetLinkControllerTest extends TestCase
     {
         Config::set('app.domain', 'example.com');
 
-        $this->get('http://nested.tenant.example.com/forgot-password')
-            ->assertStatus(400);
+        $this->get('http://nested.tenant.example.com/forgot-password')->assertBadRequest();
     }
 
     #[Test]
@@ -92,7 +91,6 @@ class PasswordResetLinkControllerTest extends TestCase
             'app.single_db_per_app' => true,
         ]);
 
-        $this->get('http://attacker.example.net/forgot-password')
-            ->assertStatus(400);
+        $this->get('http://attacker.example.net/forgot-password')->assertBadRequest();
     }
 }

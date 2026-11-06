@@ -21,7 +21,9 @@ class MigrateTenantSchemasCommand extends Command
     public function handle(): int
     {
         $tenantRoot = (string) ($this->option('tenant-root') ?? database_path('db'));
+
         $templatePath = (string) ($this->option('template') ?? database_path('template.sqlite'));
+
         $tenantPaths = $this->tenantPaths($tenantRoot);
 
         if (! is_file($templatePath)) {
@@ -31,6 +33,7 @@ class MigrateTenantSchemasCommand extends Command
         }
 
         $snapshot = $tenantPaths;
+
         $targets = ['template' => $templatePath];
 
         foreach ($tenantPaths as $tenantPath) {
@@ -38,6 +41,7 @@ class MigrateTenantSchemasCommand extends Command
         }
 
         $failed = [];
+
         $originalTenantDatabase = config('database.connections.tenant.database');
 
         try {
@@ -93,6 +97,10 @@ class MigrateTenantSchemasCommand extends Command
             '--no-interaction' => true,
         ]);
 
-        throw_if($exitCode !== self::SUCCESS, \RuntimeException::class, 'The migration command returned a failure status.');
+        throw_if(
+            $exitCode !== self::SUCCESS,
+            \RuntimeException::class,
+            'The migration command returned a failure status.',
+        );
     }
 }

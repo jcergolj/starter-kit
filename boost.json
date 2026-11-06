@@ -4,23 +4,30 @@
         "opencode",
         "copilot"
     ],
+    "cloud": true,
     "guidelines": true,
     "herd_mcp": false,
     "mcp": true,
     "nightwatch_mcp": false,
     "packages": [
         "hotwired-laravel/turbo-laravel",
-        "laravel/fortify"
+        "tonysm/importmap-laravel",
+        "spatie/laravel-backup"
     ],
     "sail": false,
     "skills": [
+        "infer-conventions",
+        "deploying-to-cloud",
+        "fortify-development",
         "laravel-best-practices",
+        "testing-best-practices",
         "configuring-horizon",
         "developing-with-turbo-basics",
         "developing-with-turbo-drive",
         "developing-with-turbo-frames",
         "developing-with-turbo-streams",
         "developing-with-turbo-tests",
-        "fortify-development"
+        "laravel-backup",
+        "developing-with-importmap"
     ]
 }

@@ -42,7 +42,9 @@ class MigrateTenantSchemasCommandTest extends TestCase
     public function it_migrates_the_template_and_all_tenant_databases_idempotently(): void
     {
         $template = $this->createEmptyDatabase('template.sqlite');
+
         $firstTenant = $this->createEmptyDatabase('first.sqlite', true);
+
         $secondTenant = $this->createEmptyDatabase('second.sqlite', true);
 
         $arguments = [
@@ -55,7 +57,11 @@ class MigrateTenantSchemasCommandTest extends TestCase
         foreach ([$template, $firstTenant, $secondTenant] as $database) {
             $connection = new PDO('sqlite:'.$database);
             $this->assertSame(4, (int) $connection->query('SELECT COUNT(*) FROM migrations')->fetchColumn());
-            $this->assertSame(1, (int) $connection->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'users'")->fetchColumn());
+            $this->assertSame(
+                1,
+                (int) $connection->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'users'")
+                    ->fetchColumn(),
+            );
         }
 
         $this->artisan('tenants:migrate', $arguments)->assertSuccessful();
@@ -68,7 +74,9 @@ class MigrateTenantSchemasCommandTest extends TestCase
     public function it_reports_a_failed_tenant_without_silently_skipping_it(): void
     {
         $template = $this->createEmptyDatabase('template.sqlite');
+
         $healthyTenant = $this->createEmptyDatabase('healthy.sqlite', true);
+
         $failedTenant = $this->fixtureDirectory.'/db/broken.sqlite';
         file_put_contents($failedTenant, 'not a sqlite database');
 
@@ -81,7 +89,11 @@ class MigrateTenantSchemasCommandTest extends TestCase
 
         $connection = new PDO('sqlite:'.$healthyTenant);
 
-        $this->assertSame(1, (int) $connection->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'users'")->fetchColumn());
+        $this->assertSame(
+            1,
+            (int) $connection->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'users'")
+                ->fetchColumn(),
+        );
     }
 
     private function createEmptyDatabase(string $filename, bool $inTenantDirectory = false): string

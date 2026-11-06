@@ -80,6 +80,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
 
         // Generate valid 2FA code
         $secret = Fortify::currentEncrypter()->decrypt($user->two_factor_secret);
+
         $google2fa = app(Google2FA::class);
         $validCode = $google2fa->getCurrentOtp($secret);
 
@@ -135,6 +136,13 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
 
-        $this->assertNotContains($recoveryCode, json_decode((string) decrypt($user->fresh()->two_factor_recovery_codes), true));
+        $this->assertNotContains(
+            $recoveryCode,
+            json_decode(
+                (string) decrypt($user->fresh()
+                    ->two_factor_recovery_codes),
+                true,
+            ),
+        );
     }
 }

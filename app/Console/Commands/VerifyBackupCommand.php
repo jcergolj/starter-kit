@@ -18,7 +18,9 @@ class VerifyBackupCommand extends Command
     public function handle(): int
     {
         $archivePath = (string) $this->argument('archive');
+
         $mainDatabase = (string) ($this->option('main-database') ?? database_path('database.sqlite'));
+
         $tenantRoot = (string) ($this->option('tenant-root') ?? database_path('db'));
         $tenantDatabases = glob($tenantRoot.'/*.sqlite') ?: [];
 
@@ -42,7 +44,10 @@ class VerifyBackupCommand extends Command
         try {
             $databaseEntries = $this->getDatabaseEntries($archive, $mainDatabase, $tenantDatabases);
             $this->restoreAndCheckDatabases($archive, $temporaryDirectory, $databaseEntries);
-            $this->info(sprintf('Backup verified: %d SQLite database(s) restored successfully.', count($databaseEntries)));
+            $this->info(sprintf(
+                'Backup verified: %d SQLite database(s) restored successfully.',
+                count($databaseEntries),
+            ));
 
             return self::SUCCESS;
         } catch (RuntimeException $exception) {
@@ -63,7 +68,17 @@ class VerifyBackupCommand extends Command
         for ($index = 0; $index < $archive->numFiles; $index++) {
             $entry = $archive->getNameIndex($index);
 
-            throw_if($entry === false || str_contains($entry, '../') || str_starts_with($entry, '/'), RuntimeException::class, 'Backup contains an unsafe archive path.');
+            throw_if(
+                $entry === false || str_contains(
+                    $entry,
+                    '../',
+                ) || str_starts_with(
+                    $entry,
+                    '/',
+                ),
+                RuntimeException::class,
+                'Backup contains an unsafe archive path.',
+            );
 
             $entries[] = $entry;
         }
@@ -97,7 +112,11 @@ class VerifyBackupCommand extends Command
     /** @param array<string, string> $databaseEntries */
     private function restoreAndCheckDatabases(ZipArchive $archive, string $temporaryDirectory, array $databaseEntries): void
     {
-        throw_unless($archive->extractTo($temporaryDirectory), RuntimeException::class, 'Unable to extract backup archive.');
+        throw_unless(
+            $archive->extractTo($temporaryDirectory),
+            RuntimeException::class,
+            'Unable to extract backup archive.',
+        );
 
         foreach ($databaseEntries as $database => $entry) {
             $restoredDatabase = $temporaryDirectory.'/'.$entry;

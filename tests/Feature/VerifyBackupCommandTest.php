@@ -43,6 +43,7 @@ class VerifyBackupCommandTest extends TestCase
     public function it_restores_and_checks_the_main_and_all_tenant_databases(): void
     {
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
+
         $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
         $archive = $this->createArchive($mainDatabase, $tenantDatabase);
 
@@ -57,7 +58,9 @@ class VerifyBackupCommandTest extends TestCase
     public function it_fails_when_a_tenant_database_is_missing_from_the_backup(): void
     {
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
+
         $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
+
         $archive = $this->createArchive($mainDatabase);
 
         $this->artisan('backup:verify', [
@@ -72,6 +75,7 @@ class VerifyBackupCommandTest extends TestCase
     public function it_fails_when_a_restored_tenant_database_is_corrupt(): void
     {
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
+
         $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
         $archive = $this->createArchive($mainDatabase, $tenantDatabase, true);
 
@@ -87,6 +91,7 @@ class VerifyBackupCommandTest extends TestCase
     public function it_does_not_accept_a_tenant_database_from_an_unrelated_archive_path(): void
     {
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
+
         $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
         $archive = $this->createArchive($mainDatabase, $tenantDatabase, false, 'database/archive-copy/acme.sqlite');
 
@@ -116,6 +121,7 @@ class VerifyBackupCommandTest extends TestCase
         string $tenantArchivePath = 'database/db/acme.sqlite',
     ): string {
         $archivePath = $this->fixtureDirectory.'/backup.zip';
+
         $archive = new ZipArchive;
         $archive->open($archivePath, ZipArchive::CREATE);
         $archive->addFile($mainDatabase, 'database/'.basename($mainDatabase));

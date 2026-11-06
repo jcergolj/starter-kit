@@ -38,7 +38,11 @@ class Invitation extends Model
             return self::create($attributes);
         }
 
-        throw_if($invitation->isPending(), \LogicException::class, 'An active invitation already exists for this email address.');
+        throw_if(
+            $invitation->isPending(),
+            \LogicException::class,
+            'An active invitation already exists for this email address.',
+        );
 
         $invitation->update($attributes);
 

@@ -11,7 +11,9 @@ final readonly class SubdomainUrlBuilder
         $appUrl = config('app.url');
         $parsedUrl = parse_url((string) $appUrl);
         $scheme = $parsedUrl['scheme'] ?? 'http';
+
         $host = $parsedUrl['host'] ?? 'localhost';
+
         $port = isset($parsedUrl['port']) ? ":{$parsedUrl['port']}" : '';
 
         $path = ltrim($path, '/');
@@ -25,7 +27,9 @@ final readonly class SubdomainUrlBuilder
         $appUrl = config('app.url');
         $parsedUrl = parse_url((string) $appUrl);
         $scheme = $parsedUrl['scheme'] ?? 'http';
+
         $host = $parsedUrl['host'] ?? 'localhost';
+
         $port = isset($parsedUrl['port']) ? ":{$parsedUrl['port']}" : '';
 
         $path = ltrim($path, '/');

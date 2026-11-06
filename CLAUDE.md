@@ -10,27 +10,15 @@ When conventions from `~/work/ai-framework/agent_docs/` conflict with the Boost 
 
 > Controller patterns, Form Request validation, and routing conventions
 
+Before changing controllers, read [validation and authorization standards](../skills/laravel-full-stack/references/coding-standards.md#validation-and-authorization) and [controller preferences](../skills/laravel-full-stack/references/coding-standards-preferences.md#controllers-and-user-facing-text). For the base request, array rules, enum validation, and conditional rules, read [Form Request patterns](../skills/laravel-full-stack/references/form-requests.md).
+
 ## Controller Location & Structure
 
-```
-app/Http/Controllers/
-├── Controller.php (base class)
-├── PostController.php
-├── CommentController.php
-├── Admin/
-│   ├── PostController.php
-│   ├── UserController.php
-│   └── CategoryController.php
-├── Webhooks/
-│   └── PaymentController.php
-└── Api/
-    ├── PostController.php
-    └── CommentController.php
-```
+For controller, request, and route placement, read [foundation.md](foundation.md#directory-structure). Namespaces in examples are illustrative; preserve the active project's layout.
 
 ## Type Hints Required
 
-**Parameters and return types explicit:**
+For declarations, follow [PHP standards](../skills/laravel-full-stack/references/coding-standards.md#php). Examples:
 
 ```php
 public function index(Request $request): View
@@ -60,61 +48,9 @@ public function destroy(Post $post): RedirectResponse
 }
 ```
 
-## Form Request Validation
-
-**Always use Form Requests** (not inline validation):
-
-```
-app/Http/Requests/
-├── AppFormRequest.php (base class)
-├── Admin/
-│   ├── StorePostRequest.php
-│   └── UpdatePostRequest.php
-├── StoreCommentRequest.php
-└── UpdateProfileRequest.php
-```
-
-**Base class:**
-
-```php
-// app/Http/Requests/AppFormRequest.php
-class AppFormRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;  // Handle auth in controllers/policies
-    }
-}
-```
-
-## Validation Rules
-
-**Use array-based rules** (not string):
-
-```php
-public function rules(): array
-{
-    return [
-        'title' => ['required', 'string', 'max:255'],
-        'content' => ['required', 'string'],
-        'status' => ['required', new Enum(StatusEnum::class)],
-        'category' => ['required', new Enum(CategoryEnum::class)],
-        'excerpt' => ['nullable', 'string', 'max:500'],
-        'published_at' => ['nullable', 'date', 'after_or_equal:today'],
-        'tags' => ['nullable', 'array'],
-        'tags.*' => ['exists:tags,id'],
-        'slug' => [
-            'nullable',
-            'string',
-            Rule::unique('posts', 'slug')->ignore($this->post),
-        ],
-    ];
-}
-```
-
 ## Data Preparation
 
-**Use `prepareForValidation()` for cleanup:**
+Example normalizing a slug and email:
 
 ```php
 protected function prepareForValidation(): void
@@ -246,7 +182,7 @@ $this->authorize('delete', $post);
 
 ## Helper Functions
 
-**App uses custom helpers:**
+These helpers are project-specific, not Laravel built-ins. Use them only when the active project defines them; otherwise use its available redirect, session, and translation APIs:
 
 ```php
 msg_success(trans('controllers.post_controller.updated'));
@@ -261,7 +197,7 @@ order_direction($request)  // Flips asc/desc
 
 ## Routing
 
-**Use named routes with `route()`:**
+For named URL generation, follow [routing guidance](laravel-core.md#routing-and-urls). Examples:
 
 ```php
 return redirect()->route('posts.index');
@@ -270,7 +206,7 @@ return to_intended_route('posts.index');
 $response->assertRedirect(route('posts.index'));
 ```
 
-**Route registration in `routes/web.php`:**
+Example route groups; register the file according to [foundation.md](foundation.md#directory-structure):
 
 ```php
 Route::middleware(['auth'])->group(function () {
@@ -343,705 +279,165 @@ class CountTokesQuery {
 $dto = (new CountTokesQuery())->run($email)->toDTO();
 ```
 
-## Controller Organization
-
-```
-app/Http/Controllers/
-├── Admin/              # Admin-only controllers
-
-│   ├── TokenController.php
-│   ├── LinkController.php
-│   └── StatController.php
-├── Api/                # API endpoints
-
-│   ├── TestAccessController.php
-│   └── QuestionnaireUrlController.php
-├── Webhooks/           # External webhooks
-
-│   ├── CompletedQuestionnaireController.php
-│   └── CompletedOrderController.php
-├── Accounts/           # User account management
-
-│   ├── UserController.php
-│   └── PasswordController.php
-└── Auth/               # Authentication
-
-    ├── LoginController.php
-    └── ForgotPasswordController.php
-```
-
-## Key Reminders
-
-- Always use Form Requests (not inline `$request->validate()`)
-- Array-based validation rules: `['required', 'email']`
-- Type hints on parameters and return types
-- `prepareForValidation()` for data cleanup
-- `after()` for custom validation
-- Use Gates/policies before destructive operations
-- Named routes with `route()`
-- Eager load relationships in controllers
-- Helper functions: `msg_success()`, `to_intended_route()`, `trans()`
-
 === .ai/database rules ===
 
-# Database Conventions
+# Database Patterns
 
-> Database query patterns, migrations, and Eloquent usage
+Before database changes, read [model and query standards](../skills/laravel-full-stack/references/coding-standards.md#models-and-queries). For atomic operations and migration policy, read [business logic](../skills/laravel-full-stack/references/coding-standards.md#business-logic-and-jobs) and [migration standards](../skills/laravel-full-stack/references/coding-standards.md#migrations). The examples below cover additional database patterns, not a separate set of conventions.
 
-## Prefer Eloquent Over DB Facade
+## Queries and relationships
 
-**Use Eloquent models and relationships:**
+For scopes, custom builders, and create-or-retrieve operations, read [model examples](models.md). For casts, relationships, and Attributes, read [model patterns](../skills/laravel-full-stack/references/models.md).
+
+Select only the columns needed by the behavior, retaining keys required for hydration and relationship matching:
 
 ```php
-// Good - Eloquent
-$posts = Post::with(['author', 'tags'])
-    ->published()
-    ->searchBy($searchTerm)
-    ->paginate(15);
-
-// Bad - Raw DB facade (avoid)
-$posts = DB::table('posts')
-    ->join('users', 'posts.author_id', '=', 'users.id')
-    ->where('posts.title', 'LIKE', "%{$searchTerm}%")
-    ->get();
+$users = User::select('id', 'email', 'name')->get();
 ```
 
-**Use `Model::query()` not `DB::`:**
+Treat sort fields and directions as a validated allowlist rather than passing arbitrary request values to `orderBy()`. Group alternative search conditions so an `orWhere()` cannot bypass an earlier ownership or visibility constraint:
 
 ```php
-// Good
-$count = Post::query()->where('status', StatusEnum::Published)->count();
-
-// Bad
-$count = DB::table('posts')->where('status', 'published')->count();
-```
-
-## DB Facade Usage
-
-**Only use DB:: for transactions:**
-
-```php
-DB::transaction(function () use ($attributes) {
-    $user = User::create($attributes);
-    $user->posts()->create(['title' => 'Welcome Post']);
-});
-
-// Or manual transaction control
-DB::beginTransaction();
-try {
-    $user = User::create($attributes);
-    $user->posts()->create(['title' => 'Welcome Post']);
-    DB::commit();
-} catch (Exception $e) {
-    DB::rollBack();
-    throw $e;
-}
-```
-
-## Query Scope Chaining
-
-**Leverage model scopes for filtering:**
-
-```php
-$posts = Post::query()
-    ->searchBy($request->search)
-    ->filterByStatus($request->status)
-    ->filterByCategory($request->category)
-    ->filterByAuthor($request->author_id)
-    ->filterByTag($request->tag)
-    ->filterPublished($request->published_only)
-    ->orderBy($request->get('order_by', 'created_at'), $request->get('order_direction', 'desc'))
+$posts = Post::where('author_id', $author->id)
+    ->when($searchTerm, function (Builder $query, string $searchTerm): Builder {
+        return $query->where(function (Builder $search) use ($searchTerm): void {
+            $search->where('title', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('content', 'LIKE', "%{$searchTerm}%");
+        });
+    })
+    ->orderBy('created_at', 'desc')
     ->paginate(15);
 ```
 
-Each scope defined in model:
+Imports in fragments follow the active project's classes; `Builder` here is `Illuminate\Database\Eloquent\Builder`.
+
+## Query objects
+
+Use a query object when the operation earns a reusable interface, following [codebase-design](../skills/codebase-design/SKILL.md). Keep results local so repeated calls cannot retain stale state:
 
 ```php
-public function scopeSearchBy(Builder $query, ?string $searchTerm): Builder
-{
-    return $query->when($searchTerm, function ($query, $searchTerm) {
-        return $query->where('title', 'LIKE', "%{$searchTerm}%")
-            ->orWhere('content', 'LIKE', "%{$searchTerm}%");
-    });
-}
-```
-
-## Eager Loading (Prevent N+1)
-
-**Always eager load relationships:**
-
-```php
-// Good - 2 queries
-$posts = Post::with(['author', 'tags'])->get();
-foreach ($posts as $post) {
-    echo $post->author->name;  // No additional query
-}
-
-// Bad - N+1 queries
-$posts = Post::all();
-foreach ($posts as $post) {
-    echo $post->author->name;  // Query per post!
-}
-```
-
-**Conditional eager loading:**
-
-```php
-$posts = Post::with(['author', 'category'])
-    ->when($includeComments, fn($q) => $q->with('comments'))
-    ->get();
-```
-
-## firstOrCreate Pattern
-
-**Upsert operations:**
-
-```php
-$user = User::firstOrCreate(
-    ['email' => $request->email],  // Search by
-    [  // Create with (if not found)
-        'password' => Hash::make(Str::random(16)),
-        'role' => RoleEnum::User,
-    ]
-);
-
-if ($user->wasRecentlyCreated) {
-    $user->sendWelcomeNotification();
-}
-```
-
-**Other upsert methods:**
-
-```php
-// Update or create
-$user = User::updateOrCreate(
-    ['email' => $email],
-    ['name' => $name]
-);
-
-// First or new (doesn't save)
-$user = User::firstOrNew(['email' => $email]);
-```
-
-## Custom Query Objects
-
-**For complex queries:**
-
-```php
-// app/Queries/PostStatsQuery.php
 class PostStatsQuery
 {
-    public function run(?int $authorId): self
+    public function run(int $authorId): PostStatsDTO
     {
-        $this->published = Post::query()
-            ->when($authorId, fn($q) => $q->where('author_id', $authorId))
+        $published = Post::where('author_id', $authorId)
             ->where('status', StatusEnum::Published)
             ->count();
 
-        return $this;
-    }
+        $draft = Post::where('author_id', $authorId)
+            ->where('status', StatusEnum::Draft)
+            ->count();
 
-    public function toDTO(): PostStatsDTO
-    {
-        return new PostStatsDTO(
-            published: $this->published,
-            draft: $this->draft,
-        );
+        return new PostStatsDTO(published: $published, draft: $draft);
     }
 }
 ```
 
-Usage:
+`PostStatsDTO` is a project-defined result type. Resolve the query object according to [dependency preferences](../skills/laravel-full-stack/references/coding-standards-preferences.md#php-and-dependency-resolution). Apply the agreed authorization and tenant scope before reporting statistics.
+
+## Large datasets
+
+When processing mutates records used in filtering or ordering, consider ID-based chunking rather than offset-based chunks. Verify the chosen key is stable and selected:
+
 ```php
-$stats = (new PostStatsQuery)->run($request->author_id)->toDTO();
+Post::where('status', StatusEnum::Draft)
+    ->chunkById(100, function (Collection $posts): void {
+        foreach ($posts as $post) {
+            // Perform the agreed operation.
+        }
+    });
 ```
 
-## Migrations
+`Collection` here is `Illuminate\Database\Eloquent\Collection`. Choose chunk size and concurrency controls from the workload rather than treating the example value as a default.
 
-**When modifying columns, include ALL attributes:**
+## JSON columns
+
+Check support against the project's actual database engine and Laravel version:
 
 ```php
-// Wrong - loses existing attributes
-Schema::table('posts', function (Blueprint $table) {
-    $table->string('slug')->unique();  // Loses nullable, default, etc.
-});
+Post::where('metadata->featured', true)->get();
 
-// Right - preserve all attributes
-Schema::table('posts', function (Blueprint $table) {
-    $table->string('slug', 255)->nullable()->unique()->change();
-});
+Post::whereJsonContains('metadata->tags', 'laravel')->get();
+
+$post->update(['metadata->views' => $newViewCount]);
 ```
 
-**Common patterns:**
+Inspect model assignment rules before nested updates. A read-then-write counter can lose concurrent updates; use the project's atomic update approach when that behavior matters.
+
+## Schema changes
+
+For changing columns while retaining attributes, read [Laravel core migration guidance](laravel-core.md#database-migrations). For a complete create-table example, read [Eloquent model examples](../skills/laravel-full-stack/references/eloquent-model.md#migration-structure).
+
+Choose foreign-key delete behavior from the domain's retention requirements. For example, a nullable category can survive category deletion:
 
 ```php
-Schema::create('posts', function (Blueprint $table) {
-    $table->id();
-    $table->string('title');
-    $table->string('slug')->unique();
-    $table->text('content');
-    $table->foreignId('author_id')->constrained('users');
-    $table->foreignId('category_id')->nullable()->constrained();
-    $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
-    $table->json('metadata')->nullable();
-    $table->timestamp('published_at')->nullable();
-    $table->timestamps();
-    $table->softDeletes();
-});
-```
-
-**Foreign keys:**
-
-```php
-$table->foreignId('author_id')
-    ->constrained('users')
-    ->onDelete('cascade');
-
 $table->foreignId('category_id')
     ->nullable()
     ->constrained()
     ->nullOnDelete();
 ```
 
-## Factory-Generated Test Data
+Cascading an ownership foreign key can delete dependent records; agree that behavior before adding it.
 
-**Use factories in tests:**
+## Pivot deletion semantics
 
-```php
-// In tests
-$post = Post::factory()->create();
-$user = User::factory()->admin()->create();
-$posts = Post::factory()->count(5)->published()->create();
-```
+Adding `deleted_at` to a pivot table does not make ordinary `attach()`, `detach()`, or `sync()` operations implement soft deletion. If association history must be retained, model it explicitly using the project's supported relationship design, and test removal, restoration, and duplicate-association behavior.
 
-**Factory states:**
+## Test data and database configuration
 
-```php
-// database/factories/PostFactory.php
-public function published(): static
-{
-    return $this->state(fn (array $attributes) => [
-        'status' => StatusEnum::Published,
-        'published_at' => now(),
-    ]);
-}
+Read [Laravel test conventions](testing.md) for factories, isolation, saved-model assertions, and configuration discovery. For reusable states, read [factory state examples](../skills/laravel-full-stack/references/factory-states.md).
 
-public function draft(): static
-{
-    return $this->state(fn (array $attributes) => [
-        'status' => StatusEnum::Draft,
-        'published_at' => null,
-    ]);
-}
-```
-
-## Query Performance
-
-**Use `when()` for conditional queries:**
-
-```php
-$posts = Post::query()
-    ->when($searchTerm, function ($query, $searchTerm) {
-        return $query->where('title', 'LIKE', "%{$searchTerm}%");
-    })
-    ->when($status, function ($query, $status) {
-        return $query->where('status', $status);
-    })
-    ->get();
-```
-
-**Select specific columns when possible:**
-
-```php
-$users = User::select('id', 'email', 'name')->get();
-```
-
-**Chunk large datasets:**
-
-```php
-Post::chunk(100, function ($posts) {
-    foreach ($posts as $post) {
-        // Process post
-    }
-});
-```
-
-## JSON Column Queries
-
-**Query JSON fields:**
-
-```php
-// Metadata is JSON column
-Post::where('metadata->featured', true)->get();
-Post::whereJsonContains('metadata->tags', 'laravel')->get();
-```
-
-**Update JSON fields:**
-
-```php
-$post->update([
-    'metadata->views' => $newViewCount,
-]);
-```
-
-## Relationships
-
-**Define in models:**
-
-```php
-// One-to-many
-public function posts(): HasMany
-{
-    return $this->hasMany(Post::class, 'author_id');
-}
-
-// Belongs to
-public function author(): BelongsTo
-{
-    return $this->belongsTo(User::class, 'author_id');
-}
-
-// Many-to-many
-public function tags(): BelongsToMany
-{
-    return $this->belongsToMany(Tag::class);
-}
-
-// Has one
-public function profile(): HasOne
-{
-    return $this->hasOne(Profile::class);
-}
-```
-
-**Query relationships:**
-
-```php
-// Load relationship
-$user->posts;
-
-// Query relationship
-$user->posts()->where('status', StatusEnum::Published)->get();
-
-// Count relationship
-$user->posts()->count();
-
-// Exists check
-$user->posts()->exists();
-```
-
-## Database Configuration
-
-**Testing uses SQLite in-memory:**
-
-```xml
-<!-- phpunit.xml -->
-<env name="DB_CONNECTION" value="sqlite"/>
-<env name="DB_DATABASE" value=":memory:"/>
-```
-
-**Production uses MySQL/PostgreSQL** (check `.env`)
-
-## Key Tables Example
-
-Core tables pattern (reference):
-- `users` - Users (coaches/admins) with soft deletes
-- `tokens` - Main questionnaire tokens with soft deletes
-- `links` - Link tracking
-- `teams` - Teams with soft deletes
-- `team_token` - Pivot table (teams ↔ tokens) with soft deletes
-- `campaign_tokens` - Campaign tokens
-- `stat_logs` - Statistics logging
-- `jobs`, `failed_jobs`, `job_batches` - Queue system
-- `password_resets` - Password reset tokens
-- `pulse_*` - Laravel Pulse tables (monitoring)
-- `activity_log` - Activity logging
-
-## Pivot Tables with Soft Deletes
-
-```php
-// Many-to-many with soft deletes
-$token->teams()->attach($teamId);
-$token->teams()->detach($teamId);
-$token->teams()->sync([$teamId1, $teamId2]);
-
-// Pivot table has soft deletes
-Schema::create('team_token', function (Blueprint $table) {
-    $table->foreignId('team_id')->constrained();
-    $table->foreignId('token_id')->constrained();
-    $table->softDeletes();
-});
-```
-
-## Key Reminders
-
-- **Prefer Eloquent** over DB facade
-- DB:: only for transactions
-- Eager load with `with()` to prevent N+1
-- Use query scopes for filtering
-- `firstOrCreate()` for upsert patterns
-- Custom query objects for complex queries
-- Include ALL column attributes when modifying in migrations
-- Use factories for test data
-- Query JSON columns with `->` notation
+Discover the actual driver from configuration and the test runner. SQLite in-memory is an option, not a shared requirement; verify engine-specific behavior using the project's appropriate database. Read the schema and migrations for tables instead of treating a framework example as the active application's inventory.
 
 === .ai/formatting rules ===
 
-# Code Formatting and Quality
+# Formatting and Automated Quality Tools
 
-> Pint and Rector usage guidelines
+Pint and Rector are run by the user unless the user or active project instructions explicitly request them as part of this task.
 
-## Tools Available
+When execution is requested:
 
-- **Laravel Pint** - Code style formatter (configured via `pint.json`)
-- **Rector** - Automated refactoring and code quality tool
+1. Read the project's Composer scripts, `pint.json`, and Rector configuration. Use the installed tools' `--help` to confirm supported commands and flags.
+2. Select the configured check mode and scope it to the relevant change where possible.
+3. Review the result before applying changes. Report the exact command and outcome.
 
-## Important: Manual Execution Only
-
-**Never run pint or rector automatically as part of your workflow**
-
-The user will run these tools manually when needed.
-
-## Laravel Pint Configuration
-
-### Basic pint.json Structure
-
-```json
-{
-    "preset": "laravel",
-    "rules": {
-        "array_syntax": {
-            "syntax": "short"
-        },
-        "binary_operator_spaces": {
-            "default": "single_space"
-        },
-        "blank_line_before_statement": {
-            "statements": ["return"]
-        },
-        "class_attributes_separation": {
-            "elements": {
-                "method": "one",
-                "property": "one"
-            }
-        },
-        "concat_space": {
-            "spacing": "none"
-        },
-        "no_unused_imports": true,
-        "ordered_imports": {
-            "sort_algorithm": "alpha"
-        },
-        "single_quote": true,
-        "trailing_comma_in_multiline": {
-            "elements": ["arrays", "arguments", "parameters"]
-        }
-    }
-}
-```
-
-### Available Presets
-
-| Preset | Description |
-|--------|-------------|
-| `laravel` | Laravel framework style (recommended) |
-| `psr12` | PSR-12 coding standard |
-| `symfony` | Symfony coding standard |
-| `per` | PER coding style |
-
-### Common Rules
-
-**Spacing and Alignment:**
-```json
-{
-    "binary_operator_spaces": {
-        "default": "single_space",
-        "operators": {
-            "=>": "align_single_space_minimal"
-        }
-    }
-}
-```
-
-**Import Organization:**
-```json
-{
-    "ordered_imports": {
-        "sort_algorithm": "alpha",
-        "imports_order": ["class", "function", "const"]
-    },
-    "no_unused_imports": true
-}
-```
-
-**Method Chaining:**
-```json
-{
-    "method_chaining_indentation": true
-}
-```
-
-### Excluding Files/Directories
-
-```json
-{
-    "exclude": [
-        "vendor",
-        "storage",
-        "bootstrap/cache"
-    ],
-    "notPath": [
-        "src/Legacy/*"
-    ]
-}
-```
-
-## Rector Configuration
-
-### Basic rector.php Structure
-
-```php
-<?php
-
-use Rector\Config\RectorConfig;
-use Rector\Set\ValueObject\LevelSetList;
-use Rector\Set\ValueObject\SetList;
-
-return RectorConfig::configure()
-    ->withPaths([
-        __DIR__.'/app',
-        __DIR__.'/tests',
-    ])
-    ->withSkip([
-        __DIR__.'/app/Legacy',
-    ])
-    ->withSets([
-        LevelSetList::UP_TO_PHP_84,
-        SetList::CODE_QUALITY,
-        SetList::DEAD_CODE,
-        SetList::EARLY_RETURN,
-    ]);
-```
-
-### Common Rule Sets
-
-| Set | Purpose |
-|-----|---------|
-| `LevelSetList::UP_TO_PHP_84` | PHP 8.4 features |
-| `SetList::CODE_QUALITY` | General code improvements |
-| `SetList::DEAD_CODE` | Remove unused code |
-| `SetList::EARLY_RETURN` | Refactor to early returns |
-| `SetList::TYPE_DECLARATION` | Add type hints |
-
-## Running Tools
-
-### Pint Commands
-
-```bash
-
-# Check without fixing
-
-./vendor/bin/pint --test
-
-# Fix all files
-
-./vendor/bin/pint
-
-# Fix specific file/directory
-
-./vendor/bin/pint app/Models
-
-# Show diff without applying
-
-./vendor/bin/pint --test -v
-```
-
-### Rector Commands
-
-```bash
-
-# Dry run (preview changes)
-
-./vendor/bin/rector process --dry-run
-
-# Apply changes
-
-./vendor/bin/rector process
-
-# Process specific path
-
-./vendor/bin/rector process app/Services
-```
-
-## Key Reminders
-
-- Never run formatting tools automatically
-- Use `laravel` preset as the base
-- Check `pint.json` exists before assuming rules
-- Run with `--test` first to preview changes
-- Rector handles code structure; Pint handles style
-- Exclude vendor/storage directories
+Tooling configuration owns versions, presets, and rules; avoid copying another project's configuration into this reference. Code review focuses on behavior and standards that tooling does not already enforce.
 
 === .ai/foundation rules ===
 
-# Foundation Rules
+# Laravel Foundation
 
-> Core conventions, directory structure, and reply style for Laravel applications
+Before implementing a Laravel change, read the active project's instructions, `composer.json`, frontend package manifest, relevant configuration, and sibling files. They determine versions, dependencies, directory layout, and the UI stack.
 
-## Application Context
+## Conditional references
 
-- **Stack:** PHP 8.4 + Laravel 12
-- **Frontend:** Hotwire (Turbo + Stimulus)
-- **Architecture:** Server-rendered Blade templates with minimal JavaScript
-
-## Code Conventions
-
-- Follow all existing code conventions used in this application
-- When creating or editing a file, check sibling files for correct structure, approach, and naming
-- Use descriptive names for variables and methods
-  - Example: `isRegisteredForDiscounts()`, not `discount()`
-- Check for existing components to reuse before writing new ones
+- **Production PHP:** [shared coding standards](../skills/laravel-full-stack/references/coding-standards.md) and [additional preferences](../skills/laravel-full-stack/references/coding-standards-preferences.md).
+- **Behavior changes:** [tdd](../skills/tdd/SKILL.md) for the loop and seams, plus [Laravel tests](testing.md) for framework conventions.
+- **UI:** [frontend.md](frontend.md) to discover the stack and select its applicable branches.
+- **Formatting:** [formatting.md](formatting.md) before running Pint or Rector.
+- **Planning artifacts:** [planning-workflow.md](planning-workflow.md) when the user requests a plan or spec.
 
 ## Directory Structure
 
-- Stick to existing directory structure
-- **Do not create new base folders without approval**
-- Custom directories in use:
-  - `/app/Actions/` - Action classes
-  - `/app/Enums/` - Enum definitions
-  - `/app/Services/` - Service layer
-  - `/app/ValueObjects/` - Value object classes
+- Apply these defaults only where the active project has no explicit alternative; match its actual namespaces and registration mechanisms.
+- Organize application behavior by feature under `/app/Features/<FeatureName>/`.
+- Feature-owned controllers, requests, actions, jobs, mail, and notifications live in their corresponding feature directories. Shared integration controllers and requests remain under `app/Http/Controllers/` and `app/Http/Requests/`.
+- Keep shared types and Laravel integration in conventional locations: `/app/Models/`, `/app/Enums/`, `/app/DataTransferObjects/`, `/app/Policies/`, `/app/Rules/`, `/app/ValueObjects/`, `/app/Console/`, and `/app/Providers/`.
+- Feature route files live in `<Feature>/Routes/web.php` and are registered from the `then` callback of `bootstrap/app.php` with `Route::middleware('web')->group(...)`.
+- Feature Blade directories are registered in `app/Providers/FeatureServiceProvider.php` and referenced with namespaces such as `settings::profile.edit`.
+- Do not create a `Shared` feature or new top-level application folders for convenience.
 
-## Application Dependencies
+## Project boundaries
 
-- Do not change application dependencies without approval
-- Current stack is intentionally minimal and focused
-
-## Documentation Files
-
-- **Only create documentation files (*.md) if explicitly requested by the user**
-- Do not proactively create README files or other documentation
-
-## Reply Style
-
-- Be concise in explanations
-- Focus on what's important rather than explaining obvious details
-- Output text directly (not via bash echo)
-- Keep responses focused on the task at hand
-
-## Key Reminders
-
-- Check sibling files before creating new ones
-- Use descriptive method/variable names
-- No new folders without approval
-- No dependency changes without approval
-- Documentation only when requested
+Reuse the project's existing components and directory layout. Confirm changes to dependencies or top-level structure with the user when they are not already part of the agreed work. Create documentation when requested directly or as an output of an invoked workflow; link existing specs, plans, and decisions instead of duplicating them.
 
 === .ai/jobs rules ===
 
 # Job & Queue Conventions
 
 > Job classes, queue dispatching, and background processing patterns
+
+Before changing a job, read [business logic and job standards](../skills/laravel-full-stack/references/coding-standards.md#business-logic-and-jobs). For placement, read [foundation](foundation.md#directory-structure); `App\Jobs` and shared paths below are illustrative. For test seams, fakes, and job execution, read [Laravel test conventions](testing.md#queues-mail-and-events). Verify queue configuration and installed APIs before adapting these examples.
 
 ## Location & Namespace
 
@@ -1064,9 +460,12 @@ Namespace: `App\Jobs`
 ```php
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -1076,6 +475,10 @@ use Illuminate\Queue\SerializesModels;
 class SendWelcomeEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public int $tries = 3;
+
+    public int $backoff = 60;
 
     public function __construct(
         public User $user,
@@ -1089,6 +492,8 @@ class SendWelcomeEmailJob implements ShouldQueue
 ```
 
 ## Dispatching Jobs
+
+These variants illustrate different execution contracts. Choose one from the required behavior, configured workers, and transaction boundaries; dispatch after response is not a substitute for a durable background worker. For supported transaction-aware dispatch, use `afterCommit()` when the job needs committed records.
 
 **Basic dispatch:**
 ```php
@@ -1117,20 +522,18 @@ SendWelcomeEmailJob::dispatchSync($user);
 
 ## Job Configuration
 
-**Queue and connection:**
+**Retry and timeout configuration (structural fragment):**
 ```php
 class ProcessPaymentJob implements ShouldQueue
 {
-    public $queue = 'payments';
-    public $connection = 'redis';
-    public $tries = 3;
-    public $maxExceptions = 2;
-    public $timeout = 120;
-    public $backoff = [60, 120, 300];  // Retry delays
+    public int $tries = 3;
+    public int $maxExceptions = 2;
+    public int $timeout = 120;
+    public array $backoff = [60, 120, 300];  // Retry delays
 }
 ```
 
-**Or via methods:**
+**Queue routing via the job's Queueable trait:**
 ```php
 public function __construct(public Order $order)
 {
@@ -1140,6 +543,8 @@ public function __construct(public Order $order)
 ```
 
 ## Failure Handling
+
+Fragments below require imports for `Throwable` and the project's `Log` facade. Match the installed framework's `failed()` signature. A failed job may be re-instantiated for its failure callback, so rely on constructor inputs rather than state mutated in `handle()`.
 
 **Failed method:**
 ```php
@@ -1179,6 +584,8 @@ class ProcessPaymentJob implements ShouldQueue
 
 ## Rate Limiting
 
+Verify the limiter registration and installed middleware behavior. Rate-limit releases can consume attempts; coordinate `tries`, backoff, and any retry deadline so throttling does not exhaust the job before it runs. The reusable trait below is optional project code, not a Laravel built-in.
+
 **Using middleware:**
 ```php
 use Illuminate\Queue\Middleware\RateLimited;
@@ -1207,29 +614,14 @@ trait HasRateLimited
 
 **Configure rate limiter in AppServiceProvider:**
 ```php
-RateLimiter::for('external-api', function (object $job) {
+RateLimiter::for('external-api', function (object $job): Limit {
     return Limit::perMinute(60);
 });
 ```
 
 ## HTTP Client in Jobs
 
-**Making API calls:**
-```php
-public function handle(): void
-{
-    $response = Http::timeout(30)
-        ->retry(3, 100)
-        ->post('https://api.example.com/webhook', [
-            'user_id' => $this->user->id,
-            'event' => 'created',
-        ]);
-
-    if ($response->failed()) {
-        throw new Exception('API call failed: '.$response->body());
-    }
-}
-```
+Inject the project's integration client into `handle()` as shown in the external-service example below. For request/response wrappers and network fakes, read [HTTP client patterns](../skills/laravel-full-stack/references/http-client.md) and [framework fakes](testing.md#framework-fakes). Coordinate client-level retries with job retries; side effects such as payments require the integration's idempotency contract.
 
 ## Chained Jobs
 
@@ -1247,7 +639,7 @@ Bus::chain([
 Bus::chain([
     new ProcessOrderJob($order),
     new SendOrderConfirmationJob($order),
-])->catch(function (Throwable $e) use ($order) {
+])->catch(function (Throwable $e) use ($order): void {
     Log::error('Order chain failed', ['order' => $order->id]);
 })->dispatch();
 ```
@@ -1260,21 +652,25 @@ $batch = Bus::batch([
     new ImportUserJob($chunk1),
     new ImportUserJob($chunk2),
     new ImportUserJob($chunk3),
-])->then(function (Batch $batch) {
+])->then(function (Batch $batch): void {
     // All jobs completed
-})->catch(function (Batch $batch, Throwable $e) {
+})->catch(function (Batch $batch, Throwable $e): void {
     // First failure
-})->finally(function (Batch $batch) {
+})->finally(function (Batch $batch): void {
     // Batch finished (success or failure)
 })->dispatch();
 ```
 
 **Check batch status:**
+
+Batch jobs need the installed framework's `Batchable` support. Decide how jobs honor cancellation, and handle a missing batch lookup rather than assuming every ID exists:
 ```php
 $batch = Bus::findBatch($batchId);
-$batch->progress();  // 0-100
-$batch->finished();
-$batch->cancelled();
+if ($batch !== null) {
+    $batch->progress();  // 0-100
+    $batch->finished();
+    $batch->cancelled();
+}
 ```
 
 ## Dispatching Other Jobs
@@ -1293,7 +689,9 @@ public function handle(): void
 
 ## Unique Jobs
 
-**Prevent duplicate jobs:**
+**Unique enqueue lock (not business-level idempotency):**
+
+Verify a shared lock-capable cache across dispatchers/workers. Uniqueness does not guarantee exactly-once side effects and may not apply to batch jobs in the installed framework. The fragment assumes the job carries an `Order $order` constructor input:
 ```php
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 
@@ -1301,44 +699,16 @@ class ProcessPaymentJob implements ShouldQueue, ShouldBeUnique
 {
     public function uniqueId(): string
     {
-        return $this->order->id;
+        return (string) $this->order->id;
     }
 
-    public $uniqueFor = 3600;  // 1 hour
+    public int $uniqueFor = 3600;  // Illustrative lock lifetime.
 }
 ```
 
 ## Testing Jobs
 
-**Assert job dispatched:**
-```php
-Queue::fake();
-
-// Trigger action
-$user->register();
-
-Queue::assertPushed(SendWelcomeEmailJob::class);
-```
-
-**Assert with callback:**
-```php
-Queue::assertPushed(function (SendWelcomeEmailJob $job) use ($user) {
-    return $job->user->id === $user->id;
-});
-```
-
-**Assert on specific queue:**
-```php
-Queue::assertPushedOn('emails', SendWelcomeEmailJob::class);
-```
-
-**Assert chained:**
-```php
-Queue::assertChained([
-    ProcessOrderJob::class,
-    SendOrderConfirmationJob::class,
-]);
-```
+Read [framework fakes](testing.md#framework-fakes) and [queue test conventions](testing.md#queues-mail-and-events) for selective faking, model/payload assertions, and executing the actual job. When queue routing is part of the contract, use the installed fake's `assertPushedOn()`; for chains or batches, choose assertions from the facade used to dispatch them. A dispatch assertion proves enqueueing, not successful worker execution.
 
 ## Common Patterns
 
@@ -1350,8 +720,8 @@ class SyncUserToExternalServiceJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     use HasFailed, HasRateLimited;
 
-    public $tries = 3;
-    public $backoff = [60, 120];
+    public int $tries = 3;
+    public array $backoff = [60, 120];
 
     public function __construct(
         public User $user,
@@ -1362,7 +732,7 @@ class SyncUserToExternalServiceJob implements ShouldQueue
         $response = $client->syncUser($this->user);
 
         if ($response->failed()) {
-            $this->release(60);  // Re-queue with delay
+            throw new \RuntimeException('External user synchronization failed.');
         }
     }
 }
@@ -1370,8 +740,9 @@ class SyncUserToExternalServiceJob implements ShouldQueue
 
 ### Import with Progress
 
+Structural sketch only: supply domain inputs through the constructor, the dispatch/queue traits, and actual parsing logic. Implement `ShouldBeUnique` only when required and provide its stable `uniqueId()`. Follow the job standards rather than copying this incomplete class as runnable code:
 ```php
-class ImportUsersJob implements ShouldQueue, ShouldBeUnique
+class ImportUsersJob implements ShouldQueue
 {
     public function handle(): void
     {
@@ -1384,16 +755,9 @@ class ImportUsersJob implements ShouldQueue, ShouldBeUnique
 }
 ```
 
-## Key Reminders
+## Verification
 
-- Implement `ShouldQueue` for background processing
-- Use traits for common concerns (HasFailed, HasRateLimited)
-- Configure `$tries`, `$backoff`, `$timeout` appropriately
-- Implement `failed()` method for error handling
-- Use job chains for sequential operations
-- Use batches for parallel operations with monitoring
-- Test with `Queue::fake()` and assertions
-- Use `ShouldBeUnique` to prevent duplicates
+Use [tdd](../skills/tdd/SKILL.md) for the agreed behavior and completion checks. Select relevant retry, failure, cancellation, and idempotency scenarios from the operation's contract; report actual test and worker verification rather than inferring reliability from the job configuration.
 
 === .ai/laravel-boost rules ===
 
@@ -1401,9 +765,11 @@ class ImportUsersJob implements ShouldQueue, ShouldBeUnique
 
 > Tools and documentation search for Laravel applications
 
-## Overview
+## When to use
 
-Laravel Boost is an MCP server with powerful tools designed specifically for this application. Use them frequently.
+Read [AI Framework's Laravel standards](../skills/laravel-full-stack/references/coding-standards.md) first and follow their guidance precedence. Use Laravel Boost's recommendations and documentation search only for topics not covered by the active project's rules or framework references. Generated Boost guidelines and search results are fallback guidance, not replacements for the user's conventions.
+
+When Boost is configured in the active project, its tools can verify runtime facts such as available commands, URLs, and logs. These lookups do not determine coding style. Use only tools actually exposed by the configured server; if unavailable, inspect the repository or primary documentation.
 
 ## Artisan Commands
 
@@ -1415,16 +781,7 @@ Laravel Boost is an MCP server with powerful tools designed specifically for thi
 - Use the `get-absolute-url` tool when sharing project URLs with the user
 - Ensures correct scheme, domain/IP, and port
 
-```bash
-
-# Get absolute URL for a path
-
-get-absolute-url --path="/dashboard"
-
-# Get absolute URL for a named route
-
-get-absolute-url --route="home"
-```
+Pass arguments using the configured tool's schema; MCP tool names are not shell commands.
 
 ## Tinker and Debugging
 
@@ -1436,12 +793,9 @@ get-absolute-url --route="home"
 - Read browser logs, errors, and exceptions using the `browser-logs` tool
 - Only recent browser logs are useful - ignore old logs
 
-## Documentation Search (Critical)
+## Documentation search for uncovered topics
 
-- **ALWAYS use the `search-docs` tool before other approaches**
-- This tool returns version-specific documentation for packages installed in this application
-- Perfect for Laravel ecosystem packages: Laravel, Tailwind, Hotwire Turbo, etc.
-- **Must search docs before making code changes** to ensure correct approach
+When the local guidance leaves a question open, use `search-docs` if available for version-specific documentation about installed packages. Apply results within the framework standards; a documentation example does not establish a new coding convention.
 
 ### Search Syntax
 
@@ -1471,235 +825,77 @@ Pass multiple queries at once for best results:
 - Filter by packages if you know what you need:
   - `packages=["laravel/framework", "inertiajs/inertia-laravel"]`
 
-## Key Reminders
-
-- **Always search docs first** before making code changes
-- Use multiple broad queries for better results
-- Don't include package names in queries
-- Use `tinker` for quick Eloquent debugging
-- Check `browser-logs` for frontend errors
-- Use `list-artisan-commands` before running artisan
-
 === .ai/laravel-core rules ===
 
 # Laravel Core Patterns
 
-> Laravel 12 conventions, Eloquent, validation, configuration actively used in SimpleTimer
+Discover the installed Laravel version and application layout through [foundation.md](foundation.md). Production conventions live in [coding standards](../skills/laravel-full-stack/references/coding-standards.md), not the examples below.
 
-## Do Things the Laravel Way
+## Artisan commands
 
-### Artisan Make Commands
-
-- Use `php artisan make:` commands to create new files
-- Use the `list-artisan-commands` tool to see available commands
-- Pass `--no-interaction` to all Artisan commands
-- Pass correct `--options` for desired behavior
+Use the installed `php artisan make:` commands for scaffolding. Inspect available options through `php artisan help <command>` or the configured Boost command-list tool. Use `--no-interaction` for unattended commands and choose the name and path according to the project's layout.
 
 ```bash
-
-# Create a controller
-
 php artisan make:controller TimeEntryController --no-interaction
-
-# Create a generic PHP class
-
-php artisan make:class Actions/SyncHourlyRateAction --no-interaction
-```
-
-## Database and Eloquent
-
-### Relationships
-
-- Always use proper Eloquent relationship methods with return type hints
-- Prefer relationship methods over raw queries or manual joins
-
-```php
-public function timeEntries(): HasMany
-{
-    return $this->hasMany(TimeEntry::class);
-}
-
-public function client(): BelongsTo
-{
-    return $this->belongsTo(Client::class);
-}
-```
-
-### Query Best Practices
-
-- Prefer `Model::query()` over `DB::`
-- Generate code that leverages Laravel's ORM capabilities
-- **Prevent N+1 query problems** by using eager loading
-
-```php
-// Good: Eager loading
-$projects = Project::with('client', 'timeEntries')->get();
-
-// Bad: N+1 queries
-$projects = Project::all();
-foreach ($projects as $project) {
-    echo $project->client->name; // Lazy loads client each time
-}
-```
-
-### Query Scopes
-
-- Use query scopes for common filters
-- This project uses scopes like: `completed()`, `forClient()`, `forProject()`, `betweenDates()`, `latestFirst()`
-
-```php
-// In TimeEntry model
-public function scopeCompleted($query): void
-{
-    $query->whereNotNull('end_at');
-}
-
-// Usage
-$entries = TimeEntry::completed()->latestFirst()->get();
-```
-
-## Model Creation
-
-### Factories and Seeders
-
-- When creating new models, create useful factories and seeders too
-- Use the `list-artisan-commands` tool to check options for `php artisan make:model`
-
-```bash
-
-# Create model with migration, factory, and seeder
-
+php artisan make:request StoreTimeEntryRequest --no-interaction
 php artisan make:model Project --migration --factory --seed --no-interaction
 ```
 
-### Model Casts
-
-- Use the `casts()` method on models (Laravel 12 convention)
-- Do not use the `$casts` property
-
-```php
-// Correct (Laravel 12)
-protected function casts(): array
-{
-    return [
-        'start_at' => 'datetime',
-        'end_at' => 'datetime',
-    ];
-}
-
-// Incorrect (old style)
-protected $casts = [
-    'start_at' => 'datetime',
-];
-```
-
-## Controllers and Validation
-
-### Form Request Classes
-
-- Always create Form Request classes for validation
-- Do not use inline validation in controllers
-- Include both validation rules and custom error messages
-- Check sibling Form Requests to see if the application uses array or string-based validation rules
-
-```php
-// Create Form Request
-php artisan make:request StoreTimeEntryRequest --no-interaction
-
-// In the Form Request
-public function rules(): array
-{
-    return [
-        'project_id' => ['required', 'exists:projects,id'],
-        'start_at' => ['required', 'date'],
-    ];
-}
-```
+For the generated model and request patterns, read [model scaffolding](../skills/laravel-full-stack/references/eloquent-model.md) or [Form Requests](../skills/laravel-full-stack/references/form-requests.md). Generate supporting factories or seeders only when the current slice needs them.
 
 ## Routing and URLs
 
-### Named Routes
+Use named routes and `route()` for application links rather than hardcoding paths:
 
-- When generating links, prefer named routes and the `route()` function
-- Do not hardcode URLs
-
-```php
-// Good
-<a href="{{ route('projects.show', $project) }}">View Project</a>
-
-// Bad
-<a href="/projects/{{ $project->id }}">View Project</a>
+```blade
+<a href="{{ route('projects.show', $project) }}">{{ __('View Project') }}</a>
 ```
+
+For feature route registration and shared file placement, read [foundation.md](foundation.md#directory-structure).
 
 ## Configuration
 
-### Environment Variables
-
-- Use environment variables **only in configuration files**
-- Never use `env()` function directly outside of config files
-- Always use `config('app.name')`, not `env('APP_NAME')`
+Read environment variables in configuration files; use `config()` in application code so configuration caching works:
 
 ```php
 // config/app.php
 'name' => env('APP_NAME', 'Laravel'),
 
-// Anywhere in the app
-$appName = config('app.name'); // Correct
-$appName = env('APP_NAME');    // Incorrect
+// Application code
+$appName = config('app.name');
 ```
 
-## Laravel 12 Structure
+Inspect `bootstrap/app.php`, `bootstrap/providers.php`, `routes/console.php`, and command registration in the active project. Their presence and behavior depend on its Laravel version and any retained older structure; shared references do not authorize restructuring it.
 
-### Streamlined Architecture
+## Database migrations
 
-- No `app/Console/Kernel.php` - use `bootstrap/app.php` or `routes/console.php`
-- Commands auto-register from `app/Console/Commands/`
-- No middleware files in `app/Http/Middleware/` by default
-- `bootstrap/app.php` registers middleware, exceptions, and routing files
-- `bootstrap/providers.php` contains application-specific service providers
-
-### Console Commands
-
-- Files in `app/Console/Commands/` are automatically available
-- No manual registration required
-
-## Database Migrations
-
-### Modifying Columns
-
-- When modifying a column, the migration must include all attributes previously defined
-- Otherwise, they will be dropped and lost
+Follow [migration standards](../skills/laravel-full-stack/references/coding-standards.md#migrations). When modifying a column, include the existing attributes that must remain, after verifying the installed version's `change()` behavior:
 
 ```php
-// Correct: Includes all previous attributes
-Schema::table('time_entries', function (Blueprint $table) {
+Schema::table('time_entries', function (Blueprint $table): void {
     $table->decimal('duration', 8, 2)->nullable()->change();
 });
 ```
 
-### Eager Loading Limits
-
-- Laravel 12 allows limiting eagerly loaded records natively
+For query syntax and eager-loading examples, read [model patterns](models.md). Where supported, an eager-loading constraint can limit related rows:
 
 ```php
-$projects = Project::with(['timeEntries' => function ($query) {
+$projects = Project::with(['timeEntries' => function (Builder $query): void {
     $query->latest()->limit(10);
 }])->get();
 ```
 
-## Frontend Build Errors
+## Frontend build errors
 
-### Vite Manifest Error
-
-- If you see "Unable to locate file in Vite manifest" error:
-  - Run `npm run build`, or
-  - Ask user to run `npm run dev` or `composer run dev`
+For missing assets or a manifest error, follow [frontend discovery](frontend.md). Use the active project's actual scripts and bundler configuration rather than assuming Mix, Vite, or a build step.
 
 === .ai/models rules ===
 
 # Model Conventions
 
 > Eloquent models with type hints, relationships, scopes, and PHPDoc annotations
+
+Before changing a model, read [coding standards](../skills/laravel-full-stack/references/coding-standards.md#models-and-queries). For base models, casts, relationships, PHPDoc, and Attribute examples, read [model patterns](../skills/laravel-full-stack/references/models.md). The examples below cover additional query and lifecycle patterns.
 
 ## Location & Namespace
 
@@ -1714,49 +910,9 @@ app/Models/
 
 Namespace: `App\Models`
 
-## Type Declarations
-
-**All relationships require return type hints:**
-
-```php
-public function posts(): HasMany
-{
-    return $this->hasMany(Post::class);
-}
-
-public function author(): BelongsTo
-{
-    return $this->belongsTo(User::class, 'author_id');
-}
-
-public function tags(): BelongsToMany
-{
-    return $this->belongsToMany(Tag::class);
-}
-
-public function profile(): HasOne
-{
-    return $this->hasOne(Profile::class);
-}
-```
-
-**Methods require explicit return types:**
-
-```php
-public function isAdmin(): bool
-{
-    return $this->role === RoleEnum::Admin;
-}
-
-public function newEloquentBuilder($query): PostQueryBuilder
-{
-    return new PostQueryBuilder($query);
-}
-```
-
 ## PHPDoc Blocks
 
-**Include property types and array shapes:**
+Example with virtual properties and static scope annotations:
 
 ```php
 /**
@@ -1780,51 +936,9 @@ class Post extends Model
 }
 ```
 
-## Casts
-
-**Use `casts()` method** (not `$casts` property):
-
-```php
-protected function casts(): array
-{
-    return [
-        'id' => 'integer',
-        'is_featured' => 'boolean',
-        'status' => StatusEnum::class,
-        'category' => CategoryEnum::class,
-        'published_at' => 'datetime',
-        'metadata' => 'array',
-    ];
-}
-```
-
-## Attributes (Accessors/Mutators)
-
-**Use `Attribute::make()` with `get`/`set`:**
-
-```php
-protected function fullName(): Attribute
-{
-    return Attribute::make(
-        get: function () {
-            return $this->first_name.' '.$this->last_name;
-        }
-    );
-}
-
-protected function slug(): Attribute
-{
-    return Attribute::make(
-        set: fn (string $value) => Str::slug($value),
-    );
-}
-```
-
-Usage: `$user->full_name` (snake_case attribute name)
-
 ## Query Scopes
 
-**Named scope methods with Builder return type:**
+Examples using the traditional scope API; check support in the installed Laravel version:
 
 ```php
 public function scopePublished(Builder $query): Builder
@@ -1835,7 +949,7 @@ public function scopePublished(Builder $query): Builder
 
 public function scopeSearchBy(Builder $query, ?string $searchTerm): Builder
 {
-    return $query->when($searchTerm, function ($query, $searchTerm) {
+    return $query->when($searchTerm, function (Builder $query, string $searchTerm): Builder {
         return $query->where('title', 'LIKE', "%{$searchTerm}%")
             ->orWhere('content', 'LIKE', "%{$searchTerm}%");
     });
@@ -1843,7 +957,7 @@ public function scopeSearchBy(Builder $query, ?string $searchTerm): Builder
 
 public function scopeFilterByStatus(Builder $query, ?string $status): Builder
 {
-    return $query->when($status !== null, function ($query) use ($status) {
+    return $query->when($status !== null, function (Builder $query) use ($status): Builder {
         return $query->where('status', StatusEnum::from($status));
     });
 }
@@ -1867,7 +981,7 @@ public function newEloquentBuilder($query): PostQueryBuilder
 }
 ```
 
-Then create `app/QueryBuilders/PostQueryBuilder.php`:
+Place the builder in the active project's existing location for query builders:
 
 ```php
 class PostQueryBuilder extends Builder
@@ -1879,7 +993,7 @@ class PostQueryBuilder extends Builder
 
     public function filterByCategory(?string $category): self
     {
-        return $this->when($category, function ($query, $category) {
+        return $this->when($category, function (Builder $query, string $category): Builder {
             return $query->where('category', $category);
         });
     }
@@ -1888,12 +1002,14 @@ class PostQueryBuilder extends Builder
 
 Usage: `Post::whereAuthor($user)->get()`
 
+Match the installed parent's `newEloquentBuilder()` signature; keep an untyped parameter where typing it would narrow the inherited contract.
+
 ## Global Scopes
 
 **Apply in `boot()` method:**
 
 ```php
-protected static function boot()
+protected static function boot(): void
 {
     parent::boot();
     static::addGlobalScope(new PublishedScope);
@@ -1910,33 +1026,6 @@ class PublishedScope implements Scope
         $builder->whereNotNull('published_at');
     }
 }
-```
-
-## Eager Loading
-
-**Prevent N+1 queries with `with()`:**
-
-```php
-// Bad - N+1 queries
-$posts = Post::all();
-foreach ($posts as $post) {
-    echo $post->author->name;  // Query per post
-}
-
-// Good - 2 queries total
-$posts = Post::with(['author', 'comments'])->get();
-foreach ($posts as $post) {
-    echo $post->author->name;  // No additional query
-}
-```
-
-**In controllers:**
-
-```php
-$posts = Post::with(['author', 'tags'])
-    ->published()
-    ->searchBy($request->search)
-    ->paginate(15);
 ```
 
 ## Traits
@@ -1967,23 +1056,7 @@ protected function casts(): array
 }
 ```
 
-**Enum keys are TitleCase:**
-
-```php
-enum StatusEnum: string
-{
-    case Draft = 'draft';
-    case Published = 'published';
-    case Archived = 'archived';
-}
-
-enum CategoryEnum: string
-{
-    case Technology = 'technology';
-    case Business = 'business';
-    case Lifestyle = 'lifestyle';
-}
-```
+For enum naming and transformations, read [value objects and enums](../skills/laravel-full-stack/references/coding-standards.md#value-objects-and-enums).
 
 ## Static Methods
 
@@ -2023,415 +1096,128 @@ if ($user->wasRecentlyCreated) {
 **Accessing in models:**
 
 ```php
-protected static function booted()
+protected static function booted(): void
 {
-    static::creating(function ($post) {
+    static::creating(function (Post $post): void {
         $post->slug = Str::slug($post->title);
     });
 
-    static::created(function ($post) {
+    static::created(function (Post $post): void {
         // After create
     });
 }
 ```
 
-## Key Reminders
-
-- Return type hints on all relationships and methods
-- Use `casts()` method (not `$casts` property)
-- Eager load with `with()` to prevent N+1
-- PHPDoc with property types and array shapes
-- Scopes return `Builder` type
-- Custom query builders for complex filtering
-- `firstOrCreate()` for upsert patterns
-
 === .ai/php rules ===
 
 # PHP Conventions
 
-> PHP 8.4 type declarations, constructor promotion, and coding standards
+Before writing or reviewing PHP, read [Laravel coding standards](../skills/laravel-full-stack/references/coding-standards.md#php) for strict types, declarations, constructor promotion, braces, and PHPDoc. For closures, extensibility, and dependency resolution, read [additional preferences](../skills/laravel-full-stack/references/coding-standards-preferences.md#php-and-dependency-resolution).
 
-## Type Declarations
-
-- **Always use explicit return type declarations** for methods and functions
-- **Always use appropriate PHP type hints** for method parameters
-- Include nullable types where applicable (`?string`, `?int`, etc.)
-
-```php
-protected function isAccessible(User $user, ?string $path = null): bool
-{
-    // ...
-}
-```
-
-## Constructor Property Promotion
-
-- Use PHP 8 constructor property promotion in `__construct()`
-- Do not allow empty `__construct()` methods with zero parameters
-
-```php
-public function __construct(
-    public GitHub $github,
-    protected UserRepository $users,
-) {
-}
-```
-
-## Control Structures
-
-- Always use curly braces for control structures
-- Even if the body contains only one line
-
-```php
-// Correct
-if ($condition) {
-    return true;
-}
-
-// Incorrect
-if ($condition)
-    return true;
-```
-
-## Comments and Documentation
-
-- Prefer PHPDoc blocks over inline comments
-- Never use comments within code unless something is very complex
-- Add useful array shape type definitions when appropriate
-
-```php
-/**
- * @param array{name: string, email: string, age: int} $userData
- * @return array{id: int, created_at: string}
- */
-public function createUser(array $userData): array
-{
-    // ...
-}
-```
-
-## Enums
-
-- Keys in an Enum should be TitleCase
-- Examples: `FavoritePerson`, `BestLake`, `Monthly`
-
-```php
-enum Currency: string
-{
-    case UnitedStatesDollar = 'USD';
-    case Euro = 'EUR';
-    case BritishPound = 'GBP';
-}
-```
+For enum case naming and domain transformations, read [value objects and enums](../skills/laravel-full-stack/references/coding-standards.md#value-objects-and-enums). Choose language features supported by the active project's PHP version.
 
 === .ai/testing rules ===
 
-# Testing Conventions
+# Laravel Testing Conventions
 
-PHPUnit-based testing with factories, custom assertions, and comprehensive coverage patterns.
+This is the shared source of Laravel-specific test conventions. The test-first loop and seam selection live in [tdd](../skills/tdd/SKILL.md).
 
-## Framework
+## Discover the project
 
-- **PHPUnit v12** (NOT Pest)
-- Configuration: `phpunit.xml`
-- Database: SQLite in-memory
-- Isolation: `LazilyRefreshDatabase` trait
+Read `composer.json`, `phpunit.xml` (or its distribution file), `tests/TestCase.php`, and nearby tests before choosing syntax, database isolation, or helpers. Match the installed PHPUnit version and existing runner. Framework defaults use PHPUnit v13 (not Pest) with PHP attributes where supported.
 
-## Test Structure
+Custom helpers and assertion traits below are project dependencies, not Laravel built-ins. Confirm they exist before using them; otherwise verify the same behavior through the project's available interface.
 
-```
-tests/
-├── Feature/     # 67 files - HTTP, controllers, webhooks, jobs
+## Organization
 
-├── Unit/        # 145 files - models, services, DTOs, queries
+- Controller tests: `Tests\Feature\Http\Controllers\...`.
+- Command tests: `Tests\Feature\Commands\...`.
+- Other seams, including jobs, listeners, models, actions, Form Requests, and Blade views: `Tests\Unit\...`, unless the project documents another layout. These tests may extend the application's `Tests\TestCase` when they need Laravel.
+- Name test files after the class they cover (`UserControllerTest`). Use short, everyday language for methods: describe who does what and the result, rather than terms such as "eligibility" or "redisplays cross-language selections".
+- Keep scenarios for the same controller action in its existing test class; merge overlapping classes rather than splitting tests by incidental scenarios such as bulk allocation. Group other tests by the responsibility they cover.
+- Use existing model factory states. Use `$this->faker` in factories.
+- Put shared model fixtures in `setUp()`; vary only the attributes relevant to the scenario in each test.
+- Use the project's database reset trait and test database configuration.
+- In the Arrange phase, separate each variable assignment from the next with a blank line.
 
-└── TestCase.php # Base class with CreatesApplication, LazilyRefreshDatabase
+## Observable assertions
 
-```
+- After exercising the agreed interface, find the saved model first, then use a separate `assertSame()` for each field relevant to the behavior. Scope the lookup to the intended record; use `first()` for a deliberately isolated single-record fixture or `firstOrFail()` when the record must exist. Prefer this field-by-field style over `assertDatabaseHas()` for saved values.
+- For deletion or record counts, use the project's appropriate absence, soft-delete, or count assertion. Ask the user when the intended lookup, expected field values, or deletion behavior is unclear.
+- Put a blank line between model lookup and assertions, and between separate assertions.
+- Where the project supplies it, use `assertMiddlewareIsApplied()` to check middleware registration. For built-in middleware, a wiring assertion can replace repeated guest redirects or role checks wholly owned by that middleware. Keep HTTP coverage for application-specific authorization, tenant isolation, and distinct failure modes.
+- Prefer the installed Laravel APIs over hand-written parsing and plumbing. For example, use `Uri` query access instead of manually splitting reset links when the installed version supports it.
+- Prefer real application implementations. Fake only framework effects outside the behavior under test; mock external dependencies or a specifically agreed delegation seam.
 
-**Feature tests** - HTTP requests, middleware, controllers
-**Unit tests** - Business logic, models, services, jobs
-
-Use `php artisan make:test <name>` for feature tests, `--unit` for unit tests.
-
-## Running Tests
-
-```bash
-
-# All tests
-
-php artisan test
-
-# Specific file
-
-php artisan test tests/Feature/Http/Controllers/TokenControllerTest.php
-
-# Filter by test name (recommended after changes)
-
-php artisan test --filter=testName
-```
-
-Never run `pint` or `rector` as part of workflow.
-
-## Factory Patterns
-
-**Use `$this->faker` in factories** (not `fake()`):
+Example after creating a user through the agreed interface:
 
 ```php
-// In TokenFactory.php
-'code' => $this->faker->unique->regexify('[A-Z0-9]{6}'),
-'email' => $this->faker->unique()->safeEmail(),
+$user = User::where('email', 'alice@example.com')->firstOrFail();
+
+$this->assertSame('Alice', $user->name);
+
+$this->assertSame('alice@example.com', $user->email);
 ```
 
-**Factory states** (heavily used):
+## Enum presentation
 
-```php
-// Available states
-Token::factory()->allocated()->create()
-Token::factory()->underWay()->create()
-Token::factory()->completed()->create()
-Token::factory()->unique()->create()
-Token::factory()->adminGenerated()->create()
+- Exercise every case of a user-facing enum through its label method, including translated output. Derive cases from `cases()` or check that an explicit label dataset covers all declared cases so additions cannot silently escape coverage.
+- At an agreed UI seam, assert readable labels and the missing-value fallback. Keep persistence assertions separate so a display default does not silently replace stored `null` values.
 
-// Chaining
-Token::factory()
-    ->completed()
-    ->for(User::factory(), 'buyer')
-    ->create(['code' => 'ABC123'])
-```
+## Validation ownership
 
-States defined in `database/factories/TokenFactory.php`:
-- `allocated()` - token assigned to user
-- `underWay()` - questionnaire started
-- `completed()` - questionnaire finished
-- `unique()` - custom name set
-- `adminGenerated()` - source is admin
-- `adminGeneratedCustom()` - admin + custom name
+- Controller tests assert the bound Form Request class using the project's assertion helper when available. Form Request unit tests own the validation rules and valid/invalid input cases.
+- Keep controller validation cases only when they prove distinct HTTP behavior, such as preserving selected members after an error. Repeat the rule matrix only in the request tests.
+- When consolidating tests, preserve distinct regression coverage and scenario-specific setup; a locale change may be what proves a notification keeps the selected language.
 
-## Custom Assertions
+## Framework fakes
 
-**Form Request Testing:**
+Use these examples only when the effect is outside the behavior under test. Confirm the helpers against the installed Laravel version and follow nearby tests.
 
-```php
-use Jcergolj\FormRequestAssertions\TestableFormRequest;
+- **Outbound HTTP:** use `Http::fake()` for the expected endpoint and `Http::preventStrayRequests()` to keep unmatched requests off the network. Run the application's real HTTP wrapper. Assert payloads with `Http::assertSent()` and a typed `Request` callback; use `assertSentCount()` for required counts. Inspect `Http::recorded()` only when the named assertions cannot express the check.
+- **Mail:** use `Mail::fake()` when testing that the action sends or queues mail. Assert the intended mail, recipient, and relevant payload.
+- **Queue or event dispatch:** use selective `Queue::fake([RelatedJob::class])` or `Event::fake([RelatedEvent::class])` for effects outside the test. Keep the job or listener being tested real.
 
-#[Test]
-public function method_has_store_token_request(): void
-{
-    $this->actingAs(create_admin())
-        ->post(route('admin.tokens.store'));
+Dispatch and delivery counts are valid assertions when the required behavior specifies the count, rather than an incidental internal call.
 
-    $this->assertContainsFormRequest(StoreTokenRequest::class);
-}
-```
+## Queues, mail, and events
 
-**Middleware Testing:**
+Select fakes for the seam under test. Faking an event whose listener you need to exercise hides the behavior; faking the job being tested prevents its execution.
 
-```php
-#[Test]
-public function admin_middleware_is_applied(): void
-{
-    $response = $this->get(route('admin.tokens.create'));
-    $response->assertMiddlewareIsApplied(Admin::class);
-}
-```
+- Before the action, use `Queue::assertNothingPushed()`, `Mail::assertNothingOutgoing()`, or `Event::assertNotDispatched()` when proving no prior effect matters.
+- To test that a caller dispatches a job, use `Queue::fake([ExpectedJob::class])` and `Queue::assertPushed()` with a closure that checks properties using `assertSame()` / `assertTrue()` and returns `true`. Compare models using `$job->model->is($expected)`.
+- For queued mail, use `Mail::assertQueued()`; check `hasTo()`, custom properties such as `emailBody` and `emailSubject`, and return `true` from the assertion closure.
+- For events, check `Event::assertDispatchedTimes(EventClass::class, 1)` and inspect the event with `Event::assertDispatched()` where the scenario requires exact count and payload.
+- Listener tests use typed fixtures in `setUp()`, verify registration with `Event::assertListening()` when that is the agreed seam, and assert the listener's observable effects.
+- To test a job's execution, follow nearby job tests: use `Job::dispatch()` with the project's synchronous test queue, keep that job real, and fake downstream jobs selectively. Verify the queue configuration before assuming dispatch executes immediately; `dispatchSync()` remains valid when immediate execution is explicitly needed.
+- Let Laravel's queue handle job serialization and execution. A manual `serialize()` / `unserialize()` round trip is reserved for a serialization-specific regression, not a substitute for dispatch. Test signed-in and guest behavior as separate cases rather than pretending a direct `handle()` call is a background worker.
+- Use the project's time-travel helpers for time-dependent behavior and restore time after the scenario.
 
-**Model Assertions:**
+## Hotreload middleware gotcha
 
-```php
-use Jcergolj\AdditionalTestAssertionsForLaravel\Traits\HasModelAssertions;
+When installed, `hotwired-laravel/hotreload` can convert View responses to HTML strings, breaking `assertViewHas()`, `assertViewIs()`, and `viewData()`. For tests needing those assertions, disable its actual middleware class in the project's test setup.
 
-#[Test]
-public function cast_status_as_enum(): void
-{
-    $token = new Token;
-    $this->assertSame(
-        TokenStatusesEnum::class,
-        $token->getCasts()['status']
-    );
-}
-```
+## Verification
 
-**Turbo Testing:**
+Run the targeted test through the project's configured runner on each TDD cycle, then the relevant existing tests. State what ran, what passed, and any unresolved failures. Keep existing tests enabled; removing coverage requires explicit user agreement.
 
-```php
-use HotwiredLaravel\TurboLaravel\Testing\InteractsWithTurbo;
-
-$response->assertTurboStream();
-```
-
-## Test Helpers
-
-Custom helper in `tests/Utilities/functions.php`:
-
-```php
-create_admin()  // Returns admin User instance
-```
-
-Usage:
-```php
-$this->actingAs(create_admin())->post(route('admin.tokens.store'), [...])
-```
-
-## Common Patterns
-
-**Feature Test Structure:**
-
-```php
-#[Test]
-public function admin_can_generate_tokens(): void
-{
-    $response = $this->actingAs(create_admin())
-        ->from(route('admin.tokens.create'))
-        ->post(route('admin.tokens.store'), [
-            'number' => 3,
-            'report_type' => ReportTypesEnum::Main->value,
-            'language' => LanguagesEnum::English->value,
-        ]);
-
-    $response->assertFound()
-        ->assertSessionHas('flash')
-        ->assertRedirect(route('tokens.index'));
-
-    $this->assertCount(3, Token::all());
-}
-```
-
-**Unit Test with Mocking:**
-
-```php
-#[Test]
-public function generate_tokens_with_unique_codes(): void
-{
-    $generator = $this->mock(RandomTokenCodeGenerator::class);
-    $generator->shouldReceive('generate')
-        ->twice()
-        ->andReturn('ABCDEFG', 'BCDEFGH');
-
-    Token::generate(['number' => 2, ...]);
-
-    $this->assertCount(2, Token::get());
-    $this->assertDatabaseHas('tokens', ['code' => 'ABCDEFG']);
-}
-```
-
-**Faking Services:**
-
-```php
-Notification::fake()
-Queue::fake()
-Mail::fake()
-Event::fake()
-
-// Later assertions
-Notification::assertSentTo($user, MyCustomWelcomeNotification::class);
-Event::assertDispatched(QuestionnaireCompleted::class);
-
-Queue::assertPushed(function (SendEmailJob $job) use ($user) {
-    $this->assertTrue($job->user->is($user));
-
-    return true;
-});
-
-Mail::assertQueued(TokenAllocated::class, function ($mail) use ($user) {
-    $this->assertTrue($mail->hasTo($user->email));
-
-    $this->assertSame('expected body', $mail->emailBody);
-
-    $this->assertSame('expected subject', $mail->emailSubject);
-
-    return true;
-});
-```
-
-**Job Testing:**
-
-```php
-protected function setUp(): void
-{
-    parent::setUp();
-    $this->token = Token::factory()->underWay()->create(['code' => 'ABC123']);
-    Event::fake();
-}
-
-#[Test]
-public function mark_test_as_completed(): void
-{
-    QuestionnaireCompletionJob::dispatch($this->payload);
-
-    $this->token = $this->token->fresh();
-    $this->assertSame(TokenStatusesEnum::Completed, $this->token->status);
-}
-```
-
-## Modern PHPUnit Attributes
-
-Uses PHP 8 attributes (not docblocks):
-
-```php
-#[Test]  // Marks test method
-public function it_does_something(): void { }
-
-#[CoversClass(Token::class)]  // Specifies class coverage
-#[CoversMethod(Token::class, 'generate')]  // Specifies method coverage
-class TokenTest extends TestCase { }
-```
-
-## Time Travel
-
-```php
-$this->travel(1)->hour();
-$timeInThePast = Carbon::now();
-$this->travelBack();
-
-$this->freezeSecond();  // Lock time for test
-```
-
-## Key Reminders
-
-- **Never delete tests** without permission
-- Use factories with states for test data
-- `$this->faker` in factories, not `fake()`
-- Run minimal tests with `--filter`
-- Fake notifications/queues/events in feature tests
-- Use `fresh()` to re-fetch models after updates
+Formatting-tool policy lives in [formatting.md](formatting.md).
 
 === foundation rules ===
 
 # Laravel Boost Guidelines
 
-The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.
-
 ## Foundational Context
 
-This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
+This application is a Laravel application running on PHP 8.5. Always use the APIs that match the installed major version of each package — do not assume a version.
 
-- php - 8.5
-- laravel/fortify (FORTIFY) - v1
-- laravel/framework (LARAVEL) - v13
-- laravel/horizon (HORIZON) - v5
-- laravel/prompts (PROMPTS) - v0
-- larastan/larastan (LARASTAN) - v3
-- laravel/boost (BOOST) - v2
-- laravel/mcp (MCP) - v0
-- laravel/pail (PAIL) - v1
-- laravel/pint (PINT) - v1
-- laravel/sail (SAIL) - v1
-- phpunit/phpunit (PHPUNIT) - v12
-- rector/rector (RECTOR) - v2
+Before relying on a package's API, confirm its installed version:
+- PHP packages: run `composer show --direct` to list direct dependencies with versions, or `composer show <vendor/package>` for a single package.
+- JS packages: check `package.json` for the installed versions.
 
 ## Skills Activation
 
-This project has domain-specific skills available. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
-
-- `laravel-best-practices` — Apply this skill whenever writing, reviewing, or refactoring Laravel PHP code. This includes creating or modifying controllers, models, migrations, form requests, policies, jobs, scheduled commands, service classes, and Eloquent queries. Triggers for N+1 and query performance issues, caching strategies, authorization and security patterns, validation, error handling, queue and job configuration, route definitions, and architectural decisions. Also use for Laravel code reviews and refactoring existing Laravel code to follow best practices. Covers any task involving Laravel backend PHP code patterns.
-- `configuring-horizon` — Use this skill whenever the user mentions Horizon by name in a Laravel context. Covers the full Horizon lifecycle: installing Horizon (horizon:install, Sail setup), configuring config/horizon.php (supervisor blocks, queue assignments, balancing strategies, minProcesses/maxProcesses), fixing the dashboard (authorization via Gate::define viewHorizon, blank metrics, horizon:snapshot scheduling), and troubleshooting production issues (worker crashes, timeout chain ordering, LongWaitDetected notifications, waits config). Also covers job tagging and silencing. Do not use for generic Laravel queues without Horizon, SQS or database drivers, standalone Redis setup, Linux supervisord, Telescope, or job batching.
-- `developing-with-turbo-basics` — Basics of developing with Turbo Laravel. Activates when starting a new Turbo Laravel project; using dom_id, dom_class, turbo_stream(), or turbo_stream_view() helpers; working with Blade components like x-turbo::frame, x-turbo::stream, x-turbo::stream-from, or x-turbo::refreshes-with; using @domid, @domclass, @channel, or @turbonative directives; checking wantsTurboStream(), wasFromTurboFrame(), or wasFromHotwireNative() request macros; or when the user mentions Hotwire, Turbo, HTML over the wire, or partial page updates.
-- `developing-with-turbo-drive` — Develops with Turbo Drive for SPA-like navigation. Activates when configuring page morphing with x-turbo::refreshes-with; working with data-turbo, data-turbo-track, data-turbo-permanent, or data-turbo-preload attributes; managing cache control with x-turbo::exempts-page-from-cache, x-turbo::exempts-page-from-preview, or x-turbo::page-requires-reload; enabling view transitions with x-turbo::page-view-transition; handling form redirects with TurboMiddleware; customizing the progress bar; or when the user mentions Turbo Drive, navigation, page morphing, prefetching, or asset tracking.
-- `developing-with-turbo-frames` — Develops with Turbo Frames for scoped navigation and lazy loading. Activates when using the x-turbo::frame Blade component or turbo-frame HTML element; working with data-turbo-frame targeting, frame lazy loading via src attribute, or data-turbo-action for URL updates; detecting frame requests with wasFromTurboFrame(); using frame morphing with refresh="morph"; or when the user mentions Turbo Frame, turbo frame, scoped navigation, inline editing, lazy loading frames, or breaking out of a frame with _top.
-- `developing-with-turbo-streams` — Develops with Turbo Streams for partial page updates and real-time broadcasting. Activates when using turbo_stream() or turbo_stream_view() helpers; working with stream actions like append, prepend, replace, update, remove, before, after, or refresh; using the Broadcasts trait, broadcastAppend, broadcastPrepend, broadcastReplace, broadcastRemove, or broadcastRefresh methods; listening with x-turbo::stream-from; using the TurboStream facade for handmade broadcasts; combining multiple streams; or when the user mentions Turbo Stream, broadcasting, real-time updates, WebSocket streams, or partial page changes.
-- `developing-with-turbo-tests` — Tests Turbo Laravel features in PHPUnit or Pest. Activates when using the InteractsWithTurbo trait; simulating requests with $this->turbo(), $this->fromTurboFrame(), or $this->hotwireNative(); asserting responses with assertTurboStream(), assertNotTurboStream(), assertRedirectRecede(), assertRedirectResume(), or assertRedirectRefresh(); faking broadcasts with TurboStream::fake(), assertBroadcasted(), assertNothingWasBroadcasted(), or assertBroadcastedTimes(); writing feature tests for Turbo Stream responses; or when the user mentions testing Turbo, testing broadcasts, or Turbo test assertions.
-- `fortify-development` — ACTIVATE when the user works on authentication in Laravel. This includes login, registration, password reset, email verification, two-factor authentication (2FA/TOTP/QR codes/recovery codes), profile updates, password confirmation, or any auth-related routes and controllers. Activate when the user mentions Fortify, auth, authentication, login, register, signup, forgot password, verify email, 2FA, or references app/Actions/Fortify/, CreateNewUser, UpdateUserProfileInformation, FortifyServiceProvider, config/fortify.php, or auth guards. Fortify is the frontend-agnostic authentication backend for Laravel that registers all auth routes and controllers. Also activate when building SPA or headless authentication, customizing login redirects, overriding response contracts like LoginResponse, or configuring login throttling. Do NOT activate for Laravel Passport (OAuth2 API tokens), Socialite (OAuth social login), or non-auth Laravel features.
+This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
 ## Conventions
 
@@ -2450,15 +1236,11 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 ## Frontend Bundling
 
-- If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+- If a frontend change doesn't show in the UI or you get a "Unable to locate file in Vite manifest" error, run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
 
 ## Documentation Files
 
 - You must only create documentation files if explicitly requested by the user.
-
-## Replies
-
-- Be concise in your explanations - focus on what's important rather than explaining obvious details.
 
 === boost rules ===
 
@@ -2474,7 +1256,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 ## Searching Documentation (IMPORTANT)
 
-- Always use `search-docs` before making code changes. Do not skip this step. It returns version-specific docs based on installed packages automatically.
+- Use `search-docs` before changes that depend on Laravel ecosystem APIs, behavior, configuration, or version-specific syntax. Skip it for copy-only edits and other changes where package documentation is irrelevant. Reuse sufficient results already in context instead of searching again.
 - Pass a `packages` array to scope results when you know which packages are relevant.
 - Use multiple broad, topic-based queries: `['rate limiting', 'routing rate limiting', 'routing']`. Expect the most relevant results first.
 - Do not add package names to queries because package info is already shared. Use `test resource table`, not `filament 4 test resource table`.
@@ -2486,12 +1268,15 @@ This project has domain-specific skills available. You MUST activate the relevan
 3. Combine words and phrases for mixed queries: `middleware "rate limit"`.
 4. Use multiple queries for OR logic: `queries=["authentication", "middleware"]`.
 
+## Project Rules
+
+- This project contains committed, area-grouped rules in `.ai/rules` when that directory exists, including path-scoped framework guidelines under `.ai/rules/boost`. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule. If `.ai/rules` does not exist, continue without it.
+
 ## Artisan
 
 - Run Artisan commands directly via the command line (e.g., `php artisan route:list`). Use `php artisan list` to discover available commands and `php artisan [command] --help` to check parameters.
 - Inspect routes with `php artisan route:list`. Filter with: `--method=GET`, `--name=users`, `--path=api`, `--except-vendor`, `--only-vendor`.
 - Read configuration values using dot notation: `php artisan config:show app.name`, `php artisan config:show database.default`. Or read config files directly from the `config/` directory.
-- To check environment variables, read the `.env` file directly.
 
 ## Tinker
 
@@ -2510,12 +1295,22 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
 - Use array shape type definitions in PHPDoc blocks.
 
+=== deployments rules ===
+
+# Deployment
+
+- Laravel can be deployed using [Laravel Cloud](https://cloud.laravel.com/), which is the fastest way to deploy and scale production Laravel applications.
+- Activate the `deploying-to-cloud` skill whenever deploying to Laravel Cloud, configuring Cloud environments or resources, using the Cloud CLI, or troubleshooting Cloud deployments.
+
 === tests rules ===
 
 # Test Enforcement
 
-- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+- Add or update tests for behavior and logic changes when a test provides meaningful regression coverage.
+- Pure copy, styling, and layout-only changes do not require new or updated tests.
+- When test coverage applies, run the affected tests and ensure they pass.
+- Test the changed behavior and its important failure modes, but do not add tests beyond them.
+- Read the `testing-best-practices` skill before writing tests.
 
 === laravel/core rules ===
 
@@ -2543,10 +1338,6 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
 - When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
 
-## Vite Error
-
-- If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
-
 === pint/core rules ===
 
 # Laravel Pint Code Formatter
@@ -2558,21 +1349,17 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 # PHPUnit
 
-- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit {name}` to create a new test.
-- If you see a test using "Pest", convert it to PHPUnit.
-- Every time a test has been updated, run that singular test.
-- When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
-- Tests should cover all happy paths, failure paths, and edge cases.
-- You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files; these are core to the application.
+- This project uses PHPUnit. Create tests with `php artisan make:test --phpunit {name}`.
+- Do not include the test suite directory in `{name}`. Use `SomeFeatureTest`, not `Feature/SomeFeatureTest`.
+- Read the `testing-best-practices` skill for guidance on coverage, naming, structure, dependency isolation, and review.
 
 ## Running Tests
 
-- Run the minimal number of tests, using an appropriate filter, before finalizing.
-- To run all tests: `php artisan test --compact`.
-- To run all tests in a file: `php artisan test --compact tests/Feature/ExampleTest.php`.
-- To filter on a particular test name: `php artisan test --compact --filter=testName` (recommended after making a change to a related file).
+- Run the narrowest set of tests that covers the change. Pass a file path or `--filter=testName` to `php artisan test --compact`.
+- Rerun a test after each change to it.
+- Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 
-=== hotwired-laravel/turbo-laravel rules ===
+=== hotwired-laravel/turbo-laravel/core rules ===
 
 ## Turbo Laravel
 
@@ -2589,5 +1376,18 @@ This project has domain-specific skills available. You MUST activate the relevan
 - IMPORTANT: Activate the `developing-with-turbo-frames` skill when dealing with sub-resources or sections of the page that can be updated independently.
 - IMPORTANT: Activate the `developing-with-turbo-streams` skill when you need real-time updates or dynamic content changes.
 - IMPORTANT: Activate the `developing-with-turbo-tests` skill when you need to write tests for Turbo-specific behavior.
+
+=== tonysm/importmap-laravel/core rules ===
+
+## Importmap Laravel
+
+- Importmap Laravel lets you use ESM modules in Laravel without bundling or transpiling — no Webpack, Vite, npm, or yarn needed.
+- **Do NOT use npm, yarn, or any Node.js package manager.** Use the `importmap:pin` Artisan command (or the `bin/importmap` wrapper) to add JavaScript dependencies. All pinned dependencies are downloaded to `resources/js/vendor/` and should be committed to version control.
+- Dependencies are declared in `routes/importmap.php` using `Importmap::pin()` and `Importmap::pinAllFrom()`.
+- Add `<x-importmap::tags />` inside the `<head>` tag of your layout to render the importmap, modulepreload links, and the entrypoint script.
+- JSX (React) and Vue SFCs are NOT supported — they require a compilation step incompatible with importmaps.
+- `process.env` is NOT available. Use `<meta>` tags and `document.head.querySelector('meta[name=...]').content` for JS configuration values.
+- Version comments (e.g., `// @3.8.1`) on pin lines are used by `importmap:outdated` and `importmap:update` — do not remove them.
+- IMPORTANT: When adding, removing, or updating JavaScript dependencies, or configuring the importmap for production, activate the `developing-with-importmap` skill for detailed guidance.
 
 </laravel-boost-guidelines>

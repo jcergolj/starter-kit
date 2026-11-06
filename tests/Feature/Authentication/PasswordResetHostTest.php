@@ -69,6 +69,13 @@ class PasswordResetHostTest extends TestCase
         }
     }
 
+    /** @return \Iterator<string, array{string, string}> */
+    public static function trustedHosts(): \Iterator
+    {
+        yield 'main host' => ['example.com', 'sqlite'];
+        yield 'tenant host' => ['acme.example.com', 'tenant'];
+    }
+
     #[Test]
     #[DataProvider('trustedHosts')]
     public function reset_links_stay_on_the_host_containing_the_account(string $host, string $connection): void
@@ -87,7 +94,17 @@ class PasswordResetHostTest extends TestCase
             $this->assertSame('https', parse_url($url, PHP_URL_SCHEME));
             $this->assertSame($host, parse_url($url, PHP_URL_HOST));
             $this->assertSame(8443, parse_url($url, PHP_URL_PORT));
-            $this->assertSame(route('password.reset', ['token' => $notification->token], false), parse_url($url, PHP_URL_PATH));
+            $this->assertSame(
+                route(
+                    'password.reset',
+                    ['token' => $notification->token],
+                    false,
+                ),
+                parse_url(
+                    $url,
+                    PHP_URL_PATH,
+                ),
+            );
             parse_str(parse_url($url, PHP_URL_QUERY), $query);
             $this->assertSame(['email' => $user->email], $query);
             $this->assertTrue(Password::broker()->tokenExists($user, $notification->token));
@@ -104,11 +121,14 @@ class PasswordResetHostTest extends TestCase
         Mail::assertNothingOutgoing();
     }
 
-    /** @return \Iterator<string, array{string, string}> */
-    public static function trustedHosts(): \Iterator
+    /** @return \Iterator<string, array{string, bool}> */
+    public static function untrustedHosts(): \Iterator
     {
-        yield 'main host' => ['example.com', 'sqlite'];
-        yield 'tenant host' => ['acme.example.com', 'tenant'];
+        yield 'arbitrary host' => ['attacker.example.net', false];
+        yield 'existing tenant on unrelated domain' => ['acme.attacker.example.net', false];
+        yield 'trusted domain with malicious suffix' => ['acme.example.com.attacker.net', false];
+        yield 'nested tenant' => ['nested.acme.example.com', false];
+        yield 'arbitrary host in single database mode' => ['attacker.example.net', true];
     }
 
     #[Test]
@@ -122,7 +142,7 @@ class PasswordResetHostTest extends TestCase
 
         $this->post('https://'.$host.':8443'.route('password.email', [], false), [
             'email' => $user->email,
-        ])->assertStatus(400);
+        ])->assertBadRequest();
 
         Notification::assertNothingSent();
 
@@ -131,15 +151,5 @@ class PasswordResetHostTest extends TestCase
         $this->assertDatabaseCount('password_reset_tokens', 0, 'sqlite');
 
         $this->assertDatabaseCount('password_reset_tokens', 0, 'tenant');
-    }
-
-    /** @return \Iterator<string, array{string, bool}> */
-    public static function untrustedHosts(): \Iterator
-    {
-        yield 'arbitrary host' => ['attacker.example.net', false];
-        yield 'existing tenant on unrelated domain' => ['acme.attacker.example.net', false];
-        yield 'trusted domain with malicious suffix' => ['acme.example.com.attacker.net', false];
-        yield 'nested tenant' => ['nested.acme.example.com', false];
-        yield 'arbitrary host in single database mode' => ['attacker.example.net', true];
     }
 }

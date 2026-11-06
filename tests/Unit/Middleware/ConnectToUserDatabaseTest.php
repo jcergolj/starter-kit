@@ -42,6 +42,7 @@ class ConnectToUserDatabaseTest extends TestCase
         touch($this->databaseRoot.'/application.sqlite');
 
         $tenantDb = new TenantDatabaseService($this->databaseRoot);
+
         $urlBuilder = app(SubdomainUrlBuilder::class);
         $this->middleware = new ConnectToUserDatabase(
             $tenantDb,
@@ -65,6 +66,7 @@ class ConnectToUserDatabaseTest extends TestCase
         Config::set('app.domain', 'example.com');
 
         $request = Request::create('http://example.com/dashboard');
+
         $nextCalled = false;
 
         $response = $this->middleware->handle($request, function ($req) use (&$nextCalled) {
@@ -84,6 +86,7 @@ class ConnectToUserDatabaseTest extends TestCase
         Config::set('app.domain', 'localhost');
 
         $request = Request::create('http://localhost/dashboard');
+
         $nextCalled = false;
 
         $response = $this->middleware->handle($request, function ($req) use (&$nextCalled) {

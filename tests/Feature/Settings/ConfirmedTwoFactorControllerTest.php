@@ -81,6 +81,7 @@ class ConfirmedTwoFactorControllerTest extends TestCase
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
         $secret = decrypt($user->two_factor_secret);
+
         $google2fa = app(Google2FA::class);
         $validCode = $google2fa->getCurrentOtp($secret);
 

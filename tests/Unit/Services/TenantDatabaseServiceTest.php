@@ -124,15 +124,6 @@ class TenantDatabaseServiceTest extends TestCase
         $this->assertSame(['first-tenant', 'second-tenant'], $result);
     }
 
-    #[Test]
-    #[DataProvider('validSubdomainProvider')]
-    public function validate_subdomain_accepts_valid_formats(string $subdomain): void
-    {
-        $this->service->validateSubdomain($subdomain);
-
-        $this->assertTrue(true); // If no exception thrown, test passes
-    }
-
     public static function validSubdomainProvider(): \Iterator
     {
         yield 'lowercase letters' => ['tenant'];
@@ -143,14 +134,12 @@ class TenantDatabaseServiceTest extends TestCase
     }
 
     #[Test]
-    #[DataProvider('invalidSubdomainProvider')]
-    public function validate_subdomain_throws_exception_for_invalid_formats(string $subdomain): void
+    #[DataProvider('validSubdomainProvider')]
+    public function validate_subdomain_accepts_valid_formats(string $subdomain): void
     {
-        $this->expectException(InvalidSubdomainFormat::class);
-
-        $this->expectExceptionMessage("Invalid subdomain format: '{$subdomain}'.");
-
         $this->service->validateSubdomain($subdomain);
+
+        $this->assertTrue(true); // If no exception thrown, test passes
     }
 
     public static function invalidSubdomainProvider(): \Iterator
@@ -165,6 +154,17 @@ class TenantDatabaseServiceTest extends TestCase
         yield 'leading hyphen' => ['-tenant'];
         yield 'trailing hyphen' => ['tenant-'];
         yield 'too long' => [str_repeat('a', 64)];
+    }
+
+    #[Test]
+    #[DataProvider('invalidSubdomainProvider')]
+    public function validate_subdomain_throws_exception_for_invalid_formats(string $subdomain): void
+    {
+        $this->expectException(InvalidSubdomainFormat::class);
+
+        $this->expectExceptionMessage("Invalid subdomain format: '{$subdomain}'.");
+
+        $this->service->validateSubdomain($subdomain);
     }
 
     #[Test]
@@ -199,6 +199,14 @@ class TenantDatabaseServiceTest extends TestCase
         $this->assertTrue($this->service->isTrustedHost(Request::create('http://tenant.example.com')));
     }
 
+    public static function untrustedHostProvider(): \Iterator
+    {
+        yield 'unrelated domain' => ['tenant.example.net'];
+        yield 'nested tenant' => ['nested.tenant.example.com'];
+        yield 'lookalike suffix' => ['tenant-example.com'];
+        yield 'domain suffix confusion' => ['example.com.evil.test'];
+    }
+
     #[Test]
     #[DataProvider('untrustedHostProvider')]
     public function is_trusted_host_rejects_hosts_outside_the_configured_domain(string $host): void
@@ -206,14 +214,6 @@ class TenantDatabaseServiceTest extends TestCase
         Config::set('app.domain', 'example.com');
 
         $this->assertFalse($this->service->isTrustedHost(Request::create("http://{$host}")));
-    }
-
-    public static function untrustedHostProvider(): \Iterator
-    {
-        yield 'unrelated domain' => ['tenant.example.net'];
-        yield 'nested tenant' => ['nested.tenant.example.com'];
-        yield 'lookalike suffix' => ['tenant-example.com'];
-        yield 'domain suffix confusion' => ['example.com.evil.test'];
     }
 
     #[Test]

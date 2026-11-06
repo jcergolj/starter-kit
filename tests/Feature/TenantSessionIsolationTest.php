@@ -29,10 +29,15 @@ class TenantSessionIsolationTest extends TestCase
             'app.domain' => 'example.com',
             'app.single_db_per_app' => false,
             'database.default' => 'sqlite',
-            'database.connections.sqlite.database' => ($this->databaseRoot = sys_get_temp_dir().'/starter-kit-session-tests-'.bin2hex(random_bytes(8))).'/application.sqlite',
+            'database.connections.sqlite.database' => ($this->databaseRoot = sys_get_temp_dir().
+                '/starter-kit-session-tests-'.
+                bin2hex(random_bytes(8))).
+                '/application.sqlite',
             'database.connections.tenant.database' => $this->databaseRoot.'/application-tenant.sqlite',
             'session.driver' => 'file',
-            'session.files' => $this->sessionRoot = sys_get_temp_dir().'/starter-kit-session-tests-'.bin2hex(random_bytes(8)),
+            'session.files' => $this->sessionRoot = sys_get_temp_dir().
+                '/starter-kit-session-tests-'.
+                bin2hex(random_bytes(8)),
         ]);
 
         mkdir($this->databaseRoot, 0755, true);
@@ -144,6 +149,7 @@ class TenantSessionIsolationTest extends TestCase
         $response->assertRedirect(route('dashboard'));
 
         $sessionCookie = $response->getCookie(config('session.cookie'));
+
         $rememberCookie = $response->getCookie(app('auth')->guard()->getRecallerName());
 
         $this->assertInstanceOf(Cookie::class, $sessionCookie);

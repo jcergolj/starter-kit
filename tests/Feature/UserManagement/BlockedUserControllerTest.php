@@ -28,6 +28,7 @@ class BlockedUserControllerTest extends TestCase
     public function store_has_auth_verified_and_admin_middleware(): void
     {
         $admin = User::factory()->admin()->create();
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($admin)->post(route('blocked-users.store', $user));
@@ -43,6 +44,7 @@ class BlockedUserControllerTest extends TestCase
     public function destroy_has_auth_verified_and_admin_middleware(): void
     {
         $admin = User::factory()->admin()->create();
+
         $user = User::factory()->blocked()->create();
 
         $response = $this->actingAs($admin)->delete(route('blocked-users.destroy', $user));
@@ -58,6 +60,7 @@ class BlockedUserControllerTest extends TestCase
     public function admin_can_block_user(): void
     {
         $admin = User::factory()->admin()->create();
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($admin)->post(route('blocked-users.store', $user));
@@ -73,6 +76,7 @@ class BlockedUserControllerTest extends TestCase
     public function admin_can_unblock_user(): void
     {
         $admin = User::factory()->admin()->create();
+
         $user = User::factory()->blocked()->create();
 
         $response = $this->actingAs($admin)->delete(route('blocked-users.destroy', $user));
@@ -108,6 +112,7 @@ class BlockedUserControllerTest extends TestCase
     public function superadmin_can_block_a_regular_user(): void
     {
         $superadmin = User::factory()->superadmin()->create();
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($superadmin)->post(route('blocked-users.store', $user));
@@ -121,6 +126,7 @@ class BlockedUserControllerTest extends TestCase
     public function superadmin_cannot_block_an_administrator(): void
     {
         $superadmin = User::factory()->superadmin()->create();
+
         $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($superadmin)->post(route('blocked-users.store', $admin));
@@ -132,6 +138,7 @@ class BlockedUserControllerTest extends TestCase
     public function non_admin_gets_403(): void
     {
         $user = User::factory()->create();
+
         $other = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('blocked-users.store', $other));

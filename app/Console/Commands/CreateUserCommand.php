@@ -34,6 +34,7 @@ class CreateUserCommand extends Command
     public function handle(TenantDatabaseService $tenantDatabaseService): int
     {
         $newTenantSubdomain = null;
+
         $tenantSubdomain = null;
 
         $subdomains = $tenantDatabaseService->getTenantSubdomains();

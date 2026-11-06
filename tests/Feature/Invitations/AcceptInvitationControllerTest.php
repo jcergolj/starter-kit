@@ -39,7 +39,14 @@ class AcceptInvitationControllerTest extends TestCase
 
         $response->assertOk()
             ->assertViewIs('invitations::invitations.accept')
-            ->assertViewHasForm('id="accept-invitation-form"', 'POST', route('accept.invitations.store', $invitation->token))
+            ->assertViewHasForm(
+                'id="accept-invitation-form"',
+                'POST',
+                route(
+                    'accept.invitations.store',
+                    $invitation->token,
+                ),
+            )
             ->assertFormHasCSRF()
             ->assertFormHasEmailInput('email')
             ->assertFormHasTextInput('name')
@@ -307,6 +314,7 @@ class AcceptInvitationControllerTest extends TestCase
     public function store_rolls_back_invitation_claim_when_user_creation_fails(): void
     {
         $invitation = Invitation::factory()->create();
+
         $dispatcher = User::getEventDispatcher();
 
         User::creating(function (): void {
@@ -335,6 +343,7 @@ class AcceptInvitationControllerTest extends TestCase
     public function store_replay_does_not_create_a_second_user(): void
     {
         $invitation = Invitation::factory()->create();
+
         $payload = [
             'name' => 'Jane Doe',
             'username' => 'janedoe',

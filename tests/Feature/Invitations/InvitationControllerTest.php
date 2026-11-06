@@ -195,6 +195,7 @@ class InvitationControllerTest extends TestCase
     {
         Mail::fake();
         $admin = User::factory()->admin()->create();
+
         $invitation = Invitation::factory()->expired()->create(['email' => 'expired@example.com']);
         $oldToken = $invitation->token;
 
@@ -220,6 +221,7 @@ class InvitationControllerTest extends TestCase
     {
         Mail::fake();
         $admin = User::factory()->admin()->create();
+
         $invitation = Invitation::factory()->accepted()->create(['email' => 'deleted@example.com']);
 
         $response = $this->actingAs($admin)->post(route('invitations.store'), [
@@ -237,9 +239,11 @@ class InvitationControllerTest extends TestCase
     public function pending_invitation_list_is_paginated_in_stable_order(): void
     {
         $admin = User::factory()->admin()->create();
+
         $invitations = Invitation::factory()->count(16)->create();
 
         $firstPage = $this->actingAs($admin)->get(route('invitations.create'));
+
         $secondPage = $this->actingAs($admin)->get(route('invitations.create', ['page' => 2]));
 
         $firstPage->assertOk()
@@ -268,6 +272,7 @@ class InvitationControllerTest extends TestCase
     public function admin_can_revoke_pending_invitation(): void
     {
         $admin = User::factory()->admin()->create();
+
         $invitation = Invitation::factory()->create();
 
         $response = $this->actingAs($admin)->delete(route('invitations.destroy', $invitation));
@@ -281,6 +286,7 @@ class InvitationControllerTest extends TestCase
     public function revoked_invitation_is_deleted_from_db(): void
     {
         $admin = User::factory()->admin()->create();
+
         $invitation = Invitation::factory()->create();
 
         $this->actingAs($admin)->delete(route('invitations.destroy', $invitation));

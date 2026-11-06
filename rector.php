@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 use Jcergolj\RectorForLaravel\CustomRules\AddBlankLineAfterPhpUnitAssertionRector;
 use Jcergolj\RectorForLaravel\CustomRules\ArrowFunctionToClosureRector;
+use Jcergolj\RectorForLaravel\CustomRules\BlankLineBetweenUnrelatedAssignmentsRector;
+use Jcergolj\RectorForLaravel\CustomRules\DataProviderBeforeTestRector;
+use Jcergolj\RectorForLaravel\CustomRules\MiddlewareTestsFirstRector;
 use Jcergolj\RectorForLaravel\CustomRules\ModelQueryToDirectStaticCallRector;
 use Jcergolj\RectorForLaravel\CustomRules\PhpUnitTestDocblockToAttributeRector;
 use Jcergolj\RectorForLaravel\CustomRules\RemoveFillableFromUnguardedModelsRector;
 use Jcergolj\RectorForLaravel\CustomRules\RemoveMigrationDownMethodRector;
+use Jcergolj\RectorForLaravel\CustomRules\WrapLongBooleanConditionsRector;
+use Jcergolj\RectorForLaravel\CustomRules\WrapLongChainsRector;
+use Jcergolj\RectorForLaravel\CustomRules\WrapLongConcatenationsRector;
+use Jcergolj\RectorForLaravel\CustomRules\WrapLongListsRector;
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
 use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
@@ -94,11 +101,18 @@ return RectorConfig::configure()
         UseComponentPropertyWithinCommandsRector::class,
         ValidationRuleArrayStringValueToArrayRector::class,
         ArrowFunctionToClosureRector::class,
+        BlankLineBetweenUnrelatedAssignmentsRector::class,
+        DataProviderBeforeTestRector::class,
+        MiddlewareTestsFirstRector::class,
         ModelCastsPropertyToCastsMethodRector::class,
         ModelQueryToDirectStaticCallRector::class,
         PhpUnitTestDocblockToAttributeRector::class,
         RemoveFillableFromUnguardedModelsRector::class,
         RemoveMigrationDownMethodRector::class,
+        WrapLongBooleanConditionsRector::class,
+        WrapLongChainsRector::class,
+        WrapLongConcatenationsRector::class,
+        WrapLongListsRector::class,
     ])
     ->withCache(
         cacheClass: FileCacheStorage::class,

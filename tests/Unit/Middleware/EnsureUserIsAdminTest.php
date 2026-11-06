@@ -23,12 +23,14 @@ class EnsureUserIsAdminTest extends TestCase
     public function admin_passes_through(): void
     {
         $admin = User::factory()->admin()->create();
+
         $request = Request::create('/invitations/create');
         $request->setUserResolver(function () use ($admin) {
             return $admin;
         });
 
         $nextCalled = false;
+
         $middleware = new EnsureUserIsAdmin;
         $response = $middleware->handle($request, function () use (&$nextCalled) {
             $nextCalled = true;
@@ -45,12 +47,14 @@ class EnsureUserIsAdminTest extends TestCase
     public function superadmin_passes_through(): void
     {
         $superadmin = User::factory()->superadmin()->create();
+
         $request = Request::create('/invitations/create');
         $request->setUserResolver(function () use ($superadmin) {
             return $superadmin;
         });
 
         $nextCalled = false;
+
         $middleware = new EnsureUserIsAdmin;
         $response = $middleware->handle($request, function () use (&$nextCalled) {
             $nextCalled = true;
@@ -67,6 +71,7 @@ class EnsureUserIsAdminTest extends TestCase
     public function non_admin_gets_403(): void
     {
         $nonAdmin = User::factory()->create();
+
         $request = Request::create('/invitations/create');
         $request->setUserResolver(function () use ($nonAdmin) {
             return $nonAdmin;

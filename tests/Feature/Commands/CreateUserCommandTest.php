@@ -376,7 +376,10 @@ class CreateUserCommandTest extends TestCase
 
         Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($invitation) {
             return $mail->invitation->email === 'tenant-invite@example.com'
-                && str_contains($mail->render(), "https://invite-tenant.starter-kit.test:8443/invite/{$invitation->token}");
+                && str_contains(
+                    $mail->render(),
+                    "https://invite-tenant.starter-kit.test:8443/invite/{$invitation->token}",
+                );
         });
     }
 
@@ -413,7 +416,10 @@ class CreateUserCommandTest extends TestCase
         $this->assertNotNull($invitation);
 
         Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($invitation) {
-            return str_contains($mail->render(), "https://existing-invite-tenant.starter-kit.test:8443/invite/{$invitation->token}");
+            return str_contains(
+                $mail->render(),
+                "https://existing-invite-tenant.starter-kit.test:8443/invite/{$invitation->token}",
+            );
         });
     }
 

@@ -25,6 +25,7 @@ final readonly class TenantDatabaseService
         private ?string $templatePath = null,
     ) {
         $this->applicationDefaultConnection = (string) config('database.default');
+
         $this->applicationTenantDatabase = (string) config('database.connections.tenant.database');
     }
 
@@ -111,9 +112,14 @@ final readonly class TenantDatabaseService
 
         $databasePath = $this->getDatabasePath($subdomain);
         $databaseDirectory = dirname($databasePath);
+
         $templatePath = $this->templatePath ?? database_path('template.sqlite');
 
-        throw_if(! is_dir($databaseDirectory) || ! is_writable($databaseDirectory), TenantDatabaseProvisioningFailed::class, 'Tenant database directory is not writable.');
+        throw_if(
+            ! is_dir($databaseDirectory) || ! is_writable($databaseDirectory),
+            TenantDatabaseProvisioningFailed::class,
+            'Tenant database directory is not writable.',
+        );
 
         throw_if(! is_file($templatePath) || ! is_readable($templatePath), TemplateDatabaseNotFound::class);
 
@@ -124,9 +130,23 @@ final readonly class TenantDatabaseService
 
             $temporaryPath = @tempnam($databaseDirectory, '.tenant-database-');
 
-            throw_if($temporaryPath === false || ! @copy($templatePath, $temporaryPath), TenantDatabaseProvisioningFailed::class, 'Unable to copy the tenant database template.');
+            throw_if(
+                $temporaryPath === false || ! @copy(
+                    $templatePath,
+                    $temporaryPath,
+                ),
+                TenantDatabaseProvisioningFailed::class,
+                'Unable to copy the tenant database template.',
+            );
 
-            throw_unless(@rename($temporaryPath, $databasePath), TenantDatabaseProvisioningFailed::class, 'Unable to publish the tenant database.');
+            throw_unless(
+                @rename(
+                    $temporaryPath,
+                    $databasePath,
+                ),
+                TenantDatabaseProvisioningFailed::class,
+                'Unable to publish the tenant database.',
+            );
 
             $temporaryPath = null;
         } finally {
@@ -149,6 +169,7 @@ final readonly class TenantDatabaseService
     public function isTrustedHost(Request $request): bool
     {
         $host = $request->getHost();
+
         $domain = (string) Config::get('app.domain');
 
         if ($host === $domain) {
