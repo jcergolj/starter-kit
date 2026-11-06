@@ -153,15 +153,16 @@ class BackupCommandTest extends TestCase
     }
 
     #[Test]
-    public function it_restores_multiple_tenants_while_writes_are_open(): void
+    public function it_restores_distinct_main_and_tenant_records_while_writes_are_open(): void
     {
         $writers = [];
 
-        foreach (['acme', 'beta'] as $tenant) {
+        foreach (['acme' => 'acme-record', 'beta' => 'beta-record'] as $tenant => $value) {
             $writer = new PDO('sqlite:'.database_path('db/'.$tenant.'.sqlite'));
             $writer->exec('PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0');
             $writer->exec('CREATE TABLE records (id INTEGER PRIMARY KEY, value TEXT)');
-            $writer->exec("INSERT INTO records VALUES (1, 'committed-record')");
+            $statement = $writer->prepare('INSERT INTO records VALUES (1, ?)');
+            $statement->execute([$value]);
             $writer->beginTransaction();
             $writer->exec("UPDATE records SET value = 'uncommitted-record' WHERE id = 1");
             $writers[] = $writer;
@@ -188,15 +189,19 @@ class BackupCommandTest extends TestCase
 
             $this->assertTrue($archive->extractTo($this->fixtureDirectory.'/restored'));
 
-            foreach (['acme', 'beta'] as $tenant) {
+            foreach (['acme' => 'acme-record', 'beta' => 'beta-record'] as $tenant => $expectedValue) {
                 $this->assertNotFalse($archive->locateName('database/db/'.$tenant.'.sqlite'));
 
-                $restored = new PDO('sqlite:'.$this->fixtureDirectory.'/restored/database/db/'.$tenant.'.sqlite');
+                $restored = new PDO('sqlite:file:'.
+                    $this->fixtureDirectory.
+                    '/restored/database/db/'.
+                    $tenant.
+                    '.sqlite?mode=ro');
 
                 $this->assertSame('ok', $restored->query('PRAGMA integrity_check')->fetchColumn());
 
                 $this->assertSame(
-                    'committed-record',
+                    $expectedValue,
                     $restored->query('SELECT value FROM records WHERE id = 1')
                         ->fetchColumn(),
                 );
