@@ -17,6 +17,30 @@ class ProfileControllerTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
+    public function changing_email_requires_the_current_password(): void
+    {
+        $user = User::factory()->create(['email' => 'old@example.com']);
+
+        $response = $this->actingAs($user)
+            ->from(route('settings.profile.edit'))
+            ->put(route('settings.profile.update'), [
+                'name' => 'Changed Name',
+                'email' => 'new@example.com',
+            ]);
+
+        $response->assertRedirect(route('settings.profile.edit'))
+            ->assertSessionHasErrors(['current_password']);
+
+        $savedUser = $user->fresh();
+
+        $this->assertSame('old@example.com', $savedUser->email);
+
+        $this->assertSame($user->name, $savedUser->name);
+
+        $this->assertNotNull($savedUser->email_verified_at);
+    }
+
+    #[Test]
     public function edit_requires_authentication(): void
     {
         $response = $this->get(route('settings.profile.edit'));
@@ -39,6 +63,7 @@ class ProfileControllerTest extends TestCase
             ->patch(route('settings.profile.update'), [
                 'name' => 'New Name',
                 'email' => 'new@example.com',
+                'current_password' => 'password',
             ]);
 
         $response->assertRedirect();
@@ -65,6 +90,7 @@ class ProfileControllerTest extends TestCase
             ->patch(route('settings.profile.update'), [
                 'name' => 'Test Name',
                 'email' => 'new@example.com',
+                'current_password' => 'password',
             ]);
 
         $response->assertRedirect();
@@ -167,6 +193,7 @@ class ProfileControllerTest extends TestCase
             ->assertFormHasCSRF()
             ->assertFormHasTextInput('name')
             ->assertFormHasEmailInput('email')
+            ->assertFormHasPasswordInput('current_password')
             ->assertFormHasSubmitButton();
     }
 
@@ -180,6 +207,7 @@ class ProfileControllerTest extends TestCase
         $this->put(route('settings.profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'current_password' => 'password',
         ])->assertValid();
 
         $user->refresh();
@@ -200,6 +228,7 @@ class ProfileControllerTest extends TestCase
             ->put(route('settings.profile.update'), [
                 'name' => 'Test User',
                 'email' => '  Test@Example.COM ',
+                'current_password' => 'password',
             ])
             ->assertValid();
 

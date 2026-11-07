@@ -21,6 +21,13 @@ class UpdateProfileRequest extends AppFormRequest
     public function rules(): array
     {
         return [
+            'current_password' => [
+                Rule::excludeIf($this->input('email') === $this->user()->email),
+                'bail',
+                'required',
+                'string',
+                'current_password',
+            ],
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',

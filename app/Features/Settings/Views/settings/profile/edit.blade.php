@@ -65,6 +65,23 @@
                     @endif
                 </div>
 
+                <div>
+                    <x-form.label for="current_password">{{ __('Current password') }}</x-form.label>
+
+                    <x-form.password-input
+                        id="current_password"
+                        name="current_password"
+                        :data-error="$errors->has('current_password')"
+                        autocomplete="current-password"
+                        :placeholder="__('Current password')"
+                        class="mt-2"
+                    />
+
+                    <x-text class="mt-2">{{ __('Required only when changing your email address.') }}</x-text>
+
+                    <x-form.error for="current_password" />
+                </div>
+
                 <div class="flex items-center gap-4">
                     <div class="flex items-center justify-end">
                         <x-form.button.primary

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Features\Settings\Controllers;
 
 use App\Features\Settings\Requests\DeleteProfileRequest;
 use App\Features\Settings\Requests\UpdateProfileRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -20,11 +23,11 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(UpdateProfileRequest $request)
+    public function update(UpdateProfileRequest $request): RedirectResponse
     {
         $user = $request->user();
 
-        $user->fill($request->validated());
+        $user->fill($request->safe()->only(['name', 'email']));
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
