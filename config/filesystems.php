@@ -63,8 +63,9 @@ return [
         ],
 
         'sftp-backup' => [
-            'driver' => 'sftp',
+            'driver' => 'verified-sftp',
             'host' => env('SFTP_HOST'),
+            'hostFingerprint' => env('SFTP_HOST_FINGERPRINT'),
             'username' => env('SFTP_USERNAME'),
             'password' => env('SFTP_PASSWORD'),
             'privateKey' => env('SFTP_PRIVATE_KEY'),

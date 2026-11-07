@@ -1,15 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Enums\RoleEnum;
 use App\Features\TenantDatabase\Listeners\SnapshotTenantDatabases;
 use App\Services\TenantDatabaseService;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 use Opcodes\LogViewer\Facades\LogViewer;
 use Spatie\Backup\Events\BackupManifestWasCreated;
 use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
@@ -25,6 +32,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Storage::extend('verified-sftp', function (Application $app, array $config): Filesystem {
+            $fingerprint = $config['hostFingerprint'] ?? null;
+
+            if (! is_string($fingerprint) || ! trim($fingerprint)) {
+                throw new InvalidArgumentException(__('Set SFTP_HOST_FINGERPRINT to the independently verified backup server fingerprint.'));
+            }
+
+            return $app->make(FilesystemManager::class)->createSftpDriver($config);
+        });
+
         Event::listen(BackupManifestWasCreated::class, SnapshotTenantDatabases::class);
 
         Mail::extend('brevo', function () {
