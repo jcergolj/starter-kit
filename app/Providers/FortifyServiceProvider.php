@@ -5,19 +5,25 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Features\Authentication\Actions\ResetUserPassword;
+use App\Features\Authentication\Responses\PasswordResetLinkResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->singleton(FailedPasswordResetLinkRequestResponse::class, PasswordResetLinkResponse::class);
+        $this->app->singleton(SuccessfulPasswordResetLinkRequestResponse::class, PasswordResetLinkResponse::class);
     }
 
     public function boot(): void
@@ -61,6 +67,16 @@ class FortifyServiceProvider extends ServiceProvider
             $databaseIdentity = config('app.single_db_per_app') ? 'single' : $request->session()->get('tenant_host');
 
             return Limit::perMinute(5)->by($databaseIdentity.'|'.$request->session()->get('login.id'));
+        });
+
+        RateLimiter::for('password-reset', function (Request $request): Limit {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
+        Route::matched(function (RouteMatched $event): void {
+            if ($event->route->named('password.email')) {
+                $event->route->middleware('throttle:password-reset');
+            }
         });
     }
 

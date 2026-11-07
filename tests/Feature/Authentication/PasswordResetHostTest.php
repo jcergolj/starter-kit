@@ -84,7 +84,10 @@ class PasswordResetHostTest extends TestCase
 
         $this->post('https://'.$host.':8443'.route('password.email', [], false), [
             'email' => $user->email,
-        ])->assertRedirect()->assertSessionHas('status', __(Password::RESET_LINK_SENT));
+        ])->assertRedirect()->assertSessionHas(
+            'status',
+            'If an account exists for that email address, you will receive a password reset link.',
+        );
 
         $this->assertSame('sqlite', config('database.default'));
 

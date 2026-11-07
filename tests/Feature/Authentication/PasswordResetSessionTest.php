@@ -106,7 +106,10 @@ class PasswordResetSessionTest extends TestCase
 
         $this->browserRequest('POST', $host, 'password.email', [
             'email' => 'owner@example.com',
-        ])->assertValid()->assertSessionHas('status', __(Password::RESET_LINK_SENT));
+        ])->assertValid()->assertSessionHas(
+            'status',
+            'If an account exists for that email address, you will receive a password reset link.',
+        );
 
         $user = User::on($connection)->where('email', 'owner@example.com')->firstOrFail();
 
