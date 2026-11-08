@@ -10,6 +10,7 @@ use App\Features\Invitations\Requests\AcceptInvitationRequest;
 use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Jcergolj\FormRequestAssertions\TestableFormRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -317,6 +318,8 @@ class AcceptInvitationControllerTest extends TestCase
 
         $dispatcher = User::getEventDispatcher();
 
+        User::setEventDispatcher(clone $dispatcher);
+
         User::creating(function (): void {
             throw new \RuntimeException('User creation failed.');
         });
@@ -335,6 +338,72 @@ class AcceptInvitationControllerTest extends TestCase
         $response->assertServerError();
 
         $this->assertDatabaseEmpty('users');
+
+        $this->assertNull($invitation->fresh()->accepted_at);
+    }
+
+    #[Test]
+    public function store_does_not_hide_unexpected_integrity_errors(): void
+    {
+        $invitation = Invitation::factory()->create();
+
+        $dispatcher = User::getEventDispatcher();
+
+        User::setEventDispatcher(clone $dispatcher);
+        User::creating(function (User $user): void {
+            $user->name = null;
+        });
+
+        try {
+            $response = $this->post(route('accept.invitations.store', $invitation->token), [
+                'name' => 'Jane Doe',
+                'username' => 'janedoe',
+                'password' => 'Secret123!',
+                'password_confirmation' => 'Secret123!',
+            ]);
+        } finally {
+            User::setEventDispatcher($dispatcher);
+        }
+
+        $response->assertServerError();
+
+        $this->assertDatabaseEmpty('users');
+
+        $this->assertNull($invitation->fresh()->accepted_at);
+    }
+
+    #[Test]
+    public function store_does_not_hide_unrelated_unique_errors(): void
+    {
+        $invitation = Invitation::factory()->create();
+
+        $existingUser = User::factory()->create(['username' => 'taken']);
+
+        $dispatcher = User::getEventDispatcher();
+
+        User::setEventDispatcher(clone $dispatcher);
+        User::creating(function (User $user): void {
+            $user->username = 'taken';
+        });
+
+        try {
+            $response = $this->post(route('accept.invitations.store', $invitation->token), [
+                'name' => 'Jane Doe',
+                'username' => 'janedoe',
+                'password' => 'Secret123!',
+                'password_confirmation' => 'Secret123!',
+            ]);
+        } finally {
+            User::setEventDispatcher($dispatcher);
+        }
+
+        $response->assertServerError();
+
+        $this->assertDatabaseCount('users', 1);
+
+        $this->assertModelExists($existingUser);
+
+        $this->assertDatabaseMissing('users', ['email' => $invitation->email]);
 
         $this->assertNull($invitation->fresh()->accepted_at);
     }
@@ -363,5 +432,42 @@ class AcceptInvitationControllerTest extends TestCase
         $this->assertSame(1, User::count());
 
         $this->assertSame(1, Invitation::count());
+    }
+
+    #[Test]
+    public function store_rejects_a_token_rotated_before_the_claim(): void
+    {
+        $invitation = Invitation::factory()->create();
+
+        $rotated = false;
+
+        DB::connection()->beforeExecuting(function (string $query) use ($invitation, &$rotated): void {
+            if ($rotated || ! str_starts_with($query, 'update') || ! str_contains($query, 'invitations')) {
+                return;
+            }
+
+            $rotated = true;
+            Invitation::whereKey($invitation->id)->update(['token' => 'replacement-token']);
+        });
+
+        $response = $this->post(route('accept.invitations.store', $invitation->token), [
+            'name' => 'Jane Doe',
+            'username' => 'janedoe',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+        ]);
+
+        $response->assertRedirect(route('login'))
+            ->assertSessionHas('status', __('This invitation is no longer valid.'));
+
+        $this->assertTrue($rotated);
+
+        $this->assertDatabaseEmpty('users');
+
+        $savedInvitation = $invitation->fresh();
+
+        $this->assertSame('replacement-token', $savedInvitation->token);
+
+        $this->assertNull($savedInvitation->accepted_at);
     }
 }
