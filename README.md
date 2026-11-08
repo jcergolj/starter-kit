@@ -35,7 +35,9 @@ Edit `.env` before using the app:
 - Set the `MAIL_*` values so verification emails and invitations can be sent.
 - Keep `SINGLE_DB_PER_APP=true` to start with one database.
 
-Start the web server:
+Local development does not require Overmind or a Procfile. Run each process in its own terminal.
+
+Start the web server (`composer dev` starts only this process):
 
 ```bash
 composer dev
@@ -54,6 +56,8 @@ php artisan tailwindcss:watch --no-tty
 ```
 
 To view application logs, run `php artisan pail --timeout=0` in another terminal.
+
+Stop each process with `Ctrl+C` in its terminal.
 
 ## Working on the app
 
