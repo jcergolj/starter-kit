@@ -35,13 +35,25 @@ Edit `.env` before using the app:
 - Set the `MAIL_*` values so verification emails and invitations can be sent.
 - Keep `SINGLE_DB_PER_APP=true` to start with one database.
 
-Start the app, queue worker, logs, and CSS watcher:
+Start the web server:
 
 ```bash
 composer dev
 ```
 
-This command requires [Overmind](https://github.com/DarthSim/overmind). See `Procfile` for the individual commands if you prefer to run them separately.
+Run the queue worker in a second terminal:
+
+```bash
+php artisan queue:listen --tries=1
+```
+
+Run the CSS watcher in a third terminal:
+
+```bash
+php artisan tailwindcss:watch --no-tty
+```
+
+To view application logs, run `php artisan pail --timeout=0` in another terminal.
 
 ## Working on the app
 
