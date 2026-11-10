@@ -29,8 +29,11 @@ class PasswordResetSessionTest extends TestCase
         parent::setUp();
 
         $this->storageRoot = sys_get_temp_dir().'/starter-kit-reset-sessions-'.bin2hex(random_bytes(8));
+
         File::makeDirectory($this->storageRoot.'/sessions', 0755, true);
+
         touch($this->storageRoot.'/main.sqlite');
+
         touch($this->storageRoot.'/acme.sqlite');
 
         Config::set([
@@ -46,6 +49,7 @@ class PasswordResetSessionTest extends TestCase
         ]);
 
         DB::purge('sqlite');
+
         DB::purge('tenant');
 
         $this->app->instance(TenantDatabaseService::class, new TenantDatabaseService($this->storageRoot));
@@ -65,7 +69,9 @@ class PasswordResetSessionTest extends TestCase
     {
         try {
             DB::purge('sqlite');
+
             DB::purge('tenant');
+
             File::deleteDirectory($this->storageRoot);
         } finally {
             parent::tearDown();
@@ -76,8 +82,11 @@ class PasswordResetSessionTest extends TestCase
     public static function sessionHosts(): \Iterator
     {
         yield 'root file sessions' => ['file', 'example.com', 'sqlite', 'acme.example.com'];
+
         yield 'tenant file sessions' => ['file', 'acme.example.com', 'tenant', 'example.com'];
+
         yield 'root database sessions' => ['database', 'example.com', 'sqlite', 'acme.example.com'];
+
         yield 'tenant database sessions' => ['database', 'acme.example.com', 'tenant', 'example.com'];
     }
 
@@ -90,6 +99,7 @@ class PasswordResetSessionTest extends TestCase
         string $otherHost,
     ): void {
         Config::set('session.driver', $driver);
+
         Notification::fake();
 
         $otherUser = User::factory()->create();
@@ -183,13 +193,19 @@ class PasswordResetSessionTest extends TestCase
     private function browserRequest(string $method, string $host, string $route, array $data = [], array $cookies = []): TestResponse
     {
         Auth::forgetGuards();
+
         $this->app['session']->forgetDrivers();
+
         $this->app->forgetInstance('session.store');
+
         $this->app->forgetInstance('redirect');
+
         $this->app['cookie']->flushQueuedCookies();
+
         foreach ($this->app['router']->getRoutes() as $registeredRoute) {
             $registeredRoute->flushController();
         }
+
         $this->defaultCookies = $cookies;
 
         return $this->{$method === 'GET' ? 'get' : 'post'}('http://'.$host.route($route, [], false), $data);

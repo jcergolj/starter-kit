@@ -41,6 +41,7 @@ class InvitationMail extends Mailable
     private function acceptanceUrl(): string
     {
         $path = route('invitations.accept', $this->invitation->token, false);
+
         $url = Uri::of(config('app.url'))->withPath($path);
 
         if ($this->tenantSubdomain !== null) {

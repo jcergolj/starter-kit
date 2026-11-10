@@ -31,6 +31,7 @@ class ConnectToUserDatabaseTest extends TestCase
         Config::set('app.domain', 'example.com');
 
         $this->databaseRoot = sys_get_temp_dir().'/starter-kit-middleware-tests-'.bin2hex(random_bytes(8));
+
         mkdir($this->databaseRoot, 0755, true);
 
         Config::set([
@@ -39,11 +40,13 @@ class ConnectToUserDatabaseTest extends TestCase
             'database.connections.sqlite.database' => $this->databaseRoot.'/application.sqlite',
             'database.connections.tenant.database' => $this->databaseRoot.'/application-tenant.sqlite',
         ]);
+
         touch($this->databaseRoot.'/application.sqlite');
 
         $tenantDb = new TenantDatabaseService($this->databaseRoot);
 
         $urlBuilder = app(SubdomainUrlBuilder::class);
+
         $this->middleware = new ConnectToUserDatabase(
             $tenantDb,
             $urlBuilder
@@ -55,6 +58,7 @@ class ConnectToUserDatabaseTest extends TestCase
         foreach (glob($this->databaseRoot.'/*') ?: [] as $path) {
             is_file($path) ? unlink($path) : rmdir($path);
         }
+
         rmdir($this->databaseRoot);
 
         parent::tearDown();
@@ -139,22 +143,27 @@ class ConnectToUserDatabaseTest extends TestCase
 
         // Create the tenant database file
         $dbPath = $this->databaseRoot.'/wronguser.sqlite';
+
         touch($dbPath);
 
         try {
             $request = Request::create('http://wronguser.example.com/dashboard');
+
             $request->setUserResolver(function () use ($user) {
                 return $user;
             });
 
             $exceptionThrown = false;
+
             try {
                 $this->middleware->handle($request, function ($req) {
                     return new Response('OK');
                 });
             } catch (HttpException $e) {
                 $exceptionThrown = true;
+
                 $this->assertSame(Response::HTTP_FORBIDDEN, $e->getStatusCode());
+
                 $this->assertStringContainsString('Unauthorized access', $e->getMessage());
             }
 
@@ -173,15 +182,18 @@ class ConnectToUserDatabaseTest extends TestCase
 
         // Create the tenant database file
         $dbPath = $this->databaseRoot.'/tenantowner.sqlite';
+
         touch($dbPath);
 
         try {
             $request = Request::create('http://tenantowner.example.com/dashboard');
+
             $request->setUserResolver(function () use ($user) {
                 return $user;
             });
 
             $nextCalled = false;
+
             $response = $this->middleware->handle($request, function ($req) use (&$nextCalled) {
                 $nextCalled = true;
 
@@ -189,6 +201,7 @@ class ConnectToUserDatabaseTest extends TestCase
             });
 
             $this->assertTrue($nextCalled);
+
             $this->assertSame(200, $response->getStatusCode());
         } finally {
             unlink($dbPath);
@@ -202,12 +215,14 @@ class ConnectToUserDatabaseTest extends TestCase
 
         // Create the tenant database file
         $dbPath = $this->databaseRoot.'/guesttenant.sqlite';
+
         touch($dbPath);
 
         try {
             $request = Request::create('http://guesttenant.example.com/dashboard');
 
             $nextCalled = false;
+
             $response = $this->middleware->handle($request, function ($req) use (&$nextCalled) {
                 $nextCalled = true;
 
@@ -215,6 +230,7 @@ class ConnectToUserDatabaseTest extends TestCase
             });
 
             $this->assertTrue($nextCalled);
+
             $this->assertSame(200, $response->getStatusCode());
         } finally {
             unlink($dbPath);
@@ -225,15 +241,19 @@ class ConnectToUserDatabaseTest extends TestCase
     public function restores_the_application_connection_between_sequential_tenant_requests(): void
     {
         $this->prepareTenantDatabase('first', 'First tenant');
+
         $this->prepareTenantDatabase('second', 'Second tenant');
 
         $firstRequest = Request::create('http://first.example.com/dashboard');
+
         $this->middleware->handle($firstRequest, function (): Response {
             $this->assertSame('tenant', Config::get('database.default'));
+
             $this->assertSame(
                 $this->databaseRoot.'/first.sqlite',
                 Config::get('database.connections.tenant.database'),
             );
+
             $this->assertSame('First tenant', DB::table('tenant_records')->value('name'));
 
             return new Response('OK');
@@ -247,12 +267,15 @@ class ConnectToUserDatabaseTest extends TestCase
         );
 
         $secondRequest = Request::create('http://second.example.com/dashboard');
+
         $this->middleware->handle($secondRequest, function (): Response {
             $this->assertSame('tenant', Config::get('database.default'));
+
             $this->assertSame(
                 $this->databaseRoot.'/second.sqlite',
                 Config::get('database.connections.tenant.database'),
             );
+
             $this->assertSame('Second tenant', DB::table('tenant_records')->value('name'));
 
             return new Response('OK');
@@ -277,6 +300,7 @@ class ConnectToUserDatabaseTest extends TestCase
             );
         } catch (\RuntimeException $exception) {
             $exceptionThrown = true;
+
             $this->assertSame('Request failed.', $exception->getMessage());
         }
 
@@ -293,14 +317,19 @@ class ConnectToUserDatabaseTest extends TestCase
     private function prepareTenantDatabase(string $subdomain, string $name): void
     {
         $path = $this->databaseRoot."/{$subdomain}.sqlite";
+
         touch($path);
 
         Config::set('database.connections.tenant.database', $path);
+
         DB::purge('tenant');
+
         DB::connection('tenant')->statement('create table tenant_records (name varchar(255))');
+
         DB::connection('tenant')->table('tenant_records')->insert(['name' => $name]);
 
         Config::set('database.connections.tenant.database', $this->databaseRoot.'/application-tenant.sqlite');
+
         DB::purge('tenant');
     }
 }

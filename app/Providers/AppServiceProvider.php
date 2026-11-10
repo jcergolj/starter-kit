@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(TenantDatabaseService::class);
+
         $this->app->alias(TenantDatabaseService::class, 'TenantDatabaseService');
     }
 

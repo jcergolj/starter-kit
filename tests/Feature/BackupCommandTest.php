@@ -22,29 +22,41 @@ class BackupCommandTest extends TestCase
         parent::setUp();
 
         $this->fixtureDirectory = '/tmp/opencode/tenant-backup-'.bin2hex(random_bytes(8));
+
         File::makeDirectory($this->fixtureDirectory.'/database/db', 0700, true);
+
         $this->originalDatabasePath = database_path();
+
         $this->app->useDatabasePath($this->fixtureDirectory.'/database');
 
         $configuration = require base_path('config/backup.php');
+
         $configuration['backup']['name'] = 'fixture';
+
         $configuration['backup']['temporary_directory'] = $this->fixtureDirectory.'/temporary';
+
         $configuration['backup']['destination']['disks'] = ['backup-fixture'];
+
         $configuration['backup']['password'] = null;
+
         config()->set('backup', $configuration);
+
         config()->set('filesystems.disks.backup-fixture', [
             'driver' => 'local',
             'root' => $this->fixtureDirectory.'/archives',
         ]);
+
         config()->set('database.connections.sqlite.database', database_path('main.sqlite'));
 
         $main = new PDO('sqlite:'.database_path('main.sqlite'));
+
         $main->exec("CREATE TABLE records (value TEXT); INSERT INTO records VALUES ('main-record')");
     }
 
     protected function tearDown(): void
     {
         $this->app->useDatabasePath($this->originalDatabasePath);
+
         File::deleteDirectory($this->fixtureDirectory);
 
         parent::tearDown();
@@ -76,7 +88,9 @@ class BackupCommandTest extends TestCase
             $path = database_path('db/'.$tenant.'.sqlite');
 
             $connection = new PDO('sqlite:'.$path);
+
             $connection->exec('PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0');
+
             $connection->exec('CREATE TABLE records (id INTEGER PRIMARY KEY); CREATE TABLE copies (id INTEGER PRIMARY KEY)');
 
             $writer = new Process([PHP_BINARY, '-r', <<<'PHP'
@@ -93,7 +107,9 @@ class BackupCommandTest extends TestCase
                     }
                 }
                 PHP, $path]);
+
             $writer->start();
+
             $writers[] = $writer;
         }
 
@@ -159,12 +175,19 @@ class BackupCommandTest extends TestCase
 
         foreach (['acme' => 'acme-record', 'beta' => 'beta-record'] as $tenant => $value) {
             $writer = new PDO('sqlite:'.database_path('db/'.$tenant.'.sqlite'));
+
             $writer->exec('PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0');
+
             $writer->exec('CREATE TABLE records (id INTEGER PRIMARY KEY, value TEXT)');
+
             $statement = $writer->prepare('INSERT INTO records VALUES (1, ?)');
+
             $statement->execute([$value]);
+
             $writer->beginTransaction();
+
             $writer->exec("UPDATE records SET value = 'uncommitted-record' WHERE id = 1");
+
             $writers[] = $writer;
         }
 
@@ -212,6 +235,7 @@ class BackupCommandTest extends TestCase
             $this->assertIsString($dump);
 
             $main = new PDO('sqlite:'.$this->fixtureDirectory.'/restored/main.sqlite');
+
             $main->exec($dump);
 
             $this->assertSame('ok', $main->query('PRAGMA integrity_check')->fetchColumn());

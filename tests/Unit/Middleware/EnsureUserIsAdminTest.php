@@ -25,6 +25,7 @@ class EnsureUserIsAdminTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $request = Request::create('/invitations/create');
+
         $request->setUserResolver(function () use ($admin) {
             return $admin;
         });
@@ -32,6 +33,7 @@ class EnsureUserIsAdminTest extends TestCase
         $nextCalled = false;
 
         $middleware = new EnsureUserIsAdmin;
+
         $response = $middleware->handle($request, function () use (&$nextCalled) {
             $nextCalled = true;
 
@@ -49,6 +51,7 @@ class EnsureUserIsAdminTest extends TestCase
         $superadmin = User::factory()->superadmin()->create();
 
         $request = Request::create('/invitations/create');
+
         $request->setUserResolver(function () use ($superadmin) {
             return $superadmin;
         });
@@ -56,6 +59,7 @@ class EnsureUserIsAdminTest extends TestCase
         $nextCalled = false;
 
         $middleware = new EnsureUserIsAdmin;
+
         $response = $middleware->handle($request, function () use (&$nextCalled) {
             $nextCalled = true;
 
@@ -73,6 +77,7 @@ class EnsureUserIsAdminTest extends TestCase
         $nonAdmin = User::factory()->create();
 
         $request = Request::create('/invitations/create');
+
         $request->setUserResolver(function () use ($nonAdmin) {
             return $nonAdmin;
         });
@@ -90,6 +95,7 @@ class EnsureUserIsAdminTest extends TestCase
     public function guest_gets_403(): void
     {
         $request = Request::create('/invitations/create');
+
         $request->setUserResolver(function () {
             return null;
         });

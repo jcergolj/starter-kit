@@ -99,6 +99,7 @@ class TwoFactorAuthenticatedSessionControllerTest extends TestCase
         $secret = Fortify::currentEncrypter()->decrypt($user->two_factor_secret);
 
         $google2fa = app(Google2FA::class);
+
         $validCode = $google2fa->getCurrentOtp($secret);
 
         $response = $this->post('/two-factor-challenge', [

@@ -28,6 +28,7 @@ class TenantDatabaseServiceTest extends TestCase
         parent::setUp();
 
         $this->databaseRoot = sys_get_temp_dir().'/starter-kit-tenant-tests-'.bin2hex(random_bytes(8));
+
         mkdir($this->databaseRoot, 0755, true);
 
         $this->service = new TenantDatabaseService($this->databaseRoot);
@@ -40,6 +41,7 @@ class TenantDatabaseServiceTest extends TestCase
                 unlink($path);
             }
         }
+
         rmdir($this->databaseRoot);
 
         parent::tearDown();
@@ -97,6 +99,7 @@ class TenantDatabaseServiceTest extends TestCase
     public function database_exists_returns_true_when_file_exists(): void
     {
         $dbPath = $this->databaseRoot.'/testtenant.sqlite';
+
         touch($dbPath);
 
         $result = $this->service->databaseExists('testtenant');
@@ -116,7 +119,9 @@ class TenantDatabaseServiceTest extends TestCase
     public function get_tenant_subdomains_returns_only_sqlite_files_in_the_test_root(): void
     {
         touch($this->databaseRoot.'/first-tenant.sqlite');
+
         touch($this->databaseRoot.'/second-tenant.sqlite');
+
         touch($this->databaseRoot.'/not-a-database.txt');
 
         $result = $this->service->getTenantSubdomains();
@@ -127,9 +132,13 @@ class TenantDatabaseServiceTest extends TestCase
     public static function validSubdomainProvider(): \Iterator
     {
         yield 'lowercase letters' => ['tenant'];
+
         yield 'numbers' => ['tenant123'];
+
         yield 'hyphen' => ['tenant-name'];
+
         yield 'mixed' => ['tenant-123-name'];
+
         yield 'maximum length' => [str_repeat('a', 63)];
     }
 
@@ -145,14 +154,23 @@ class TenantDatabaseServiceTest extends TestCase
     public static function invalidSubdomainProvider(): \Iterator
     {
         yield 'uppercase letters' => ['Tenant'];
+
         yield 'spaces' => ['tenant name'];
+
         yield 'special characters' => ['tenant@name'];
+
         yield 'dots' => ['tenant.name'];
+
         yield 'empty string' => [''];
+
         yield 'slashes' => ['tenant/name'];
+
         yield 'underscore' => ['tenant_name'];
+
         yield 'leading hyphen' => ['-tenant'];
+
         yield 'trailing hyphen' => ['tenant-'];
+
         yield 'too long' => [str_repeat('a', 64)];
     }
 
@@ -171,6 +189,7 @@ class TenantDatabaseServiceTest extends TestCase
     public function is_main_domain_returns_true_when_host_matches_app_domain(): void
     {
         Config::set('app.domain', 'example.com');
+
         $request = Request::create('http://example.com');
 
         $result = $this->service->isMainDomain($request);
@@ -182,6 +201,7 @@ class TenantDatabaseServiceTest extends TestCase
     public function is_main_domain_returns_false_for_subdomain(): void
     {
         Config::set('app.domain', 'example.com');
+
         $request = Request::create('http://tenant.example.com');
 
         $result = $this->service->isMainDomain($request);
@@ -202,8 +222,11 @@ class TenantDatabaseServiceTest extends TestCase
     public static function untrustedHostProvider(): \Iterator
     {
         yield 'unrelated domain' => ['tenant.example.net'];
+
         yield 'nested tenant' => ['nested.tenant.example.com'];
+
         yield 'lookalike suffix' => ['tenant-example.com'];
+
         yield 'domain suffix confusion' => ['example.com.evil.test'];
     }
 
@@ -236,6 +259,7 @@ class TenantDatabaseServiceTest extends TestCase
     public function create_tenant_database_skips_in_testing_with_memory_database(): void
     {
         Config::set('database.default', 'sqlite');
+
         Config::set('database.connections.sqlite.database', ':memory:');
 
         $this->service->createTenantDatabase('testtenant');
@@ -247,6 +271,7 @@ class TenantDatabaseServiceTest extends TestCase
     public function connect_to_tenant_skips_in_testing_with_memory_database(): void
     {
         Config::set('database.default', 'sqlite');
+
         Config::set('database.connections.sqlite.database', ':memory:');
 
         $this->service->connectToTenant('testtenant');
@@ -258,7 +283,9 @@ class TenantDatabaseServiceTest extends TestCase
     public function create_tenant_database_copies_the_template_to_an_isolated_path(): void
     {
         $templatePath = $this->databaseRoot.'/template.sqlite';
+
         file_put_contents($templatePath, 'template contents');
+
         $service = $this->persistentService($templatePath);
 
         $service->createTenantDatabase('tenant');
@@ -282,9 +309,13 @@ class TenantDatabaseServiceTest extends TestCase
     public function create_tenant_database_requires_a_writable_database_directory(): void
     {
         $templatePath = $this->databaseRoot.'/template.sqlite';
+
         file_put_contents($templatePath, 'template contents');
+
         $service = new TenantDatabaseService($this->databaseRoot.'/missing', $templatePath);
+
         Config::set('database.default', 'sqlite');
+
         Config::set('database.connections.sqlite.database', $this->databaseRoot.'/application.sqlite');
 
         $this->expectException(TenantDatabaseProvisioningFailed::class);
@@ -296,8 +327,11 @@ class TenantDatabaseServiceTest extends TestCase
     public function create_tenant_database_does_not_overwrite_an_existing_file(): void
     {
         $templatePath = $this->databaseRoot.'/template.sqlite';
+
         file_put_contents($templatePath, 'new contents');
+
         file_put_contents($this->databaseRoot.'/tenant.sqlite', 'existing contents');
+
         $service = $this->persistentService($templatePath);
 
         $this->expectException(TenantDatabaseAlreadyExists::class);
@@ -312,7 +346,9 @@ class TenantDatabaseServiceTest extends TestCase
     private function persistentService(string $templatePath): TenantDatabaseService
     {
         Config::set('database.default', 'sqlite');
+
         Config::set('database.connections.sqlite.database', $this->databaseRoot.'/application.sqlite');
+
         touch($this->databaseRoot.'/application.sqlite');
 
         return new TenantDatabaseService($this->databaseRoot, $templatePath);

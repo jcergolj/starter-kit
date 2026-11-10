@@ -17,6 +17,7 @@ class MigrateTenantSchemasCommandTest extends TestCase
         parent::setUp();
 
         $this->fixtureDirectory = sys_get_temp_dir().'/starter-kit-schema-tests-'.bin2hex(random_bytes(8));
+
         mkdir($this->fixtureDirectory.'/db', 0700, true);
     }
 
@@ -33,6 +34,7 @@ class MigrateTenantSchemasCommandTest extends TestCase
         }
 
         rmdir($this->fixtureDirectory.'/db');
+
         rmdir($this->fixtureDirectory);
 
         parent::tearDown();
@@ -56,7 +58,9 @@ class MigrateTenantSchemasCommandTest extends TestCase
 
         foreach ([$template, $firstTenant, $secondTenant] as $database) {
             $connection = new PDO('sqlite:'.$database);
+
             $this->assertSame(4, (int) $connection->query('SELECT COUNT(*) FROM migrations')->fetchColumn());
+
             $this->assertSame(
                 1,
                 (int) $connection->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'users'")
@@ -67,6 +71,7 @@ class MigrateTenantSchemasCommandTest extends TestCase
         $this->artisan('tenants:migrate', $arguments)->assertSuccessful();
 
         $connection = new PDO('sqlite:'.$firstTenant);
+
         $this->assertSame(4, (int) $connection->query('SELECT COUNT(*) FROM migrations')->fetchColumn());
     }
 
@@ -78,6 +83,7 @@ class MigrateTenantSchemasCommandTest extends TestCase
         $healthyTenant = $this->createEmptyDatabase('healthy.sqlite', true);
 
         $failedTenant = $this->fixtureDirectory.'/db/broken.sqlite';
+
         file_put_contents($failedTenant, 'not a sqlite database');
 
         $this->artisan('tenants:migrate', [
@@ -99,6 +105,7 @@ class MigrateTenantSchemasCommandTest extends TestCase
     private function createEmptyDatabase(string $filename, bool $inTenantDirectory = false): string
     {
         $path = $this->fixtureDirectory.'/'.($inTenantDirectory ? 'db/' : '').$filename;
+
         touch($path);
 
         return $path;

@@ -34,6 +34,7 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
 
         $attributes = $request->validated();
+
         $emailChanged = $attributes['email'] !== $user->email;
 
         if ($emailChanged) {

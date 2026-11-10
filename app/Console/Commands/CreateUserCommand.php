@@ -43,6 +43,7 @@ class CreateUserCommand extends Command
 
         if (! config('app.single_db_per_app')) {
             $options[] = __('New tenant database');
+
             $options = array_merge($options, $subdomains);
         }
 
@@ -72,6 +73,7 @@ class CreateUserCommand extends Command
 
         if ($where !== __('Current database') && $where !== __('New tenant database')) {
             $tenantSubdomain = $where;
+
             $tenantDatabaseService->connectToTenant($where);
         }
 

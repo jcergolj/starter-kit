@@ -25,8 +25,11 @@ class PasswordResetHostTest extends TestCase
         parent::setUp();
 
         $this->databaseRoot = sys_get_temp_dir().'/starter-kit-reset-host-tests-'.bin2hex(random_bytes(8));
+
         mkdir($this->databaseRoot, 0755, true);
+
         touch($this->databaseRoot.'/main.sqlite');
+
         touch($this->databaseRoot.'/acme.sqlite');
 
         Config::set([
@@ -40,6 +43,7 @@ class PasswordResetHostTest extends TestCase
         ]);
 
         DB::purge('sqlite');
+
         DB::purge('tenant');
 
         $this->app->instance(TenantDatabaseService::class, new TenantDatabaseService($this->databaseRoot));
@@ -50,6 +54,7 @@ class PasswordResetHostTest extends TestCase
         }
 
         Notification::fake();
+
         Mail::fake();
     }
 
@@ -57,6 +62,7 @@ class PasswordResetHostTest extends TestCase
     {
         try {
             DB::purge('sqlite');
+
             DB::purge('tenant');
 
             foreach (glob($this->databaseRoot.'/*') ?: [] as $path) {
@@ -73,6 +79,7 @@ class PasswordResetHostTest extends TestCase
     public static function trustedHosts(): \Iterator
     {
         yield 'main host' => ['example.com', 'sqlite'];
+
         yield 'tenant host' => ['acme.example.com', 'tenant'];
     }
 
@@ -95,8 +102,11 @@ class PasswordResetHostTest extends TestCase
             $url = $notification->toMail($user)->actionUrl;
 
             $this->assertSame('https', parse_url($url, PHP_URL_SCHEME));
+
             $this->assertSame($host, parse_url($url, PHP_URL_HOST));
+
             $this->assertSame(8443, parse_url($url, PHP_URL_PORT));
+
             $this->assertSame(
                 route(
                     'password.reset',
@@ -108,8 +118,11 @@ class PasswordResetHostTest extends TestCase
                     PHP_URL_PATH,
                 ),
             );
+
             parse_str(parse_url($url, PHP_URL_QUERY), $query);
+
             $this->assertSame(['email' => $user->email], $query);
+
             $this->assertTrue(Password::broker()->tokenExists($user, $notification->token));
 
             return true;
@@ -128,9 +141,13 @@ class PasswordResetHostTest extends TestCase
     public static function untrustedHosts(): \Iterator
     {
         yield 'arbitrary host' => ['attacker.example.net', false];
+
         yield 'existing tenant on unrelated domain' => ['acme.attacker.example.net', false];
+
         yield 'trusted domain with malicious suffix' => ['acme.example.com.attacker.net', false];
+
         yield 'nested tenant' => ['nested.acme.example.com', false];
+
         yield 'arbitrary host in single database mode' => ['attacker.example.net', true];
     }
 
@@ -141,6 +158,7 @@ class PasswordResetHostTest extends TestCase
         Config::set('app.single_db_per_app', $singleDatabase);
 
         $user = User::factory()->create();
+
         User::factory()->connection('tenant')->create(['email' => $user->email]);
 
         $this->post('https://'.$host.':8443'.route('password.email', [], false), [

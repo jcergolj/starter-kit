@@ -25,6 +25,7 @@ class LoggingTest extends TestCase
         $this->assertArrayNotHasKey('bugsnag', config('logging.channels'));
 
         config()->set('logging.channels.stack.channels', $stackChannels);
+
         Log::forgetChannel('stack');
 
         $this->assertInstanceOf(Logger::class, Log::channel('stack'));

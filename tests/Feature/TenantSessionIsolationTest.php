@@ -43,9 +43,11 @@ class TenantSessionIsolationTest extends TestCase
         ]);
 
         mkdir($this->databaseRoot, 0755, true);
+
         mkdir($this->sessionRoot, 0755, true);
 
         touch($this->databaseRoot.'/application.sqlite');
+
         $this->createUsersTable('sqlite');
 
         DB::connection('sqlite')->table('users')->insert([
@@ -106,6 +108,7 @@ class TenantSessionIsolationTest extends TestCase
     public function the_same_session_cookie_is_rejected_by_another_tenant_with_the_same_user_id(): void
     {
         $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
+
         $this->createTenantDatabase('tenant-b', 'tenant-b@example.com');
 
         $response = $this->post('http://tenant-a.example.com/login', [
@@ -210,7 +213,9 @@ class TenantSessionIsolationTest extends TestCase
         $this->assertInstanceOf(Cookie::class, $sessionCookie);
 
         $this->app['session.store']->forget('tenant_host');
+
         $this->app['session.store']->save();
+
         $this->app['auth']->forgetGuards();
 
         $this->withCookie(config('session.cookie'), $sessionCookie->getValue())
@@ -222,6 +227,7 @@ class TenantSessionIsolationTest extends TestCase
     public function remember_me_session_is_also_rejected_by_another_tenant(): void
     {
         $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
+
         $this->createTenantDatabase('tenant-b', 'tenant-b@example.com');
 
         $response = $this->post('http://tenant-a.example.com/login', [
@@ -257,7 +263,9 @@ class TenantSessionIsolationTest extends TestCase
         string $secondHost,
     ): void {
         $this->freezeTime();
+
         $this->createTenantDatabase('tenant-a', 'tenant-a@example.com');
+
         $this->createTenantDatabase('tenant-b', 'tenant-b@example.com');
 
         foreach (range(1, 5) as $_) {
@@ -276,6 +284,7 @@ class TenantSessionIsolationTest extends TestCase
     private function submitRecoveryCode(string $host, string $code = 'invalid-recovery-code'): TestResponse
     {
         $this->app['auth']->forgetGuards();
+
         $this->app['session.store']->flush();
 
         return $this->withSession([
@@ -289,6 +298,7 @@ class TenantSessionIsolationTest extends TestCase
     public function single_database_hosts_share_the_same_account_limit(): void
     {
         config(['app.single_db_per_app' => true]);
+
         $this->freezeTime();
 
         foreach (range(1, 5) as $_) {
@@ -303,7 +313,9 @@ class TenantSessionIsolationTest extends TestCase
         $path = $this->databaseRoot."/{$subdomain}.sqlite";
 
         touch($path);
+
         Config::set('database.connections.tenant.database', $path);
+
         DB::purge('tenant');
 
         $this->createUsersTable('tenant');
@@ -322,6 +334,7 @@ class TenantSessionIsolationTest extends TestCase
         ]);
 
         Config::set('database.connections.tenant.database', $this->databaseRoot.'/application-tenant.sqlite');
+
         DB::purge('tenant');
     }
 
@@ -329,17 +342,29 @@ class TenantSessionIsolationTest extends TestCase
     {
         Schema::connection($connection)->create('users', function (Blueprint $table): void {
             $table->id();
+
             $table->string('username')->unique();
+
             $table->string('name');
+
             $table->string('email')->unique();
+
             $table->string('role')->default(RoleEnum::User->value);
+
             $table->timestamp('email_verified_at')->nullable();
+
             $table->string('password');
+
             $table->timestamp('blocked_at')->nullable();
+
             $table->text('two_factor_secret')->nullable();
+
             $table->text('two_factor_recovery_codes')->nullable();
+
             $table->timestamp('two_factor_confirmed_at')->nullable();
+
             $table->rememberToken();
+
             $table->timestamps();
         });
     }

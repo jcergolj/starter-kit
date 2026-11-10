@@ -26,7 +26,9 @@ class CreateUserCommandTest extends TestCase
         parent::setUp();
 
         $this->databaseRoot = sys_get_temp_dir().'/starter-kit-command-tests-'.bin2hex(random_bytes(8));
+
         mkdir($this->databaseRoot, 0755, true);
+
         $this->app->instance(TenantDatabaseService::class, new TenantDatabaseService($this->databaseRoot));
     }
 
@@ -37,6 +39,7 @@ class CreateUserCommandTest extends TestCase
                 unlink($path);
             }
         }
+
         rmdir($this->databaseRoot);
 
         parent::tearDown();
@@ -102,6 +105,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $user = User::where('email', 'admin@example.com')->first();
+
         $this->assertSame('Admin User', $user->name);
 
         $this->assertSame('admin', $user->username);
@@ -137,6 +141,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $user = User::where('email', 'superadmin@example.com')->first();
+
         $this->assertSame('Super Admin', $user->name);
 
         $this->assertSame('superadmin', $user->username);
@@ -152,6 +157,7 @@ class CreateUserCommandTest extends TestCase
     public function it_sends_invitation_for_regular_user_on_current_database(): void
     {
         Mail::fake();
+
         config([
             'app.url' => 'https://starter-kit.test:8443',
             'app.domain' => 'starter-kit.test',
@@ -176,6 +182,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'invite@example.com')->first();
+
         $this->assertNotNull($invitation);
 
         $this->assertSame(RoleEnum::User, $invitation->role);
@@ -210,6 +217,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'admin-invite@example.com')->first();
+
         $this->assertNotNull($invitation);
 
         $this->assertSame(RoleEnum::Admin, $invitation->role);
@@ -243,6 +251,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'superadmin-invite@example.com')->first();
+
         $this->assertNotNull($invitation);
 
         $this->assertSame(RoleEnum::Superadmin, $invitation->role);
@@ -276,6 +285,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'lang-test@example.com')->first();
+
         $this->assertSame('sl', $invitation->lang);
     }
 
@@ -303,6 +313,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $user = User::where('email', 'tenant@example.com')->first();
+
         $this->assertSame('Tenant User', $user->name);
 
         $this->assertSame('test-tenant', $user->username);
@@ -334,6 +345,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $user = User::where('email', 'tenant-admin@example.com')->first();
+
         $this->assertSame('Tenant Admin', $user->name);
 
         $this->assertSame('admin-tenant', $user->username);
@@ -345,6 +357,7 @@ class CreateUserCommandTest extends TestCase
     public function it_sends_invitation_on_new_tenant_database(): void
     {
         Mail::fake();
+
         config([
             'app.url' => 'https://starter-kit.test:8443',
             'app.domain' => 'starter-kit.test',
@@ -370,6 +383,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'tenant-invite@example.com')->first();
+
         $this->assertNotNull($invitation);
 
         $this->assertSame(RoleEnum::User, $invitation->role);
@@ -387,10 +401,12 @@ class CreateUserCommandTest extends TestCase
     public function it_sends_invitation_on_existing_tenant_database(): void
     {
         Mail::fake();
+
         config([
             'app.url' => 'https://starter-kit.test:8443',
             'app.domain' => 'starter-kit.test',
         ]);
+
         touch($this->databaseRoot.'/existing-invite-tenant.sqlite');
 
         $this->artisan('app:create-user')
@@ -413,6 +429,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $invitation = Invitation::where('email', 'existing-tenant-invite@example.com')->first();
+
         $this->assertNotNull($invitation);
 
         Mail::assertSent(InvitationMail::class, function (InvitationMail $mail) use ($invitation) {
@@ -450,6 +467,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $user = User::where('email', 'existing@example.com')->first();
+
         $this->assertSame('Existing Tenant User', $user->name);
 
         $this->assertFileExists(database_path('db/.gitkeep'));
@@ -492,6 +510,7 @@ class CreateUserCommandTest extends TestCase
             ->assertSuccessful();
 
         $user = User::where('email', 'singledb@example.com')->first();
+
         $this->assertSame('Single DB User', $user->name);
 
         $this->assertSame(RoleEnum::User, $user->role);

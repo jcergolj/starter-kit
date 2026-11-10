@@ -62,6 +62,7 @@ class LanguageControllerTest extends TestCase
         $response->assertRedirect();
 
         $user->refresh();
+
         $this->assertSame('sl', $user->settings->lang);
     }
 

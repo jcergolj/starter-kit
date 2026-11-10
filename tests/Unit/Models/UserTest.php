@@ -45,6 +45,7 @@ class UserTest extends TestCase
     public function two_factor_credentials_are_hidden_from_serialization(): void
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+
         $serialized = $user->toArray();
 
         $this->assertArrayNotHasKey('two_factor_secret', $serialized);

@@ -32,6 +32,7 @@ final readonly class TenantDatabaseService
     public function extractSubdomain(Request $request): ?string
     {
         $host = $request->getHost();
+
         $parts = explode('.', $host);
 
         if (count($parts) >= 2) {
@@ -82,10 +83,12 @@ final readonly class TenantDatabaseService
         throw_unless(file_exists($databasePath), DatabaseNotFound::class);
 
         Config::set('database.connections.tenant.database', $databasePath);
+
         Config::set('database.default', 'tenant');
 
         try {
             DB::purge('tenant');
+
             DB::reconnect('tenant');
         } catch (Throwable) {
             DB::purge('tenant');
@@ -97,6 +100,7 @@ final readonly class TenantDatabaseService
     public function resetToApplicationDatabase(): void
     {
         Config::set('database.default', $this->applicationDefaultConnection);
+
         Config::set('database.connections.tenant.database', $this->applicationTenantDatabase);
 
         DB::purge('tenant');
@@ -111,6 +115,7 @@ final readonly class TenantDatabaseService
         }
 
         $databasePath = $this->getDatabasePath($subdomain);
+
         $databaseDirectory = dirname($databasePath);
 
         $templatePath = $this->templatePath ?? database_path('template.sqlite');

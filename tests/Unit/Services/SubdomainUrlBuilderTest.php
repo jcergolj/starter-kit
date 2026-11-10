@@ -148,9 +148,13 @@ class SubdomainUrlBuilderTest extends TestCase
     public static function pathProvider(): \Iterator
     {
         yield 'empty path' => ['', 'http://tenant.example.com'];
+
         yield 'path without slash' => ['dashboard', 'http://tenant.example.com/dashboard'];
+
         yield 'path with leading slash' => ['/dashboard', 'http://tenant.example.com/dashboard'];
+
         yield 'nested path' => ['/admin/users', 'http://tenant.example.com/admin/users'];
+
         yield 'path with trailing slash' => ['/dashboard/', 'http://tenant.example.com/dashboard/'];
     }
 

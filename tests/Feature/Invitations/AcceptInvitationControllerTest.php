@@ -26,6 +26,7 @@ class AcceptInvitationControllerTest extends TestCase
     public function store_has_form_request(): void
     {
         $invitation = Invitation::factory()->create();
+
         $this->post(route('accept.invitations.store', $invitation->token));
 
         $this->assertContainsFormRequest(AcceptInvitationRequest::class);
@@ -294,6 +295,7 @@ class AcceptInvitationControllerTest extends TestCase
     public function store_fails_without_consuming_invitation_when_email_already_exists(): void
     {
         $invitation = Invitation::factory()->create(['email' => 'existing@example.com']);
+
         User::factory()->create(['email' => $invitation->email]);
 
         $response = $this->post(route('accept.invitations.store', $invitation->token), [
@@ -350,6 +352,7 @@ class AcceptInvitationControllerTest extends TestCase
         $dispatcher = User::getEventDispatcher();
 
         User::setEventDispatcher(clone $dispatcher);
+
         User::creating(function (User $user): void {
             $user->name = null;
         });
@@ -382,6 +385,7 @@ class AcceptInvitationControllerTest extends TestCase
         $dispatcher = User::getEventDispatcher();
 
         User::setEventDispatcher(clone $dispatcher);
+
         User::creating(function (User $user): void {
             $user->username = 'taken';
         });
@@ -421,6 +425,7 @@ class AcceptInvitationControllerTest extends TestCase
         ];
 
         $this->post(route('accept.invitations.store', $invitation->token), $payload);
+
         $response = $this->post(route('accept.invitations.store', $invitation->token), [
             ...$payload,
             'username' => 'janetwo',
@@ -447,6 +452,7 @@ class AcceptInvitationControllerTest extends TestCase
             }
 
             $rotated = true;
+
             Invitation::whereKey($invitation->id)->update(['token' => 'replacement-token']);
         });
 

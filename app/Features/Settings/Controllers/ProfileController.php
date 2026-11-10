@@ -54,6 +54,7 @@ class ProfileController extends Controller
         $user->delete();
 
         Session::invalidate();
+
         Session::regenerateToken();
 
         return redirect('/');

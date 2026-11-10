@@ -44,6 +44,7 @@ class InvitationTest extends TestCase
     public function create_for_reissues_an_expired_invitation_in_place(): void
     {
         $invitation = Invitation::factory()->expired()->create();
+
         $oldToken = $invitation->token;
 
         $reissued = Invitation::createFor($invitation->email, RoleEnum::Admin, 'sl');
@@ -67,6 +68,7 @@ class InvitationTest extends TestCase
     public function create_for_reissues_an_accepted_invitation(): void
     {
         $invitation = Invitation::factory()->accepted()->create();
+
         $oldToken = $invitation->token;
 
         $reissued = Invitation::createFor($invitation->email);

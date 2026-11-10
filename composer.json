@@ -38,7 +38,7 @@
         "jcergolj/laravel-form-request-assertions": "^1.5",
         "jcergolj/laravel-view-test-assertions": "3",
         "jcergolj/metator-for-laravel": "10",
-        "jcergolj/rector-for-laravel": "13",
+        "jcergolj/rector-for-laravel": "14",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.2",
         "laravel/pail": "^1.2.2",
@@ -92,7 +92,7 @@
         "pint": "./vendor/bin/pint --parallel",
         "phpmd": "./vendor/bin/phpmd analyze app --format text --ruleset phpmd.xml",
         "rector": "vendor/bin/rector",
-        "test": "@php artisan test",
+        "test": "@php artisan test --parallel --max-processes=4",
         "analyse": [
             "@env-sync",
             "@env-prune",

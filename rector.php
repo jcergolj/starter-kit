@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Jcergolj\RectorForLaravel\CustomRules\AddBlankLineAfterPhpUnitAssertionRector;
 use Jcergolj\RectorForLaravel\CustomRules\ArrowFunctionToClosureRector;
-use Jcergolj\RectorForLaravel\CustomRules\BlankLineBetweenUnrelatedAssignmentsRector;
+use Jcergolj\RectorForLaravel\CustomRules\BlankLineBetweenStatementsRector;
 use Jcergolj\RectorForLaravel\CustomRules\DataProviderBeforeTestRector;
 use Jcergolj\RectorForLaravel\CustomRules\MiddlewareTestsFirstRector;
 use Jcergolj\RectorForLaravel\CustomRules\ModelQueryToDirectStaticCallRector;
@@ -101,7 +101,6 @@ return RectorConfig::configure()
         UseComponentPropertyWithinCommandsRector::class,
         ValidationRuleArrayStringValueToArrayRector::class,
         ArrowFunctionToClosureRector::class,
-        BlankLineBetweenUnrelatedAssignmentsRector::class,
         DataProviderBeforeTestRector::class,
         MiddlewareTestsFirstRector::class,
         ModelCastsPropertyToCastsMethodRector::class,
@@ -113,6 +112,7 @@ return RectorConfig::configure()
         WrapLongChainsRector::class,
         WrapLongConcatenationsRector::class,
         WrapLongListsRector::class,
+        BlankLineBetweenStatementsRector::class,
     ])
     ->withCache(
         cacheClass: FileCacheStorage::class,

@@ -18,6 +18,7 @@ class VerifyBackupCommandTest extends TestCase
         parent::setUp();
 
         $this->fixtureDirectory = sys_get_temp_dir().'/starter-kit-backup-tests-'.bin2hex(random_bytes(8));
+
         mkdir($this->fixtureDirectory.'/db', 0700, true);
     }
 
@@ -34,6 +35,7 @@ class VerifyBackupCommandTest extends TestCase
         }
 
         rmdir($this->fixtureDirectory.'/db');
+
         rmdir($this->fixtureDirectory);
 
         parent::tearDown();
@@ -45,6 +47,7 @@ class VerifyBackupCommandTest extends TestCase
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
 
         $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
+
         $archive = $this->createArchive($mainDatabase, $tenantDatabase);
 
         $this->artisan('backup:verify', [
@@ -60,8 +63,11 @@ class VerifyBackupCommandTest extends TestCase
         $archivePath = $this->fixtureDirectory.'/backup.zip';
 
         $archive = new ZipArchive;
+
         $archive->open($archivePath, ZipArchive::CREATE);
+
         $archive->addFromString('db-dumps/sqlite-sqlite-database.sql', 'not a sql dump');
+
         $archive->close();
 
         $this->artisan('backup:verify', [
@@ -95,6 +101,7 @@ class VerifyBackupCommandTest extends TestCase
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
 
         $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
+
         $archive = $this->createArchive($mainDatabase, $tenantDatabase, true);
 
         $this->artisan('backup:verify', [
@@ -111,6 +118,7 @@ class VerifyBackupCommandTest extends TestCase
         $mainDatabase = $this->createDatabase('main.sqlite', 'main-record');
 
         $tenantDatabase = $this->createDatabase('acme.sqlite', 'tenant-record', true);
+
         $archive = $this->createArchive($mainDatabase, $tenantDatabase, false, 'database/archive-copy/acme.sqlite');
 
         $this->artisan('backup:verify', [
@@ -124,9 +132,13 @@ class VerifyBackupCommandTest extends TestCase
     private function createDatabase(string $filename, string $value, bool $inTenantDirectory = false): string
     {
         $path = $this->fixtureDirectory.'/'.($inTenantDirectory ? 'db/' : '').$filename;
+
         $connection = new PDO('sqlite:'.$path);
+
         $connection->exec('CREATE TABLE records (value TEXT NOT NULL)');
+
         $statement = $connection->prepare('INSERT INTO records (value) VALUES (?)');
+
         $statement->execute([$value]);
 
         return $path;
@@ -141,7 +153,9 @@ class VerifyBackupCommandTest extends TestCase
         $archivePath = $this->fixtureDirectory.'/backup.zip';
 
         $archive = new ZipArchive;
+
         $archive->open($archivePath, ZipArchive::CREATE);
+
         $archive->addFile($mainDatabase, 'database/'.basename($mainDatabase));
 
         if ($tenantDatabase !== null) {

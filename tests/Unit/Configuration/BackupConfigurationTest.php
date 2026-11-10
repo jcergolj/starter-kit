@@ -13,6 +13,7 @@ class BackupConfigurationTest extends TestCase
     public function backup_uses_snapshots_instead_of_including_live_database_files(): void
     {
         $configuration = require base_path('config/backup.php');
+
         $files = $configuration['backup']['source']['files'];
 
         $this->assertSame([], $files['include']);

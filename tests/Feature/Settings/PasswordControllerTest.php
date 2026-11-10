@@ -60,6 +60,7 @@ class PasswordControllerTest extends TestCase
         $response->assertRedirect();
 
         $user->refresh();
+
         $this->assertTrue(Hash::check('new-password-123', $user->password));
     }
 

@@ -162,7 +162,9 @@ class PasswordResetLinkControllerTest extends TestCase
     public function reset_password_request_rejects_an_untrusted_host(): void
     {
         Config::set('app.domain', 'example.com');
+
         Notification::fake();
+
         $user = User::factory()->create();
 
         $this->post('http://attacker.example.net'.route('password.request', [], false), [
@@ -176,8 +178,11 @@ class PasswordResetLinkControllerTest extends TestCase
     public function reset_password_request_accepts_the_configured_main_host(): void
     {
         Config::set('app.domain', 'example.com');
+
         Config::set('app.url', 'http://example.com');
+
         Notification::fake();
+
         $user = User::factory()->create();
 
         $this->post('http://example.com'.route('password.request', [], false), [

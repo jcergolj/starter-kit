@@ -83,6 +83,7 @@ class ConfirmedTwoFactorControllerTest extends TestCase
         $secret = decrypt($user->two_factor_secret);
 
         $google2fa = app(Google2FA::class);
+
         $validCode = $google2fa->getCurrentOtp($secret);
 
         $this->actingAs($user)
@@ -124,6 +125,7 @@ class ConfirmedTwoFactorControllerTest extends TestCase
         $user->refresh();
 
         $validCode = app(Google2FA::class)->getCurrentOtp(decrypt($user->two_factor_secret));
+
         $invalidCode = str_pad((string) (((int) $validCode + 1) % 1_000_000), 6, '0', STR_PAD_LEFT);
 
         $this->actingAs($user)

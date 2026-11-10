@@ -96,6 +96,7 @@ class ProfileControllerTest extends TestCase
         $response->assertRedirect();
 
         $user->refresh();
+
         $this->assertNull($user->email_verified_at);
     }
 

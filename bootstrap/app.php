@@ -21,9 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function (): void {
             Route::middleware('web')->group(base_path('app/Features/Invitations/Routes/web.php'));
+
             Route::middleware('web')->group(base_path('app/Features/UserManagement/Routes/web.php'));
+
             Route::middleware('web')->group(base_path('app/Features/Authentication/Routes/web.php'));
+
             Route::middleware('web')->group(base_path('app/Features/Dashboard/Routes/web.php'));
+
             Route::middleware('web')->group(base_path('app/Features/Settings/Routes/web.php'));
         },
     )
@@ -39,18 +43,22 @@ return Application::configure(basePath: dirname(__DIR__))
             },
             subdomains: false,
         );
+
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
+
         $middleware->web(prepend: [
             ConnectToUserDatabase::class,
         ]);
+
         $middleware->web(append: [
             EnsureTenantSessionMatchesHost::class,
             AuthenticateSession::class,
             SetLocaleMiddleware::class,
             EnsureUserIsNotBlocked::class,
         ]);
+
         $middleware->appendToPriorityList(StartSession::class, EnsureTenantSessionMatchesHost::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {

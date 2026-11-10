@@ -41,6 +41,7 @@ class InvitationController extends Controller
             Mail::to($invitation->email)->send(new InvitationMail($invitation, $tenantSubdomain));
         } catch (Throwable $exception) {
             report($exception);
+
             $invitation->delete();
 
             InAppNotification::error(__('Invitation could not be sent. Please try again.'));

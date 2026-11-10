@@ -24,6 +24,7 @@ class VerifyBackupCommand extends Command
         $mainDatabase = (string) ($this->option('main-database') ?? database_path('database.sqlite'));
 
         $tenantRoot = (string) ($this->option('tenant-root') ?? database_path('db'));
+
         $tenantDatabases = glob($tenantRoot.'/*.sqlite') ?: [];
 
         if (! is_file($archivePath)) {
@@ -41,11 +42,14 @@ class VerifyBackupCommand extends Command
         }
 
         $temporaryDirectory = storage_path('app/backup-verify-'.bin2hex(random_bytes(8)));
+
         mkdir($temporaryDirectory, 0700, true);
 
         try {
             $databaseEntries = $this->getDatabaseEntries($archive, $mainDatabase, $tenantDatabases);
+
             $this->restoreAndCheckDatabases($archive, $temporaryDirectory, $databaseEntries);
+
             $this->info(sprintf(
                 'Backup verified: %d SQLite database(s) restored successfully.',
                 count($databaseEntries),
@@ -58,6 +62,7 @@ class VerifyBackupCommand extends Command
             return self::FAILURE;
         } finally {
             $archive->close();
+
             $this->removeDirectory($temporaryDirectory);
         }
     }
@@ -101,6 +106,7 @@ class VerifyBackupCommand extends Command
 
         foreach ($tenantDatabases as $database) {
             $expectedPath = 'database/db/'.basename($database);
+
             $entry = $this->findDatabaseEntry($entries, $expectedPath);
 
             if ($entry === null) {
@@ -134,6 +140,7 @@ class VerifyBackupCommand extends Command
                     throw_if($dump === false, RuntimeException::class, __('Unable to read main database dump.'));
 
                     $connection = new \PDO('sqlite:'.$restoredDatabase);
+
                     $connection->exec($dump);
                 } catch (\PDOException $exception) {
                     throw new RuntimeException(__('Unable to restore main database dump.'), 0, $exception);
@@ -168,6 +175,7 @@ class VerifyBackupCommand extends Command
     {
         try {
             $connection = new \PDO('sqlite:'.$database);
+
             $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
             return $connection->query('PRAGMA integrity_check')->fetchColumn() === 'ok';

@@ -18,6 +18,7 @@ class SnapshotTenantDatabases
     public function handle(BackupManifestWasCreated $event): void
     {
         $snapshotDirectory = dirname($event->manifest->path()).'/database/db';
+
         $this->files->ensureDirectoryExists($snapshotDirectory, 0700, true);
 
         foreach (new DirectoryIterator(database_path('db')) as $file) {
@@ -29,7 +30,9 @@ class SnapshotTenantDatabases
 
             try {
                 $connection = new PDO('sqlite:file:'.$file->getPathname().'?mode=ro');
+
                 $statement = $connection->prepare('VACUUM INTO ?');
+
                 $statement->execute([$snapshot]);
             } catch (PDOException $exception) {
                 throw new RuntimeException(

@@ -48,19 +48,23 @@ class MigrateTenantSchemasCommand extends Command
             foreach ($targets as $name => $path) {
                 try {
                     $this->migrateDatabase($path);
+
                     $this->info("Migrated {$name}.");
                 } catch (Throwable $exception) {
                     $failed[$name] = $exception->getMessage();
+
                     $this->error("Failed {$name}: {$exception->getMessage()}");
                 }
             }
         } finally {
             Config::set('database.connections.tenant.database', $originalTenantDatabase);
+
             DB::purge('tenant');
         }
 
         if ($snapshot !== $this->tenantPaths($tenantRoot)) {
             $this->error('Tenant database membership changed during migration; run the command again.');
+
             $failed['membership'] = 'changed during migration';
         }
 
@@ -79,6 +83,7 @@ class MigrateTenantSchemasCommand extends Command
     private function tenantPaths(string $tenantRoot): array
     {
         $paths = glob($tenantRoot.'/*.sqlite') ?: [];
+
         sort($paths);
 
         return $paths;
@@ -87,6 +92,7 @@ class MigrateTenantSchemasCommand extends Command
     private function migrateDatabase(string $databasePath): void
     {
         Config::set('database.connections.tenant.database', $databasePath);
+
         DB::purge('tenant');
 
         $exitCode = Artisan::call('migrate', [

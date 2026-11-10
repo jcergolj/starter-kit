@@ -23,13 +23,16 @@ class FortifyServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(FailedPasswordResetLinkRequestResponse::class, PasswordResetLinkResponse::class);
+
         $this->app->singleton(SuccessfulPasswordResetLinkRequestResponse::class, PasswordResetLinkResponse::class);
     }
 
     public function boot(): void
     {
         $this->configureFotifyActions();
+
         $this->configureFortifyViews();
+
         $this->configureRateLimiting();
     }
 
@@ -38,18 +41,23 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::twoFactorChallengeView(function () {
             return view('authentication::auth.two-factor-challenge');
         });
+
         Fortify::confirmPasswordView(function () {
             return view('authentication::auth.confirm-password');
         });
+
         Fortify::loginView(function () {
             return view('authentication::auth.login');
         });
+
         Fortify::verifyEmailView(function () {
             return view('authentication::auth.verify-email');
         });
+
         Fortify::resetPasswordView(function () {
             return view('authentication::auth.reset-password');
         });
+
         Fortify::requestPasswordResetLinkView(function () {
             return view('authentication::auth.forgot-password');
         });
@@ -83,6 +91,7 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureFotifyActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
+
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
     }
 }

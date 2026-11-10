@@ -35,6 +35,7 @@ class SetLocaleMiddlewareTest extends TestCase
         ]);
 
         $request = Request::create('/dashboard');
+
         $request->setUserResolver(function () use ($user) {
             return $user;
         });
