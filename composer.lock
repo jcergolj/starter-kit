@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "42385bc30529109467b8213c7f1766ed",
+    "content-hash": "cae7929ba796ecf2dcc8a7650979b9d4",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -10550,16 +10550,16 @@
         },
         {
             "name": "jcergolj/rector-for-laravel",
-            "version": "v14",
+            "version": "v16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jcergolj/rector-for-laravel.git",
-                "reference": "0f286e70374a710b99e096b66ab8093d3041e01f"
+                "reference": "8b6697decbff9042adb6166acb84961a40d2f9eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jcergolj/rector-for-laravel/zipball/0f286e70374a710b99e096b66ab8093d3041e01f",
-                "reference": "0f286e70374a710b99e096b66ab8093d3041e01f",
+                "url": "https://api.github.com/repos/jcergolj/rector-for-laravel/zipball/8b6697decbff9042adb6166acb84961a40d2f9eb",
+                "reference": "8b6697decbff9042adb6166acb84961a40d2f9eb",
                 "shasum": ""
             },
             "require": {
@@ -10594,10 +10594,10 @@
             "description": "Rector rules for Laravel projects",
             "support": {
                 "issues": "https://github.com/jcergolj/rector-for-laravel/issues",
-                "source": "https://github.com/jcergolj/rector-for-laravel/tree/v14"
+                "source": "https://github.com/jcergolj/rector-for-laravel/tree/v16"
             },
-            "time": "2026-11-10T14:08:42+00:00",
-            "published-time": "2026-11-10T14:09:05+00:00"
+            "time": "2026-11-17T13:26:33+00:00",
+            "published-time": "2026-11-17T13:26:58+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",
