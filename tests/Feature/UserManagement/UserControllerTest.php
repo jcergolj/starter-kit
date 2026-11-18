@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\UserManagement;
 
-use App\Enums\RoleEnum;
 use App\Features\UserManagement\Controllers\UserController;
 use App\Features\UserManagement\Requests\UpdateUserRequest;
 use App\Models\User;
@@ -137,9 +136,7 @@ class UserControllerTest extends TestCase
 
         $response->assertSeeText($otherUser->username);
 
-        $this->assertDatabaseCount('users', 2);
-
-        $this->assertCount(1, User::where('role', RoleEnum::User)->get());
+        $this->assertSame([$otherUser->id], $response->viewData('users')->modelKeys());
     }
 
     #[Test]

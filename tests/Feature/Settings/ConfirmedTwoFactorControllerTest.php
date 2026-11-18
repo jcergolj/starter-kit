@@ -78,7 +78,9 @@ class ConfirmedTwoFactorControllerTest extends TestCase
     #[Test]
     public function two_factor_authentication_can_be_confirmed(): void
     {
-        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
+        $user = User::factory()->withTwoFactorAuthenticationEnabled()->create([
+            'two_factor_confirmed_at' => null,
+        ]);
 
         $secret = decrypt($user->two_factor_secret);
 
@@ -90,7 +92,9 @@ class ConfirmedTwoFactorControllerTest extends TestCase
             ->withoutMiddleware(RequirePassword::class)
             ->put(route('settings.confirmed-two-factor.update'), [
                 'code' => $validCode,
-            ]);
+            ])
+            ->assertValid()
+            ->assertRedirect(route('settings.two-factor.edit'));
 
         $user->refresh();
 

@@ -70,15 +70,16 @@ class RecoveryCodesControllerTest extends TestCase
     {
         $user = User::factory()->withTwoFactorAuthenticationEnabled()->create();
 
-        $originalRecoveryCodes = $user->two_factor_recovery_codes;
+        $originalRecoveryCodes = $user->recoveryCodes();
 
         $this->actingAs($user)
             ->withoutMiddleware(RequirePassword::class)
-            ->put(route('settings.recovery-codes.update'));
+            ->put(route('settings.recovery-codes.update'))
+            ->assertRedirect(route('settings.recovery-codes.edit'));
 
         $user->refresh();
 
-        $this->assertNotEquals($originalRecoveryCodes, $user->two_factor_recovery_codes);
+        $this->assertNotSame($originalRecoveryCodes, $user->recoveryCodes());
     }
 
     #[Test]
