@@ -2,15 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Http\Requests\AppFormRequest;
 use Jcergolj\RectorForLaravel\CustomRules\AddBlankLineAfterPhpUnitAssertionRector;
+use Jcergolj\RectorForLaravel\CustomRules\AdoptProjectFormRequestRector;
 use Jcergolj\RectorForLaravel\CustomRules\ArrowFunctionToClosureRector;
 use Jcergolj\RectorForLaravel\CustomRules\BlankLineBetweenStatementsRector;
 use Jcergolj\RectorForLaravel\CustomRules\DataProviderBeforeTestRector;
 use Jcergolj\RectorForLaravel\CustomRules\MiddlewareTestsFirstRector;
+use Jcergolj\RectorForLaravel\CustomRules\ModelCastsPropertyToCastsMethodRector;
 use Jcergolj\RectorForLaravel\CustomRules\ModelQueryToDirectStaticCallRector;
 use Jcergolj\RectorForLaravel\CustomRules\PhpUnitTestDocblockToAttributeRector;
 use Jcergolj\RectorForLaravel\CustomRules\RemoveFillableFromUnguardedModelsRector;
 use Jcergolj\RectorForLaravel\CustomRules\RemoveMigrationDownMethodRector;
+use Jcergolj\RectorForLaravel\CustomRules\RemovePhpUnitTestPrefixRector;
 use Jcergolj\RectorForLaravel\CustomRules\WrapLongBooleanConditionsRector;
 use Jcergolj\RectorForLaravel\CustomRules\WrapLongChainsRector;
 use Jcergolj\RectorForLaravel\CustomRules\WrapLongConcatenationsRector;
@@ -22,7 +26,6 @@ use Rector\PHPUnit\CodeQuality\Rector\Class_\YieldDataProviderRector;
 use Rector\Privatization\Rector\Class_\FinalizeTestCaseClassRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
 use RectorLaravel\Rector\Class_\AnonymousMigrationsRector;
-use RectorLaravel\Rector\Class_\ModelCastsPropertyToCastsMethodRector;
 use RectorLaravel\Rector\Class_\RemoveModelPropertyFromFactoriesRector;
 use RectorLaravel\Rector\Coalesce\ApplyDefaultInsteadOfNullCoalesceRector;
 use RectorLaravel\Rector\Expr\AppEnvironmentComparisonToParameterRector;
@@ -110,11 +113,15 @@ return RectorConfig::configure()
         PhpUnitTestDocblockToAttributeRector::class,
         RemoveFillableFromUnguardedModelsRector::class,
         RemoveMigrationDownMethodRector::class,
+        RemovePhpUnitTestPrefixRector::class,
         WrapLongBooleanConditionsRector::class,
         WrapLongChainsRector::class,
         WrapLongConcatenationsRector::class,
         WrapLongListsRector::class,
         BlankLineBetweenStatementsRector::class,
+    ])
+    ->withConfiguredRule(AdoptProjectFormRequestRector::class, [
+        AdoptProjectFormRequestRector::BASE_CLASS => AppFormRequest::class,
     ])
     ->withCache(
         cacheClass: FileCacheStorage::class,
@@ -127,6 +134,7 @@ return RectorConfig::configure()
     )->withPreparedSets(
         deadCode: true,
         codeQuality: true,
+        instanceOf: true,
         earlyReturn: true,
         carbon: true,
         phpunitCodeQuality: true,

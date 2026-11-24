@@ -38,7 +38,7 @@
         "jcergolj/laravel-form-request-assertions": "^1.5",
         "jcergolj/laravel-view-test-assertions": "3",
         "jcergolj/metator-for-laravel": "10",
-        "jcergolj/rector-for-laravel": "16",
+        "jcergolj/rector-for-laravel": "17",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.2",
         "laravel/pail": "^1.2.2",

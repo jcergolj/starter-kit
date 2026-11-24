@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cae7929ba796ecf2dcc8a7650979b9d4",
+    "content-hash": "e205b5fba2a12413bfffa3e49779be45",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -10550,25 +10550,30 @@
         },
         {
             "name": "jcergolj/rector-for-laravel",
-            "version": "v16",
+            "version": "v17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jcergolj/rector-for-laravel.git",
-                "reference": "8b6697decbff9042adb6166acb84961a40d2f9eb"
+                "reference": "b28fe76cc769a9ffc9fa9472d8f431d740a11715"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jcergolj/rector-for-laravel/zipball/8b6697decbff9042adb6166acb84961a40d2f9eb",
-                "reference": "8b6697decbff9042adb6166acb84961a40d2f9eb",
+                "url": "https://api.github.com/repos/jcergolj/rector-for-laravel/zipball/b28fe76cc769a9ffc9fa9472d8f431d740a11715",
+                "reference": "b28fe76cc769a9ffc9fa9472d8f431d740a11715",
                 "shasum": ""
             },
             "require": {
-                "driftingly/rector-laravel": "^2.7"
+                "driftingly/rector-laravel": "^2.7",
+                "nikic/php-parser": "^5.6"
             },
             "require-dev": {
                 "laravel/pint": "^1.32",
                 "phpunit/phpunit": "^13.4"
             },
+            "bin": [
+                "bin/rector-laravel-dto-check",
+                "bin/rector-laravel-controller-check"
+            ],
             "type": "library",
             "extra": {
                 "laravel": {
@@ -10594,10 +10599,10 @@
             "description": "Rector rules for Laravel projects",
             "support": {
                 "issues": "https://github.com/jcergolj/rector-for-laravel/issues",
-                "source": "https://github.com/jcergolj/rector-for-laravel/tree/v16"
+                "source": "https://github.com/jcergolj/rector-for-laravel/tree/v17"
             },
-            "time": "2026-11-17T13:26:33+00:00",
-            "published-time": "2026-11-17T13:26:58+00:00"
+            "time": "2026-11-24T12:17:08+00:00",
+            "published-time": "2026-11-24T12:19:40+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",
